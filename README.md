@@ -23,16 +23,20 @@ the save is read, edited and written back on your own machine, and the editor wo
 
 ## Development
 
+Use Node 24 (`.nvmrc`). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, all checks, translations and save-data privacy rules.
+
 ```bash
-npm install
+npm ci
 npm run dev        # http://localhost:5173
-npm test           # codec and model tests
-npm run e2e        # browser tests against a production build
+npm test
+npm run typecheck
+npm run check
+npm run build
+E2E_PORT=5279 npx playwright test
 ```
 
-Tests against real saves run when `tests/saves/` holds them (`slot_0.mp`, `meta_0.mp`, `slot_10.mp`, `meta_10.mp`,
-`slot_0.json`, `slot_1.json`, `meta_0.json`); the folder is git-ignored. Everything else uses a synthetic save built
-from the published schema. Pushes to `main` deploy to GitHub Pages.
+Optional tests against real saves skip on a clean checkout. Everything else uses synthetic saves built from the published schema.
+Pushes to `main` deploy to GitHub Pages.
 
 Design: [docs/specs](docs/specs/2026-10-31-cotl-save-editor-design.md).
 

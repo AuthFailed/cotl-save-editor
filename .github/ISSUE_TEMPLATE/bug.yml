@@ -1,0 +1,48 @@
+name: Bug report
+description: Report something that does not work in the editor.
+body:
+  - type: markdown
+    attributes:
+      value: Do not attach real saves or include cult or follower names. Use made-up examples.
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: Game platform and operating system, such as Steam on Windows or Apple Arcade on iOS.
+    validations:
+      required: true
+  - type: input
+    id: format
+    attributes:
+      label: Save format
+      description: pc-mp, pc-json, plain-json, apple-zb, switch-mp, or unknown.
+    validations:
+      required: true
+  - type: input
+    id: game-version
+    attributes:
+      label: Game version
+      description: The version that wrote the save, or unknown.
+    validations:
+      required: true
+  - type: input
+    id: editor-version
+    attributes:
+      label: Editor version
+      description: Enter the version or commit if known; otherwise enter unknown and the date you used save.cotl.info.
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: Browser name and version.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What did you do, what happened, and what did you expect?
+    validations:
+      required: true

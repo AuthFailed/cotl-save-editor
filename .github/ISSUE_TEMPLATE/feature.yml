@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest an improvement to the editor.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe what you are trying to do. Do not include real save data or personal names.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: How should it work, and what alternatives have you considered?
+    validations:
+      required: true
