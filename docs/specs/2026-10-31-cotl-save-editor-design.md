@@ -28,15 +28,18 @@ All detection is by content, not file name.
 
 | Format | Layout | Tested against |
 |---|---|---|
-| PC/Steam 1.5+ (`slot_N.mp`, `meta_N.mp`) | `0x45`, 16-byte key, 16-byte IV, AES-128-CBC/PKCS#7. `slot` payload: MessagePack-CSharp `LZ4BlockArray` (fixarray: ext 98 with each block's uncompressed length, then the LZ4 blocks), MessagePack inside. `meta` payload: MessagePack, uncompressed | real saves (`slot_0.mp`, `slot_10.mp`, `meta_0.mp`, `meta_10.mp`, game 1.5.26.1058) |
+| PC/Steam 1.5+ (`slot_N.mp`, `meta_N.mp`) | `0x45`, 16-byte key, 16-byte IV, AES-128-CBC/PKCS#7 around a MessagePack-CSharp `LZ4BlockArray`: an array whose first element is ext 98 holding one MessagePack integer per block (its uncompressed length), then one `bin` per raw LZ4 block; the concatenated blocks are the MessagePack save. A payload whose array doesn't start with ext 98 is plain MessagePack | real saves (`slot_0.mp`, `slot_10.mp`, `meta_0.mp`, `meta_10.mp`, game 1.5.26.1058) |
 | PC/Steam pre-1.5 (`slot_N.json`, `meta_N.json`) | same AES wrapper, or plain, around JSON with field names | real saves (`slot_0.json`, `slot_1.json`) |
-| macOS App Store / Apple Arcade, iOS (`slot_N`) | `ZB` header + gzip-compressed JSON, ported from Gu-BRA (MIT) and PrivateiFox/cotl-save-converter (MIT) | no sample: marked **beta** |
-| Switch | LZ4 + MessagePack without the AES wrapper, ported from Sanchos-dev/cotl-save-sync | no sample: marked **beta** |
+| macOS App Store / Apple Arcade, iOS (`slot_N`, `meta_N`) | ASCII `ZB`, then a gzip stream (RFC 1952) of UTF-8 JSON, optional BOM; as PrivateiFox/cotl-save-converter (MIT) reads it | no sample: marked **beta** |
+| Switch (`slot_NMP`, `meta_NMP`) | ASCII `MP`, then the same `LZ4BlockArray` as PC 1.5+, no AES; as Sanchos-dev/cotl-save-sync describes it (no license: reimplemented from the description, no code copied) | no sample: marked **beta** |
 
 `persistence.json` and `settings.json` are recognised and listed but not edited in v1.
 
-**Convert**: any opened slot can be exported in another format (e.g. Switch → PC 1.5+). For pre-1.5
-JSON → 1.5+ MessagePack, values are mapped by field name through the save schema.
+**Convert**: Switch ↔ PC 1.5+, and Apple `ZB` ↔ PC JSON (same JSON, other wrapper). JSON is not converted
+to MessagePack: the 1.5+ game loads a `slot_N.json` itself when no `.mp` exists. Switch ↔ PC 1.5+ also
+adjusts what the platforms disagree on: the Switch save array has one element fewer (1,395 vs 1,396 in
+1.5.2x: PC appends an empty array, Switch drops it), and PC needs `TwitchSettings` set where Switch has null
+(PC value `[null, true, 20, true, true, true]`); fields are found by name through the schema, not by index.
 
 ## Architecture
 
@@ -120,8 +123,10 @@ differ in lightness; a light theme from the same tokens. Visible focus, 44 px ta
 
 ## Safety
 
-1. **Open**: decode, then re-encode the untouched tree. If the bytes differ from the file, the slot opens
-   read-only with an explanation and a "report this" link.
+1. **Open**: decode, then re-encode the untouched tree. The check is at the innermost layer the format
+   serialises exactly: the MessagePack bytes for `.mp`/Switch (our LZ4 and gzip output may differ from the
+   game's and is still valid), the decoded JSON value for JSON formats. If it fails, the slot opens read-only
+   with an explanation and a "report this" link.
 2. **Edit**: every edit is a change `{path, label, before, after}`. Inputs keep the field's type (an integer
    field refuses `7.5`) and known ranges (needs and loyalty 0–100, quantities ≥ 0). ⌘Z / ⇧⌘Z undo and redo.
 3. **Review**: lists the changes by their readable labels, each one revertible.
