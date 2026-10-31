@@ -1,12 +1,13 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 import { edits } from '../src/model/edits'
+import { followers } from '../src/model/views'
 import { SaveFormatError } from '../src/codec/errors'
 import { saveSave } from '../src/codec/formats'
 import { exportSlot } from '../src/model/export'
 import { adopt, discard, failure, keyOf, listSlots, openSlot, pendingFor, push, redo, revert, session, undo, unexported } from '../src/model/session.svelte'
 import { get, unfit } from '../src/schema/schema'
-import { encodeMp } from '../src/codec/msgpack'
+import { encodeMp, toPlain } from '../src/codec/msgpack'
 import { arr, at, int, schema, shifted, str, syntheticFiles, syntheticSaves } from './synthetic'
 import { hasSaves, unreadable } from './util'
 
@@ -195,8 +196,12 @@ async function reviveAndUndo(files: File[]) {
   const [entry] = await listSlots(files, loadSchema)
   await openSlot(entry, loadSchema)
   const was = encodeMp(session.root!), n = session.changes.length
+  // The dead list is bookkeeping a bare move leaves alone, so the byte match below covers more than the move.
+  const id = followers(schema, session.root!).find(f => f.dead && f.index === 0)!.id
+  const listed = () => (toPlain(get(schema, session.root!, 'DataManager', ['Followers_Dead_IDs'])!.node) as number[]).includes(id)
+  expect(listed()).toBe(true)
   expect(push(() => edits.revive(schema, session.root!, 0, true))).toBe(true)
-  expect(session.changes.length).toBe(n + 1)
+  expect([session.changes.length, listed()]).toEqual([n + 1, false])
   undo()
   expect([encodeMp(session.root!), session.changes.length]).toEqual([was, n])
   redo()

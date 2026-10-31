@@ -161,6 +161,7 @@ const de: Dict = {
   'ops.unfit': "{path} ist nicht die Art von Wert, die Spielversion {version} erwartet, und lässt sich daher nicht bearbeiten.",
   'export.unfit': "{field} ist nicht mehr die Art von Wert, die Spielversion {version} erwartet, daher wurde nichts heruntergeladen. Bitte melde das.",
   'insp.young': "Jung zurückkehren",
+  'insp.youngPartial': "In dieser Spielversion bleiben Outfit, Ort und Altersstatus unverändert.",
   'ch.revivedYoung': "{name} jung wiederbelebt",
   'death.DiedOfOldAge': "An Altersschwäche gestorben",
   'death.DiedOfIllness': "An einer Krankheit gestorben",

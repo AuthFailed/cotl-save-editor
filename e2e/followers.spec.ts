@@ -108,6 +108,18 @@ test('plain revive keeps an elderly follower elderly', async ({ page }) => {
   await expect(review.getByRole('button', { name: 'Undo Thistle revived', exact: true })).toBeVisible()
 })
 
+test('on a game version with no exact schema, coming back young says what it leaves alone', async ({ page }) => {
+  await page.goto('/')
+  await page.getByLabel('Choose your saves folder').setInputFiles(await savesFolder('1.4.0'))
+  await page.getByRole('listitem').filter({ hasText: 'Test Cult' }).getByRole('button', { name: 'Open' }).click()
+  await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: /followers/i }).click()
+  await page.getByRole('table').getByRole('button', { name: 'Thistle' }).click()
+  const young = page.getByRole('complementary', { name: 'Inspector' }).getByRole('checkbox', { name: 'Come back young' })
+  await expect(young).toHaveAccessibleDescription(/outfit, location and old-age state are left as they are/)
+  await young.uncheck()
+  await expect(young).not.toHaveAccessibleDescription(/old-age/)
+})
+
 test('at phone width the inspector is a sheet with a close button', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
   await openSynthetic(page)

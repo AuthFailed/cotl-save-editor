@@ -91,6 +91,8 @@ export function apply(schema: SaveSchema, root: MpNode, op: Op): MpNode {
       const range = typeof t === 'string' ? RANGE[t] : undefined
       if (range && typeof op.value === 'number' && (op.value < range[0] || op.value > range[1]))
         throw new OpError(`${where}: ${op.value} doesn't fit a ${t} (${range[0]} to ${range[1]})`)
+      // Strings are nullable in C#; the game leaves an unset one as nil.
+      if (op.value === null && t === 'string') return { t: 'nil' }
       return node.t === 'nil' ? nodeLike(undefined, op.value, type) : setValue(node, op.value, where)
     }
     if (op.kind === 'insert') {

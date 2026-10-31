@@ -24,7 +24,9 @@
   // Set afresh for each follower, and when they die or come back; edits to the same follower leave the player's choice alone.
   const dead = $derived(!!f?.dead)
   let young = $state(false)
-  $effect(() => { void selection.follower; void dead; young = untrack(() => !!f?.dead && (f.old || f.death === 'DiedOfOldAge')) })
+  $effect(() => { void selection.follower; void dead; young = untrack(() => f?.death === 'DiedOfOldAge') })
+  // Older game versions number the outfit, location and old-age enums differently, so a young revive leaves them alone.
+  const partial = $derived(young && !session.schemaExact)
 
   const who = () => ({ index: f!.index, dead: f!.dead })
   const set = (name: string, v: number, what: string) => push(() => edits.setFollower(session.schema!, session.root!, who(), name, v, what))
@@ -94,7 +96,8 @@
 
     <div class="actions">
       {#if f.dead}
-        <label class="young"><input type="checkbox" bind:checked={young} disabled={session.readOnly} />{t('insp.young')}</label>
+        <label class="young"><input type="checkbox" bind:checked={young} disabled={session.readOnly} aria-describedby={partial ? 'young-partial' : undefined} />{t('insp.young')}</label>
+        {#if partial}<small id="young-partial" class="partial">{t('insp.youngPartial')}</small>{/if}
         <button class="btn primary" disabled={session.readOnly} onclick={revive}><HeartPulse size={16} />{t('insp.revive')}</button>
       {/if}
       <button class="btn" disabled={session.readOnly} onclick={() => push(() => edits.clone(session.schema!, session.root!, who()))}><Copy size={16} />{t('insp.clone')}</button>
@@ -131,4 +134,5 @@
   .actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .actions .btn { flex: 1; justify-content: center; }
   .young { flex-basis: 100%; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .partial { flex-basis: 100%; margin-top: -4px; color: var(--muted); font-size: 12px; }
 </style>

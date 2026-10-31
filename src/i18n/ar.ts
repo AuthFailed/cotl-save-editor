@@ -163,6 +163,7 @@ const ar: Dict = {
   'ops.unfit': "{path} ليس من نوع القيم الذي يتوقعه إصدار اللعبة {version}، لذا لا يمكن تعديله.",
   'export.unfit': "{field} لم يعد من نوع القيم الذي يتوقعه إصدار اللعبة {version}، لذا لم يُنزَّل شيء. يُرجى الإبلاغ عن ذلك.",
   'insp.young': "العودة شابًا",
+  'insp.youngPartial': "في إصدار اللعبة هذا، يبقى الزي والموقع وحالة الشيخوخة كما هي.",
   'ch.revivedYoung': "أُحيي {name} شابًا",
   'death.DiedOfOldAge': "مات من الشيخوخة",
   'death.DiedOfIllness': "مات من المرض",

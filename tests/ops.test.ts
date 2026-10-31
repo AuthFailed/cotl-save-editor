@@ -130,7 +130,7 @@ describe('revive does the game\'s bookkeeping', () => {
   const cleanup = (r: MpNode) => {
     expect([P(r, 'Followers_Dead_IDs'), P(r, 'BaseStructures', 2, 'FollowerID'), P(r, 'BaseStructures', 3, 'MultipleFollowerIDs')]).toEqual([[], -1, []])
     expect(P(r, 'BaseStructures', 0)).toEqual(P(root, 'BaseStructures', 0))
-    expect(DEATHS.some(d => P(r, 'Followers', 2, d) === true)).toBe(false)
+    expect([DEATHS.some(d => P(r, 'Followers', 2, d) === true), P(r, 'Followers', 2, 'MurderedTerm')]).toEqual([false, null])
     expect(fields(r, ['Followers', 0], ['DwellingID', 'DwellingSlot'])).toEqual({ DwellingID: 10, DwellingSlot: 0 })
   }
 
@@ -173,6 +173,7 @@ describe('revive does the game\'s bookkeeping', () => {
 
   test('the revive undoes to the same bytes', () => {
     const c = edits.revive(schema, root, 0, true)
+    cleanup(run(root, c))
     expect(encodeMp(run(root, ...revertOne(schema, root, [c], 0)))).toEqual(encodeMp(root))
   })
 
@@ -185,28 +186,26 @@ describe('revive does the game\'s bookkeeping', () => {
 
 describe('unlink', () => {
   test('takes a follower out of the ID lists and every structure that holds them', () => {
-    const { ops: o, cleared } = unlink(schema, root, 1)
-    const r = run(root, ops(...o))
+    const r = run(root, ops(...unlink(schema, root, 1)))
     expect(P(r, 'Followers_OnMissionary_IDs')).toEqual([])
     expect(fields(r, ['BaseStructures', 0], ['FollowerID', 'MultipleFollowerIDs', 'FollowersClaimedSlots', 'ReservedFollowers']))
       .toEqual({ FollowerID: -1, MultipleFollowerIDs: [2], FollowersClaimedSlots: [2], ReservedFollowers: {} })
     expect(P(r, 'BaseStructures', 1, 'MultipleFollowerIDs')).toEqual([])
-    expect(cleared).toEqual(['Followers_OnMissionary_IDs', 'SHARED_HOUSE', 'MISSIONARY'])
   })
 
   test('keeps the lists it is told to, and always the recruit history', () => {
-    const kept = run(root, ops(...unlink(schema, root, 2, ['Followers_Elderly_IDs']).ops))
+    const kept = run(root, ops(...unlink(schema, root, 2, ['Followers_Elderly_IDs'])))
     expect([P(kept, 'Followers_Elderly_IDs'), P(kept, 'Followers_RecruitedUnique_IDs')]).toEqual([[2, 3], [2]])
-    const all = run(root, ops(...unlink(schema, root, 2).ops))
+    const all = run(root, ops(...unlink(schema, root, 2)))
     expect([P(all, 'Followers_Elderly_IDs'), P(all, 'Followers_RecruitedUnique_IDs')]).toEqual([[3], [2]])
   })
 
   test('removes a demon with its type, and refuses when the pair is out of step', () => {
     const ids = run(root, edits.unlock(schema, root, 'Followers_Demons_IDs', ['1']))
     const both = run(ids, edits.unlock(schema, ids, 'Followers_Demons_Types', ['5']))
-    const r = run(both, ops(...unlink(schema, both, 1).ops))
+    const r = run(both, ops(...unlink(schema, both, 1)))
     expect([P(r, 'Followers_Demons_IDs'), P(r, 'Followers_Demons_Types')]).toEqual([[], []])
-    expect(() => run(ids, ops(...unlink(schema, ids, 1).ops))).toThrow(OpError)
+    expect(() => run(ids, ops(...unlink(schema, ids, 1)))).toThrow(OpError)
   })
 
   test('a map remove drops the entry at that position, guarded by its key', () => {
@@ -228,7 +227,7 @@ describe.skipIf(!hasSaves)('real saves: revive', async () => {
       const list = followers(schema, r), me = list.find(f => !f.dead && f.id === d.id)!, base = ['Followers', me.index]
       const why = `ID ${d.id}`, g = (n: string) => P(r, ...base, n)
       expect(P(r, 'Followers_Dead_IDs'), why).toEqual(list.filter(f => f.dead).map(f => f.id))
-      expect([DEATHS.some(n => g(n) === true), g('TimeOfDeath'), enumName(schema, 'FollowerLocation', g('Location'))], why).toEqual([false, 0, 'Base'])
+      expect([DEATHS.some(n => g(n) === true), g('TimeOfDeath'), g('MurderedTerm'), enumName(schema, 'FollowerLocation', g('Location'))], why).toEqual([false, 0, null, 'Base'])
       const outfit = enumName(schema, 'FollowerOutfitType', g('Outfit')), stays = !young && P(r0, 'Followers_Dead', d.index, 'OldAge') === true
       expect([['Ghost', 'Dissenter'].includes(outfit), outfit === 'Old' && !stays], why).toEqual([false, false])
       const homes = list.filter(f => !f.dead).map(f => P(r, 'Followers', f.index, 'DwellingID') + ':' + P(r, 'Followers', f.index, 'DwellingSlot')).filter(h => !h.startsWith('0:'))

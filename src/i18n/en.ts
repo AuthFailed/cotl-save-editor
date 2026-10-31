@@ -189,6 +189,7 @@ const en = {
   'ops.unfit': "{path} isn't the kind of value game version {version} expects, so it can't be edited.",
   'export.unfit': "{field} is no longer the kind of value game version {version} expects, so nothing was downloaded. Please report this.",
   'insp.young': "Come back young",
+  'insp.youngPartial': "On this game version, the outfit, location and old-age state are left as they are.",
   'ch.revivedYoung': "{name} revived young",
   'death.DiedOfOldAge': "Died of old age",
   'death.DiedOfIllness': "Died of illness",

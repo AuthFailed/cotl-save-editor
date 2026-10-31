@@ -161,6 +161,7 @@ const fr: Dict = {
   'ops.unfit': "{path} n’est pas le genre de valeur attendu par la version {version} du jeu, il ne peut donc pas être modifié.",
   'export.unfit': "{field} n’est plus le genre de valeur attendu par la version {version} du jeu, rien n’a donc été téléchargé. Merci de le signaler.",
   'insp.young': "Revenir jeune",
+  'insp.youngPartial': "Dans cette version du jeu, la tenue, le lieu et l’état de vieillesse restent tels quels.",
   'ch.revivedYoung': "{name} ressuscité jeune",
   'death.DiedOfOldAge': "Mort de vieillesse",
   'death.DiedOfIllness': "Mort de maladie",

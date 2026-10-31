@@ -42,7 +42,7 @@ export function syntheticRoots(version = '1.5.26.1058', tweak: (slot: MpNode) =>
       follower(2, 'Ash', 'Fox', 9, { OldAge: bool(true), Adoration: f32(50.37), ...home(1) })]),
     // Died of old age, with the bookkeeping the game leaves on the dead, and a stale home that clashes with Pip's.
     Followers_Dead: arr([follower(3, 'Thistle', 'Hedgehog', 1, { OldAge: bool(true), Age: int(70), LifeExpectancy: int(60),
-      DiedOfOldAge: bool(true), TimeOfDeath: int(40), HasBeenBuried: bool(true), Outfit: int(enumValue('FollowerOutfitType', 'Old')),
+      DiedOfOldAge: bool(true), TimeOfDeath: int(40), HasBeenBuried: bool(true), MurderedTerm: str('Notifications/FollowerMurder/Reason/0'), Outfit: int(enumValue('FollowerOutfitType', 'Old')),
       CursedState: int(enumValue('Thought', 'OldAge')), Location: int(enumValue('FollowerLocation', 'Church')),
       SavedFollowerTaskType: int(enumValue('FollowerTaskType', 'FindPlaceToDie')), _HP: f32(10), _maxHP: f32(25), ...home(0) })]),
     CurrentDayIndex: int(47), Followers_Dead_IDs: ids(3), Followers_Elderly_IDs: ids(2, 3), Followers_Imprisoned_IDs: ids(),

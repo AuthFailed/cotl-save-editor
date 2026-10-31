@@ -161,6 +161,7 @@ const zhCN: Dict = {
   'ops.unfit': "{path} 不是游戏版本 {version} 预期的值类型，因此无法编辑。",
   'export.unfit': "{field} 已不是游戏版本 {version} 预期的值类型，因此没有下载任何内容。请报告此问题。",
   'insp.young': "年轻地回来",
+  'insp.youngPartial': "在此游戏版本中，服装、位置和衰老状态保持不变。",
   'ch.revivedYoung': "{name} 已复活并变年轻",
   'death.DiedOfOldAge': "死于衰老",
   'death.DiedOfIllness': "死于疾病",

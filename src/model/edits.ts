@@ -23,11 +23,10 @@ export const FULL_NEEDS = { _satiation: 100, _starvation: 0, _rest: 100, _illnes
 const STRUCTURES = JSON.stringify({ list: { object: 'StructuresData' } })
 
 /** Ops that take a follower ID out of every DataManager Followers_*_IDs list (but `keep`) and every structure that holds it. */
-export function unlink(schema: SaveSchema, root: MpNode, id: number, keep: string[] = []): { ops: Op[]; cleared: string[] } {
-  const ops: Op[] = [], cleared = new Set<string>()
+export function unlink(schema: SaveSchema, root: MpNode, id: number, keep: string[] = []): Op[] {
+  const ops: Op[] = []
   const at = (path: string[]) => get(schema, root, schema.roots.slot, path)?.node
   const plain = (path: string[]) => { const n = at(path); return n && toPlain(n) }
-  const touch = (what: string, add: () => void) => { const n = ops.length; add(); if (ops.length > n) cleared.add(what) }
   // Highest index first, so each remove leaves the earlier indices in place.
   const drop = (path: string[], paired?: string[]) => {
     const list = at(path)
@@ -40,23 +39,21 @@ export function unlink(schema: SaveSchema, root: MpNode, id: number, keep: strin
   const fields = schema.types[schema.roots.slot].fields
   for (const { name } of fields)
     if (/^Followers_\w+_IDs$/.test(name) && name !== 'Followers_RecruitedUnique_IDs' && !keep.includes(name))
-      touch(name, () => drop([name], name === 'Followers_Demons_IDs' ? ['Followers_Demons_Types'] : undefined))
+      drop([name], name === 'Followers_Demons_IDs' ? ['Followers_Demons_Types'] : undefined)
   for (const { name, type } of fields) {
     const list = JSON.stringify(type) === STRUCTURES ? at([name]) : undefined
     if (list?.t === 'arr') list.v.forEach((_, si) => {
       const base = [name, String(si)], reserved = [...base, 'ReservedFollowers']
-      touch(enumName(schema, 'StructureBrain.TYPES', plain([...base, 'Type'])), () => {
-        if (plain([...base, 'FollowerID']) === id) ops.push({ kind: 'set', path: [...base, 'FollowerID'], value: -1, guard: { path: [...base, 'FollowerID'], value: id } })
-        drop([...base, 'MultipleFollowerIDs'])
-        drop([...base, 'FollowersClaimedSlots'])
-        // Matched on values only: what the keys mean isn't known yet.
-        const map = at(reserved)
-        if (map?.t === 'map') for (let i = map.v.length - 1; i >= 0; i--) if (toPlain(map.v[i][1]) === id)
-          ops.push({ kind: 'remove', path: reserved, index: i, guard: { path: [...reserved, String(toPlain(map.v[i][0]))], value: id } })
-      })
+      if (plain([...base, 'FollowerID']) === id) ops.push({ kind: 'set', path: [...base, 'FollowerID'], value: -1, guard: { path: [...base, 'FollowerID'], value: id } })
+      drop([...base, 'MultipleFollowerIDs'])
+      drop([...base, 'FollowersClaimedSlots'])
+      // Matched on values only: what the keys mean isn't known yet.
+      const map = at(reserved)
+      if (map?.t === 'map') for (let i = map.v.length - 1; i >= 0; i--) if (toPlain(map.v[i][1]) === id)
+        ops.push({ kind: 'remove', path: reserved, index: i, guard: { path: [...reserved, String(toPlain(map.v[i][0]))], value: id } })
     })
   }
-  return { ops, cleared: [...cleared] }
+  return ops
 }
 
 export const edits = {
@@ -130,7 +127,7 @@ export const edits = {
     const stays = !young && f.old
     for (const d of DEATHS) set(d, false)
     // A dead follower's house no longer lists them, so the old home would clash with whoever has the bed now.
-    for (const [k, v] of Object.entries({ TimeOfDeath: 0, HasBeenBuried: false, HadFuneral: false, MurderedBy: 0, LeavingCult: false, DwellingID: 0, DwellingSlot: 0, DwellingLevel: 0 })) set(k, v)
+    for (const [k, v] of Object.entries({ TimeOfDeath: 0, HasBeenBuried: false, HadFuneral: false, MurderedBy: 0, MurderedTerm: null, LeavingCult: false, DwellingID: 0, DwellingSlot: 0, DwellingLevel: 0 })) set(k, v)
     named('Location', 'FollowerLocation', 'Base')
     named('SavedFollowerTaskType', 'FollowerTaskType', stays ? 'OldAge' : 'None')
     if (['Ghost', 'Dissenter', 'Old'].includes(enumName(schema, 'FollowerOutfitType', now('Outfit')))) named('Outfit', 'FollowerOutfitType', stays ? 'Old' : 'None')
@@ -143,7 +140,7 @@ export const edits = {
       set('_HP', now('_maxHP'))
     }
     // The sets come first: move reads the element at replay, so they travel and undo with it.
-    ops.push(...unlink(schema, root, f.id, stays ? ['Followers_Elderly_IDs'] : []).ops,
+    ops.push(...unlink(schema, root, f.id, stays ? ['Followers_Elderly_IDs'] : []),
       { kind: 'move', path: ['Followers_Dead'], index: deadIndex, to: ['Followers'], guard })
     return { label: t(young ? 'ch.revivedYoung' : 'ch.revived', { name: f.name }), ops }
   },

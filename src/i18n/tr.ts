@@ -161,6 +161,7 @@ const tr: Dict = {
   'ops.unfit': "{path}, oyunun {version} sürümünün beklediği türde bir değer değil, bu yüzden düzenlenemez.",
   'export.unfit': "{field} artık oyunun {version} sürümünün beklediği türde bir değer değil, bu yüzden hiçbir şey indirilmedi. Lütfen bunu bildir.",
   'insp.young': "Genç olarak dönsün",
+  'insp.youngPartial': "Bu oyun sürümünde kıyafet, konum ve yaşlılık durumu olduğu gibi kalır.",
   'ch.revivedYoung': "{name} genç olarak diriltildi",
   'death.DiedOfOldAge': "Yaşlılıktan öldü",
   'death.DiedOfIllness': "Hastalıktan öldü",

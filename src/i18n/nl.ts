@@ -161,6 +161,7 @@ const nl: Dict = {
   'ops.unfit': "{path} is niet het soort waarde dat spelversie {version} verwacht, dus het kan niet worden bewerkt.",
   'export.unfit': "{field} is niet meer het soort waarde dat spelversie {version} verwacht, dus er is niets gedownload. Meld dit alsjeblieft.",
   'insp.young': "Jong terugkomen",
+  'insp.youngPartial': "In deze gameversie blijven outfit, locatie en ouderdomsstatus zoals ze zijn.",
   'ch.revivedYoung': "{name} jong tot leven gewekt",
   'death.DiedOfOldAge': "Gestorven van ouderdom",
   'death.DiedOfIllness': "Gestorven aan een ziekte",

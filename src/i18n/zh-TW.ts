@@ -161,6 +161,7 @@ const zhTW: Dict = {
   'ops.unfit': "{path} 不是遊戲版本 {version} 預期的值類型，因此無法編輯。",
   'export.unfit': "{field} 已不是遊戲版本 {version} 預期的值類型，因此沒有下載任何內容。請回報此問題。",
   'insp.young': "年輕地回來",
+  'insp.youngPartial': "在此遊戲版本中，服裝、位置和衰老狀態保持不變。",
   'ch.revivedYoung': "{name} 已復活並變年輕",
   'death.DiedOfOldAge': "死於衰老",
   'death.DiedOfIllness': "死於疾病",

@@ -161,6 +161,7 @@ const ko: Dict = {
   'ops.unfit': "{path}은(는) 게임 버전 {version}에서 기대하는 종류의 값이 아니어서 편집할 수 없습니다.",
   'export.unfit': "{field}이(가) 더 이상 게임 버전 {version}에서 기대하는 종류의 값이 아니어서 아무것도 다운로드하지 않았습니다. 신고해 주세요.",
   'insp.young': "젊게 돌아오기",
+  'insp.youngPartial': "이 게임 버전에서는 의상, 위치, 노화 상태가 그대로 유지됩니다.",
   'ch.revivedYoung': "{name} 젊게 부활",
   'death.DiedOfOldAge': "노환으로 사망",
   'death.DiedOfIllness': "병으로 사망",

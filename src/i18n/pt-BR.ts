@@ -161,6 +161,7 @@ const ptBR: Dict = {
   'ops.unfit': "{path} não é o tipo de valor que a versão {version} do jogo espera, então não pode ser editado.",
   'export.unfit': "{field} não é mais o tipo de valor que a versão {version} do jogo espera, então nada foi baixado. Por favor, relate isso.",
   'insp.young': "Voltar jovem",
+  'insp.youngPartial': "Nesta versão do jogo, a roupa, o local e o estado de velhice ficam como estão.",
   'ch.revivedYoung': "{name} revivido jovem",
   'death.DiedOfOldAge': "Morreu de velhice",
   'death.DiedOfIllness': "Morreu de doença",

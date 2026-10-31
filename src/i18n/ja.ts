@@ -161,6 +161,7 @@ const ja: Dict = {
   'ops.unfit': "{path} はゲームのバージョン {version} が想定する種類の値ではないため、編集できません。",
   'export.unfit': "{field} がゲームのバージョン {version} の想定する種類の値ではなくなったため、何もダウンロードされませんでした。報告してください。",
   'insp.young': "若返らせる",
+  'insp.youngPartial': "このゲームバージョンでは、衣装・居場所・老いの状態はそのままです。",
   'ch.revivedYoung': "{name} を若返らせて蘇らせた",
   'death.DiedOfOldAge': "老衰で死亡",
   'death.DiedOfIllness': "病気で死亡",
