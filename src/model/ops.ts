@@ -29,7 +29,7 @@ const unwrap = (t: FieldType): FieldType => (typeof t === 'object' && 'nullable'
 
 function update(schema: SaveSchema, node: MpNode, type: FieldType, path: string[], i: number,
   fn: (node: MpNode, type: FieldType) => MpNode): MpNode {
-  if (unfit.has(node)) throw new OpError(tr('ops.unfit', { path: path.slice(0, i).join('.') }))
+  if (unfit.has(node)) throw new OpError(tr('ops.unfit', { path: path.slice(0, i).join('.'), version: schema.gameVersion }))
   if (i === path.length) return fn(node, type)
   const t = unwrap(type)
   const seg = path[i]
@@ -77,7 +77,7 @@ export function apply(schema: SaveSchema, root: MpNode, op: Op): MpNode {
       return apply(schema, without, { kind: 'insert', path: op.to, index: at?.t === 'arr' ? at.v.length : 0, node })
     }
     // A clone would be an unlocked copy of what doesn't fit.
-    if (unfit.has(node)) throw new OpError(tr('ops.unfit', { path: `${where}.${op.index}` }))
+    if (unfit.has(node)) throw new OpError(tr('ops.unfit', { path: `${where}.${op.index}`, version: schema.gameVersion }))
     const key = field(schema, op.set.type, op.set.field)
     if (!key) throw new OpError(`${op.set.type}.${op.set.field}: not in this schema`)
     const v = node.v.slice()

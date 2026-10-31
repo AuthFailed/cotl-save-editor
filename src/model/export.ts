@@ -15,7 +15,7 @@ export async function exportSlot(): Promise<{ files: { name: string; bytes: Uint
   if (!slot || !root || !schema || !entry) throw new SaveFormatError('No save is open.')
   // Safety 4 again: what was locked on opening is unchanged, so any other misfit is one an edit made.
   const bad = fit(schema, root).find(m => !unfit.has(m.node))
-  if (bad) throw new SaveFormatError(t('export.unfit', { field: bad.field }), true)
+  if (bad) throw new SaveFormatError(t('export.unfit', { field: bad.field, version: schema.gameVersion }), true)
   const data: Opened['data'] = slot.data.kind === 'msgpack'
     ? { kind: 'msgpack', root }
     : { kind: 'json', root: fromTree(schema, root, slot.data.root) }

@@ -157,9 +157,9 @@ const nl: Dict = {
   'open.useNew': "Nieuw bestand gebruiken",
   'banner.misfit': "De velden van deze save passen niet bij de namen voor spelversie {schema} ({fields}), dus hij is alleen-lezen geopend om hem te beschermen.",
   'banner.schemaOlder': "Veldnamen komen uit spelversie {schema}, nieuwer dan jouw save ({save}). Waarden die niet bij hun veld passen worden getoond zoals ze zijn opgeslagen en kunnen niet worden bewerkt.",
-  'raw.unfit': "Dit past niet bij het type dat het schema geeft, dus de veldnamen zijn onbekend: het wordt getoond zoals opgeslagen, alleen-lezen.",
-  'ops.unfit': "{path} past niet bij het type in het schema, dus het kan niet worden bewerkt.",
-  'export.unfit': "{field} past niet meer bij zijn type in het schema, dus er is niets gedownload. Meld dit alsjeblieft.",
+  'raw.unfit': "Deze waarde is niet het soort dat spelversie {version} hier verwacht, dus ze wordt getoond zoals opgeslagen, alleen-lezen.",
+  'ops.unfit': "{path} is niet het soort waarde dat spelversie {version} verwacht, dus het kan niet worden bewerkt.",
+  'export.unfit': "{field} is niet meer het soort waarde dat spelversie {version} verwacht, dus er is niets gedownload. Meld dit alsjeblieft.",
 }
 
 export default nl

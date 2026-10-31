@@ -157,9 +157,9 @@ const ptBR: Dict = {
   'open.useNew': "Usar o arquivo novo",
   'banner.misfit': "Os campos deste save não correspondem aos nomes da versão {schema} do jogo ({fields}), então ele foi aberto só para leitura, por segurança.",
   'banner.schemaOlder': "Os nomes dos campos vêm da versão {schema} do jogo, mais nova que o seu save ({save}). Valores que não correspondem ao seu campo aparecem como foram salvos e não podem ser editados.",
-  'raw.unfit': "Isto não corresponde ao tipo que o esquema indica, então os nomes dos campos são desconhecidos: aparece como foi salvo, só para leitura.",
-  'ops.unfit': "{path} não corresponde ao tipo do esquema, então não pode ser editado.",
-  'export.unfit': "{field} não corresponde mais ao seu tipo no esquema, então nada foi baixado. Por favor, relate isso.",
+  'raw.unfit': "Este valor não é do tipo que a versão {version} do jogo espera aqui, então aparece como foi salvo, só para leitura.",
+  'ops.unfit': "{path} não é o tipo de valor que a versão {version} do jogo espera, então não pode ser editado.",
+  'export.unfit': "{field} não é mais o tipo de valor que a versão {version} do jogo espera, então nada foi baixado. Por favor, relate isso.",
 }
 
 export default ptBR

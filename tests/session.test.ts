@@ -6,7 +6,7 @@ import { saveSave } from '../src/codec/formats'
 import { exportSlot } from '../src/model/export'
 import { adopt, discard, failure, keyOf, listSlots, openSlot, pendingFor, push, redo, revert, session, undo, unexported } from '../src/model/session.svelte'
 import { get, unfit } from '../src/schema/schema'
-import { arr, at, int, schema, shifted, syntheticFiles, syntheticSaves } from './synthetic'
+import { arr, at, int, schema, shifted, str, syntheticFiles, syntheticSaves } from './synthetic'
 import { hasSaves, unreadable } from './util'
 
 const asFiles = (list: { name: string; bytes: Uint8Array }[]) => list.map(f => new File([f.bytes as Uint8Array<ArrayBuffer>], f.name))
@@ -172,17 +172,21 @@ test('a save whose keys moved opens read-only and stays so after a switch', asyn
   expect([session.readOnly, (session.misfit?.length ?? 0) > 5]).toEqual([true, true])
 })
 
-test('a single value that does not fit is locked; the rest of the save edits as usual', async () => {
-  const [a] = await listSlots(await syntheticFiles(undefined, at('playerDeaths', arr([int(1)]))), loadSchema), [b] = await twoSlots()
+test('an object that does not fit is locked; the rest of the save edits as usual', async () => {
+  // A union objective: its Type is an int, as declared, so only the lock refuses the edit.
+  const union = at('Objectives', arr([arr([int(0), arr([str('a'), { t: 'bool', v: true }])])]))
+  const [a] = await listSlots(await syntheticFiles(undefined, union), loadSchema), [b] = await twoSlots()
+  const setType = () => push(() => edits.setPath(schema, session.root!, ['Objectives', '0', 'Type'], 1))
   await openSlot(a, loadSchema)
   expect([session.readOnly, session.misfit]).toEqual([false, null])
-  expect(push(() => edits.setPath(schema, session.root!, ['playerDeaths'], 3))).toBe(false)
-  expect(session.error).toMatch(/playerDeaths/)
+  expect(setType()).toBe(false)
+  expect(session.error).toMatch(/^Objectives\.0 /)
   expect(cultName('Kept')).toBe(true)
   await openSlot(b, loadSchema)
   await openSlot(a, loadSchema)
   expect([session.readOnly, session.misfit, session.changes.length]).toEqual([false, null, 1])
-  expect(push(() => edits.setPath(schema, session.root!, ['playerDeaths'], 3))).toBe(false)
+  expect(setType()).toBe(false)
+  expect(session.error).toMatch(/^Objectives\.0 /)
 })
 
 describe.skipIf(!hasSaves)('real saves', () => {

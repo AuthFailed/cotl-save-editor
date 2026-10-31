@@ -185,9 +185,9 @@ const en = {
   'open.useNew': "Use the new file",
   'banner.misfit': "Fields of this save don't match the names for game version {schema} ({fields}), so it's open read-only to keep it safe.",
   'banner.schemaOlder': "Field names come from game version {schema}, newer than your save ({save}). Values that don't match their field are shown as stored and can't be edited.",
-  'raw.unfit': "This doesn't match the type the schema gives, so its field names are unknown: it's shown as stored, read-only.",
-  'ops.unfit': "{path} doesn't match the schema's type, so it can't be edited.",
-  'export.unfit': "{field} no longer matches its type in the schema, so nothing was downloaded. Please report this.",
+  'raw.unfit': "This value isn't the kind game version {version} expects here, so it's shown as stored, read-only.",
+  'ops.unfit': "{path} isn't the kind of value game version {version} expects, so it can't be edited.",
+  'export.unfit': "{field} is no longer the kind of value game version {version} expects, so nothing was downloaded. Please report this.",
 }
 
 export default en

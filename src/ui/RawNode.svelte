@@ -41,6 +41,8 @@
     return []
   })
   const editable = $derived(!stored && !path.some(p => p.startsWith('#')))
+  const id = $props.id()
+  const note = $derived(unfit.has(node) && !locked ? `${id}-note` : undefined)
 
   function commit(raw: string) {
     let v: unknown = raw
@@ -55,10 +57,10 @@
   }
 </script>
 
-<li role="treeitem" aria-label={name} aria-expanded={container ? open : undefined} aria-selected="false" style:--depth={depth}>
+<li role="treeitem" aria-label={name} aria-describedby={note} aria-expanded={container ? open : undefined} aria-selected="false" style:--depth={depth}>
   <div class="row">
     {#if container}
-      <button class="tw" aria-label={tr(open ? 'raw.collapse' : 'raw.expand', { name })} onclick={() => (open = !open)}><ChevronRight size={14} class={open ? 'down' : ''} /></button>
+      <button class="tw" aria-label={tr(open ? 'raw.collapse' : 'raw.expand', { name })} aria-describedby={note} onclick={() => (open = !open)}><ChevronRight size={14} class={open ? 'down' : ''} /></button>
     {:else}<span class="tw"></span>{/if}
     <span class="name mono" class:unknown={name.startsWith('#')}>{name}</span>
     <span class="type mono">{typeText}</span>
@@ -83,7 +85,7 @@
       {/if}
     </span>
   </div>
-  {#if unfit.has(node) && !locked}<p class="note">{tr('raw.unfit')}</p>{/if}
+  {#if note}<p class="note" id={note}>{tr('raw.unfit', { version: session.schema?.gameVersion ?? '' })}</p>{/if}
   {#if open}
     <ul role="group">
       {#each children as c (c.path.join('.'))}<RawNode {...c} depth={depth + 1} locked={stored} />{/each}

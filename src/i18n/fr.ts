@@ -157,9 +157,9 @@ const fr: Dict = {
   'open.useNew': "Utiliser le nouveau fichier",
   'banner.misfit': "Les champs de cette sauvegarde ne correspondent pas aux noms de la version {schema} du jeu ({fields}), elle est donc ouverte en lecture seule pour la protéger.",
   'banner.schemaOlder': "Les noms de champs viennent de la version {schema} du jeu, plus récente que votre sauvegarde ({save}). Les valeurs qui ne correspondent pas à leur champ sont affichées telles qu’enregistrées et ne peuvent pas être modifiées.",
-  'raw.unfit': "Ceci ne correspond pas au type indiqué par le schéma, les noms de ses champs sont donc inconnus : il est affiché tel qu’enregistré, en lecture seule.",
-  'ops.unfit': "{path} ne correspond pas au type du schéma, il ne peut donc pas être modifié.",
-  'export.unfit': "{field} ne correspond plus à son type dans le schéma, rien n’a donc été téléchargé. Merci de le signaler.",
+  'raw.unfit': "Cette valeur n’est pas du genre attendu ici par la version {version} du jeu : elle est affichée telle qu’enregistrée, en lecture seule.",
+  'ops.unfit': "{path} n’est pas le genre de valeur attendu par la version {version} du jeu, il ne peut donc pas être modifié.",
+  'export.unfit': "{field} n’est plus le genre de valeur attendu par la version {version} du jeu, rien n’a donc été téléchargé. Merci de le signaler.",
 }
 
 export default fr

@@ -157,9 +157,9 @@ const es: Dict = {
   'open.useNew': "Usar el archivo nuevo",
   'banner.misfit': "Los campos de esta partida no coinciden con los nombres de la versión {schema} del juego ({fields}), así que se abre solo en lectura para protegerla.",
   'banner.schemaOlder': "Los nombres de los campos son de la versión {schema} del juego, más reciente que tu partida ({save}). Los valores que no coinciden con su campo se muestran tal como están guardados y no se pueden editar.",
-  'raw.unfit': "Esto no coincide con el tipo que indica el esquema, así que se desconocen los nombres de sus campos: se muestra tal como está guardado, solo en lectura.",
-  'ops.unfit': "{path} no coincide con el tipo del esquema, así que no se puede editar.",
-  'export.unfit': "{field} ya no coincide con su tipo en el esquema, así que no se descargó nada. Por favor, avísanos.",
+  'raw.unfit': "Este valor no es del tipo que la versión {version} del juego espera aquí, así que se muestra tal como está guardado, solo en lectura.",
+  'ops.unfit': "{path} no es del tipo de valor que espera la versión {version} del juego, así que no se puede editar.",
+  'export.unfit': "{field} ya no es del tipo de valor que espera la versión {version} del juego, así que no se descargó nada. Por favor, avísanos.",
 }
 
 export default es

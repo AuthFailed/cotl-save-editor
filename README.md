@@ -14,7 +14,8 @@ Request-audit tests check the open, edit and export flow for uploads.
 - **Raw data**: every field of the save by its in-game name, editable with type checks.
 - **Safe by default**: every change is listed and undoable; the export is read back before it downloads, and the first
   export also downloads your original as a backup. A save that wouldn't write back exactly, or whose fields don't fit
-  its schema, opens read-only; single values that don't fit are shown as stored and can't be edited.
+  its schema, opens read-only; single values that don't fit can't be edited: Raw data shows them as stored, and the other
+  pages refuse the edit with a message.
 - **Formats**: PC 1.5+ (`.mp`), PC before 1.5 (`.json`), and, in beta, macOS App Store / Apple Arcade / iOS and Switch.
 - Game names in every language the game has, and pictures, from [api.cotl.info](https://api.cotl.info); field names of
   1.5+ saves from its `save-schema.json`, per game version.

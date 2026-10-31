@@ -157,9 +157,9 @@ const it: Dict = {
   'open.useNew': "Usa il nuovo file",
   'banner.misfit': "I campi di questo salvataggio non corrispondono ai nomi della versione {schema} del gioco ({fields}), quindi è aperto in sola lettura per proteggerlo.",
   'banner.schemaOlder': "I nomi dei campi vengono dalla versione {schema} del gioco, più recente del tuo salvataggio ({save}). I valori che non corrispondono al loro campo sono mostrati come salvati e non si possono modificare.",
-  'raw.unfit': "Questo non corrisponde al tipo indicato dallo schema, quindi i nomi dei suoi campi sono sconosciuti: è mostrato come salvato, in sola lettura.",
-  'ops.unfit': "{path} non corrisponde al tipo dello schema, quindi non si può modificare.",
-  'export.unfit': "{field} non corrisponde più al suo tipo nello schema, quindi non è stato scaricato nulla. Per favore segnalalo.",
+  'raw.unfit': "Questo valore non è del tipo che la versione {version} del gioco si aspetta qui, quindi è mostrato come salvato, in sola lettura.",
+  'ops.unfit': "{path} non è il tipo di valore che si aspetta la versione {version} del gioco, quindi non si può modificare.",
+  'export.unfit': "{field} non è più il tipo di valore che si aspetta la versione {version} del gioco, quindi non è stato scaricato nulla. Per favore segnalalo.",
 }
 
 export default it

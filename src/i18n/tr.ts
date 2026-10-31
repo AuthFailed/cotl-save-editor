@@ -157,9 +157,9 @@ const tr: Dict = {
   'open.useNew': "Yeni dosyayı kullan",
   'banner.misfit': "Bu kaydın alanları oyunun {schema} sürümündeki adlarla eşleşmiyor ({fields}), bu yüzden güvenlik için salt okunur açıldı.",
   'banner.schemaOlder': "Alan adları oyunun {schema} sürümünden geliyor; bu sürüm kaydından ({save}) daha yeni. Alanına uymayan değerler kaydedildiği gibi gösterilir ve düzenlenemez.",
-  'raw.unfit': "Bu, şemanın verdiği türle eşleşmiyor, bu yüzden alan adları bilinmiyor: kaydedildiği gibi, salt okunur gösteriliyor.",
-  'ops.unfit': "{path} şemadaki türle eşleşmiyor, bu yüzden düzenlenemez.",
-  'export.unfit': "{field} artık şemadaki türüyle eşleşmiyor, bu yüzden hiçbir şey indirilmedi. Lütfen bunu bildir.",
+  'raw.unfit': "Bu değer, oyunun {version} sürümünün burada beklediği türde değil, bu yüzden kaydedildiği gibi, salt okunur gösteriliyor.",
+  'ops.unfit': "{path}, oyunun {version} sürümünün beklediği türde bir değer değil, bu yüzden düzenlenemez.",
+  'export.unfit': "{field} artık oyunun {version} sürümünün beklediği türde bir değer değil, bu yüzden hiçbir şey indirilmedi. Lütfen bunu bildir.",
 }
 
 export default tr

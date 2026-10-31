@@ -46,7 +46,7 @@ test('export refuses a tree with a value its schema type contradicts', async () 
   const root = session.root as Extract<MpNode, { t: 'arr' }>, v = root.v.slice()
   v[schema.types.DataManager.fields.find(f => f.name === 'CultName')!.key] = int(1)
   session.root = { ...root, v }
-  await expect(exportSlot()).rejects.toThrow(format('en', 'export.unfit', { field: 'DataManager.CultName' }))
+  await expect(exportSlot()).rejects.toThrow(format('en', 'export.unfit', { field: 'DataManager.CultName', version: schema.gameVersion }))
 })
 
 test('a value that was locked on opening does not stop an export', async () => {

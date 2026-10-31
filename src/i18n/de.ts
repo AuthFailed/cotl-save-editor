@@ -157,9 +157,9 @@ const de: Dict = {
   'open.useNew': "Neue Datei verwenden",
   'banner.misfit': "Die Felder dieses Spielstands passen nicht zu den Namen für Spielversion {schema} ({fields}), daher ist er zur Sicherheit nur lesbar geöffnet.",
   'banner.schemaOlder': "Feldnamen stammen aus Spielversion {schema}, neuer als dein Spielstand ({save}). Werte, die nicht zu ihrem Feld passen, werden wie gespeichert angezeigt und lassen sich nicht bearbeiten.",
-  'raw.unfit': "Das passt nicht zum Typ, den das Schema angibt, daher sind die Feldnamen unbekannt: Es wird wie gespeichert angezeigt, nur lesbar.",
-  'ops.unfit': "{path} passt nicht zum Typ im Schema und lässt sich daher nicht bearbeiten.",
-  'export.unfit': "{field} passt nicht mehr zu seinem Typ im Schema, daher wurde nichts heruntergeladen. Bitte melde das.",
+  'raw.unfit': "Dieser Wert ist nicht die Art, die Spielversion {version} hier erwartet, daher wird er wie gespeichert angezeigt, nur lesbar.",
+  'ops.unfit': "{path} ist nicht die Art von Wert, die Spielversion {version} erwartet, und lässt sich daher nicht bearbeiten.",
+  'export.unfit': "{field} ist nicht mehr die Art von Wert, die Spielversion {version} erwartet, daher wurde nichts heruntergeladen. Bitte melde das.",
 }
 
 export default de

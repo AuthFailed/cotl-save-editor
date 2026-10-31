@@ -43,7 +43,7 @@ async function openRaw(page: Page, tweak: (slot: MpNode) => MpNode) {
   await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: /raw/i }).click()
   return page.getByRole('main')
 }
-const note = "doesn't match the type the schema gives"
+const note = "isn't the kind game version 1.5.26.1058 expects here"
 
 test('a value that does not fit its field is shown as stored, read-only', async ({ page }) => {
   const main = await openRaw(page, at('playerDeaths', arr([int(1)])))
@@ -51,6 +51,7 @@ test('a value that does not fit its field is shown as stored, read-only', async 
   const row = main.getByRole('treeitem', { name: 'playerDeaths', exact: true })
   await expect(row).toContainText('arr')
   await expect(row.getByText(note)).toBeVisible()
+  await expect(row.getByRole('button', { name: 'Expand playerDeaths' })).toHaveAccessibleDescription(new RegExp(note))
   await expect(main.getByRole('textbox', { name: 'playerDeaths', exact: true })).toHaveCount(0)
   await main.getByLabel('Filter fields').fill('CultName')
   await expect(main.getByRole('textbox', { name: 'CultName', exact: true })).toBeEnabled()
