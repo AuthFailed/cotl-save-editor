@@ -13,11 +13,13 @@ export async function savesFolder(version?: string, extra: Record<string, string
 }
 
 import type { Page } from '@playwright/test'
-/** Opens the synthetic save and lands on a page. */
+/** Opens the synthetic save and lands on a page; returns the folder, so a test can choose the same one again. */
 export async function openSynthetic(page: Page, to = 'overview') {
+  const folder = await savesFolder()
   await page.goto('/')
-  await page.getByLabel('Choose your saves folder').setInputFiles(await savesFolder())
+  await page.getByLabel('Choose your saves folder').setInputFiles(folder)
   await page.getByRole('listitem').filter({ hasText: 'Test Cult' }).getByRole('button', { name: 'Open' }).click()
   await page.getByRole('heading', { name: 'Overview' }).waitFor()
   if (to !== 'overview') await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: new RegExp(to, 'i') }).click()
+  return folder
 }
