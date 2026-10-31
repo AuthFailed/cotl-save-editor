@@ -4,7 +4,7 @@
   import { cat, nameOf, want, wantVariants } from '../data/catalogs.svelte'
   import { t, type Key } from '../i18n/i18n.svelte'
   import { session } from '../model/session.svelte'
-  import { UNLOCKS, saveIdOf } from '../model/unlocks'
+  import { UNLOCKS, heldOf, saveIdOf } from '../model/unlocks'
   import { enumOf, followers, inventory, skinId, unlocked } from '../model/views'
   import { nameAt } from '../schema/schema'
   import { detail } from './detail.svelte'
@@ -65,7 +65,7 @@
       const enumName = enumOf(s, u.field)
       const values = enumName ? new Set(Object.values(s.enums[enumName] ?? {})) : null
       add((lists[u.kind] ?? []).filter(e => (u.include?.(e) ?? true) && (!values || values.has(saveIdOf(u, e))) && match(nameIn(e), e.id)).map(e => ({
-        group: tab(u.tab), label: nameIn(e), sub: owned.has(saveIdOf(u, e)) ? t('common.owned') : t('common.locked'), thumb: e.thumb, kind: u.kind,
+        group: tab(u.tab), label: nameIn(e), sub: heldOf(u, e, owned) !== undefined ? t('common.owned') : t('common.locked'), thumb: e.thumb, kind: u.kind,
         run: () => { go(u.page, u.tab, nameIn(e)); detail.open = { kind: u.kind, id: e.id } },
       })), 4)
     }

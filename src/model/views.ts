@@ -76,12 +76,11 @@ export function unlocked(schema: SaveSchema, root: MpNode, fieldName: string): S
 
 export const value = (schema: SaveSchema, root: MpNode, name: string) => plain(schema, root, [name])
 
-/** A follower's SkinName as an API skin id: exact, else without its variant number (Unicorn2 → Unicorn). */
+/** A follower's SkinName as an API skin id: through the published variants when loaded, else a guess (Unicorn2 → Unicorn). */
 // The API names a form after its first Spine skin, with anything but letters, digits, _ and - turned into _ (Fennec_Fox);
-// a save names the variant it uses (Fennec Fox3).
+// a save names the variant it uses (Fennec Fox3). Without variants (offline, an old cache) the guess keeps portraits showing.
 export function skinId(name: string, api: Set<string>, variants?: Map<string, string>): string | null {
-  const exact = variants?.get(name)
-  if (exact && api.has(exact)) return exact
+  if (variants?.size) { const id = variants.get(name); return id && api.has(id) ? id : null }
   const clean = name.replace(/[^A-Za-z0-9_-]/g, '_')
   for (const id of [name, name.replace(/\d+$/, ''), clean, clean.replace(/\d+$/, '')]) if (api.has(id)) return id
   return null

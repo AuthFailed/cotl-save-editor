@@ -6,7 +6,7 @@
   import { t } from '../i18n/i18n.svelte'
   import { edits } from '../model/edits'
   import { push, session } from '../model/session.svelte'
-  import { saveIdOf, unlockOf } from '../model/unlocks'
+  import { heldOf, saveIdOf, unlockOf } from '../model/unlocks'
   import { inventory, unlocked } from '../model/views'
   import NumberField from './NumberField.svelte'
   import Thumb from './Thumb.svelte'
@@ -23,14 +23,15 @@
   })
   const info = $derived(e ? describe(open.kind, e, cat.lang) : null)
   const unlock = $derived(unlockOf(open.kind))
-  const owned = $derived(unlock && e && session.root && session.schema ? unlocked(session.schema, session.root, unlock.field).has(saveIdOf(unlock, e)) : false)
+  const held = $derived(unlock && e && session.root && session.schema ? heldOf(unlock, e, unlocked(session.schema, session.root, unlock.field)) : undefined)
+  const owned = $derived(held !== undefined)
   const item = $derived(open.kind === 'items' && session.root && session.schema ? inventory(session.schema, session.root).find(i => i.id === open.id) : undefined)
 
   function toggle() {
     if (!unlock || !e) return
     const sid = saveIdOf(unlock, e), name = info!.name
-    push(() => owned
-      ? edits.lock(session.schema!, session.root!, unlock.field, sid, t('ch.locked', { name }))
+    push(() => held !== undefined
+      ? edits.lock(session.schema!, session.root!, unlock.field, held, t('ch.locked', { name }))
       : edits.unlock(session.schema!, session.root!, unlock.field, [sid], t('ch.unlocked', { name })))
   }
   function quantity(v: number) {

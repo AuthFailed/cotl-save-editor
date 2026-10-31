@@ -5,7 +5,7 @@
   import { t } from '../i18n/i18n.svelte'
   import { edits } from '../model/edits'
   import { push, session } from '../model/session.svelte'
-  import { saveIdOf, unlockTab } from '../model/unlocks'
+  import { heldOf, saveIdOf, unlockTab } from '../model/unlocks'
   import { enumOf, unlocked } from '../model/views'
   import { detail } from './detail.svelte'
   import { groupName } from './groups'
@@ -30,11 +30,12 @@
   const have = $derived(session.root && session.schema ? unlocked(session.schema, session.root, u.field) : new Set<string>())
   const name = (e: Full) => plain(e.namePlain[cat.lang] ?? e.namePlain.en ?? e.id)
   const desc = (e: Full) => plain(e.descriptionPlain?.[cat.lang] ?? e.descriptionPlain?.en ?? '')
+  const owns = (e: Full) => heldOf(u, e, have) !== undefined
   const shown = $derived(items.filter(e => {
-    const owned = have.has(saveIdOf(u, e))
+    const owned = owns(e)
     return (show === 'all' || (show === 'owned') === owned) && `${name(e)} ${e.id}`.toLowerCase().includes(query.trim().toLowerCase())
   }))
-  const locked = $derived(items.filter(e => !have.has(saveIdOf(u, e))))
+  const locked = $derived(items.filter(e => !owns(e)))
   const groups = $derived.by(() => {
     const m = new Map<string, Full[]>()
     for (const e of shown) { const g = u.groupBy?.(e) ?? ''; m.set(g, [...(m.get(g) ?? []), e]) }
@@ -42,10 +43,10 @@
   })
 
   function toggle(e: Full) {
-    const id = saveIdOf(u, e)
-    push(() => have.has(id)
-      ? edits.lock(session.schema!, session.root!, u.field, id, t('ch.locked', { name: name(e) }))
-      : edits.unlock(session.schema!, session.root!, u.field, [id], t('ch.unlocked', { name: name(e) })))
+    const held = heldOf(u, e, have)
+    push(() => held !== undefined
+      ? edits.lock(session.schema!, session.root!, u.field, held, t('ch.locked', { name: name(e) }))
+      : edits.unlock(session.schema!, session.root!, u.field, [saveIdOf(u, e)], t('ch.unlocked', { name: name(e) })))
   }
   const unlockAll = () => push(() => edits.unlock(session.schema!, session.root!, u.field, locked.map(e => saveIdOf(u, e)),
     t('ch.unlockedMany', { n: locked.length, field: label })))
@@ -69,7 +70,7 @@
     {#if g}<h3>{groupName(u.kind, g)}</h3>{/if}
     <div class="grid">
       {#each es as e (e.id)}
-        {@const owned = have.has(saveIdOf(u, e))}
+        {@const owned = owns(e)}
         {@const d = desc(e)}
         <div class="card" class:owned>
           <button class="main" aria-pressed={owned} disabled={session.readOnly} onclick={() => toggle(e)}>

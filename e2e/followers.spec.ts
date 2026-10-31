@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { openSynthetic, savesFolder } from './fixtures'
+import { exported, openSynthetic, savesFolder } from './fixtures'
 
 const changes = (page: import('@playwright/test').Page) => page.getByRole('banner').getByRole('button', { name: /change/ })
 
@@ -30,6 +30,32 @@ test('the followers table filters, selects and edits', async ({ page }) => {
   await dialog.getByRole('button', { name: 'Fox', exact: true }).click()
   await expect(inspector).toContainText('Fox')
   await expect(changes(page)).toHaveText('2 changes')
+})
+
+test('a new form is written under its skin name, as one change that undoes', async ({ page }) => {
+  await openSynthetic(page, 'followers')
+  await page.getByRole('table').getByRole('button', { name: 'Pip' }).click()
+  const inspector = page.getByRole('complementary', { name: 'Inspector' })
+  const pick = async () => {
+    await inspector.getByRole('button', { name: 'Change form' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Choose a form' })
+    await dialog.getByLabel('Search forms').fill('fennec')
+    await dialog.getByRole('button', { name: 'Fennec Fox', exact: true }).click()
+    await expect(inspector).toContainText('Fennec Fox')
+    await expect(changes(page)).toHaveText('1 change')
+  }
+  await pick()
+  await changes(page).click()
+  const review = page.getByRole('dialog', { name: 'Review changes' })
+  await expect(review.getByRole('listitem')).toHaveCount(1)
+  await expect(review).toContainText('Pip · form Axolotl → Fennec Fox')
+  // Review's Undo reverts one change and clears redo, so the form is picked again
+  await review.getByRole('button', { name: 'Undo Pip · form Axolotl → Fennec Fox' }).click()
+  await review.getByRole('button', { name: 'Close' }).click()
+  await expect(inspector).toContainText('Axolotl')
+  await pick()
+  const read = await exported(page)
+  expect([read('Followers', '0', 'SkinName'), read('Followers', '0', 'SkinVariation')]).toEqual(['Fennec Fox', 0])
 })
 
 test('revive, bulk max needs, and edits survive choosing the folder again', async ({ page }) => {

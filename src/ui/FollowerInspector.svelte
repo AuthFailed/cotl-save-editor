@@ -24,6 +24,7 @@
   const who = () => ({ index: f!.index, dead: f!.dead })
   const set = (name: string, v: number, what: string) => push(() => edits.setFollower(session.schema!, session.root!, who(), name, v, what))
   const all = (kind: 'skins' | 'traits') => [...(cat.maps[kind]?.values() ?? [])].sort((a, b) => a.name.localeCompare(b.name))
+  const forms = $derived(all('skins').filter(x => cat.forms.has(x.id)))
 
   function rename() {
     const v = nameText.trim()
@@ -50,7 +51,7 @@
       <div>
         <div class="title">{f.name}</div>
         <div class="sub">{t('insp.id', { id: f.id })} · {nameOf('skins', form ?? f.skin)}{f.dead ? ` · ${t('insp.dead')}` : ''}</div>
-        <button class="btn" disabled={session.readOnly} onclick={() => (picking = 'form')}>{t('insp.changeForm')}</button>
+        <button class="btn" disabled={session.readOnly || !forms.length} onclick={() => (picking = 'form')}>{t('insp.changeForm')}</button>
       </div>
     </div>
 
@@ -94,8 +95,8 @@
   </div>
 
   {#if picking === 'form'}
-    <Picker kind="skins" title={t('insp.chooseForm')} search={t('insp.searchForms')} items={all('skins')} current={form ?? undefined} onClose={() => (picking = null)}
-      onPick={id => push(() => edits.setFollower(session.schema!, session.root!, who(), 'SkinName', id, t('what.form')))} />
+    <Picker kind="skins" title={t('insp.chooseForm')} search={t('insp.searchForms')} items={forms} current={form ?? undefined} onClose={() => (picking = null)}
+      onPick={id => push(() => edits.setForm(session.schema!, session.root!, who(), cat.forms.get(id)!, nameOf('skins', form ?? f.skin), nameOf('skins', id)))} />
   {:else if picking === 'trait'}
     <Picker tile kind="traits" title={t('insp.addTraitTitle')} search={t('insp.searchTraits')} items={all('traits').filter(x => !f.traits.includes(x.id))} onClose={() => (picking = null)}
       onPick={id => push(() => edits.addTrait(session.schema!, session.root!, who(), id, nameOf('traits', id)))} />

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { openSynthetic } from './fixtures'
+import { exported, openSynthetic } from './fixtures'
 
 const changes = (page: import('@playwright/test').Page) => page.getByRole('banner').getByRole('button', { name: /change/ })
 
@@ -43,4 +43,23 @@ test('cult: rituals and crown abilities come from the save enum', async ({ page 
   await expect(main.getByText(/of 31 unlocked/)).toBeVisible()
   await main.getByRole('tab', { name: /Crown/ }).click()
   await expect(main.getByText(/of 5 unlocked/)).toBeVisible()
+})
+
+test('forms unlock and lock under the skin name the game uses', async ({ page }) => {
+  await openSynthetic(page, 'collection')
+  const main = page.getByRole('main')
+  await main.getByRole('tab', { name: /Forms/ }).click()
+  await expect(main.getByText(/^0 of \d+ unlocked/)).toBeVisible()
+  const card = main.getByRole('button', { name: /^Fennec Fox/ })
+  await card.click()
+  await expect(card).toHaveAttribute('aria-pressed', 'true')
+  await expect(main.getByText(/^1 of \d+ unlocked/)).toBeVisible()
+  expect((await exported(page))('FollowerSkinsUnlocked')).toEqual(['Fennec Fox'])
+
+  await openSynthetic(page, 'collection')
+  await main.getByRole('tab', { name: /Forms/ }).click()
+  await card.click()
+  await card.click()
+  await expect(changes(page)).toHaveText('2 changes')
+  await expect(card).toHaveAttribute('aria-pressed', 'false')
 })

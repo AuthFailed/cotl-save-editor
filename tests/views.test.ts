@@ -44,3 +44,8 @@ test('published variants map a form name exactly, before any guessing', () => {
   const variants = new Map([['CultLeader 1 Healed', 'CultLeader_1']])
   expect([skinId('CultLeader 1 Healed', api), skinId('CultLeader 1 Healed', api, variants)]).toEqual([null, 'CultLeader_1'])
 })
+
+test('with published variants loaded, only a skin name maps, and an API id written into a save does not', () => {
+  const api = new Set(['Fennec_Fox']), variants = new Map([['Fennec Fox3', 'Fennec_Fox']])
+  expect([skinId('Fennec_Fox', api, variants), skinId('Fennec Fox3', api, variants)]).toEqual([null, 'Fennec_Fox'])
+})
