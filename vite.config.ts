@@ -1,3 +1,4 @@
+import { csp } from './scripts/csp'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
@@ -5,6 +6,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   base: '/',
   plugins: [
+    csp(),
     svelte(),
     VitePWA({
       registerType: 'autoUpdate',
