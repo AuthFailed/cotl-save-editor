@@ -38,3 +38,9 @@ test('save form names map to API ids the way the API builds them', () => {
   expect([skinId('Fennec Fox3', api), skinId('Fennec Fox', api), skinId('Unicorn2', api), skinId('Boss Death Cat', api)])
     .toEqual(['Fennec_Fox', 'Fennec_Fox', 'Unicorn', null])
 })
+
+test('published variants map a form name exactly, before any guessing', () => {
+  const api = new Set(['CultLeader_1'])
+  const variants = new Map([['CultLeader 1 Healed', 'CultLeader_1']])
+  expect([skinId('CultLeader 1 Healed', api), skinId('CultLeader 1 Healed', api, variants)]).toEqual([null, 'CultLeader_1'])
+})

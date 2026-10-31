@@ -2,7 +2,7 @@
   import { Copy, HeartPulse, Info, Plus, Trash2, X } from '@lucide/svelte'
   import { detail } from './detail.svelte'
   import Thumb from './Thumb.svelte'
-  import { cat, entry, nameOf, want } from '../data/catalogs.svelte'
+  import { cat, entry, nameOf, want, wantVariants } from '../data/catalogs.svelte'
   import { edits } from '../model/edits'
   import { push, session } from '../model/session.svelte'
   import { followers, skinId } from '../model/views'
@@ -12,11 +12,12 @@
   import { selection } from './selection.svelte'
 
   want('skins')
+  wantVariants()
   want('traits', true)
   const f = $derived(session.root && session.schema && selection.follower
     ? followers(session.schema, session.root).find(x => x.dead === selection.follower!.dead && x.index === selection.follower!.index) : undefined)
   const skins = $derived(new Set(cat.maps.skins?.keys() ?? []))
-  const form = $derived(f ? skinId(f.skin, skins) : null)
+  const form = $derived(f ? skinId(f.skin, skins, cat.variants) : null)
   let picking = $state<'form' | 'trait' | null>(null)
   let nameText = $state('')
   $effect(() => { nameText = f?.name ?? '' })

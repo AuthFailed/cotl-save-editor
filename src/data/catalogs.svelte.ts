@@ -1,11 +1,13 @@
 // Loaded game names and pictures, per kind, in the player's language; screens ask for what they show.
 import { LANGUAGES } from '../i18n/languages'
-import { catalog, language, type Entry, type Kind } from './api'
+import { catalog, entities, language, type Entry, type Kind } from './api'
 
 class Catalogs {
   lang = $state('en')
   offline = $state(false)
   maps = $state.raw<Partial<Record<Kind, Map<string, Entry>>>>({})
+  /** A save's form name (a Spine skin) → its API skin id, from the API's variants. */
+  variants = $state.raw(new Map<string, string>())
 }
 export const cat = new Catalogs()
 const asked = new Set<string>()
@@ -18,6 +20,15 @@ export function want(kind: Kind, text = false) {
   catalog(kind, cat.lang, text).then(m => {
     if (!m) { cat.offline = true; return }
     cat.maps = { ...cat.maps, [kind]: new Map([...(cat.maps[kind] ?? []), ...(text ? m : [...m].filter(([id]) => !cat.maps[kind]?.has(id)))]) }
+  })
+}
+
+let variantsAsked = false
+export function wantVariants() {
+  if (variantsAsked) return
+  variantsAsked = true
+  entities('skins').then(l => {
+    cat.variants = new Map((l ?? []).flatMap(e => ((e.variants as string[] | undefined) ?? []).map(v => [v, e.id] as [string, string])))
   })
 }
 

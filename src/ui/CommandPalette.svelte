@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Search } from '@lucide/svelte'
   import { entities, plain, type Full, type Kind } from '../data/api'
-  import { cat, nameOf, want } from '../data/catalogs.svelte'
+  import { cat, nameOf, want, wantVariants } from '../data/catalogs.svelte'
   import { t, type Key } from '../i18n/i18n.svelte'
   import { session } from '../model/session.svelte'
   import { UNLOCKS, saveIdOf } from '../model/unlocks'
@@ -21,6 +21,7 @@
 
   // everything searchable, loaded once per palette (cached by the API client)
   want('skins')
+  wantVariants()
   want('traits')
   let lists = $state.raw<Partial<Record<Kind, Full[]>>>({})
   for (const kind of ['items', 'traits', ...UNLOCKS.map(u => u.kind)] as Kind[])
@@ -46,7 +47,7 @@
 
     const skins = new Set(lists.skins?.map(e => e.id) ?? [])
     add(followers(s, r).filter(f => match(f.name, f.skin, ...f.traits.map(x => nameOf('traits', x)))).map(f => {
-      const form = skinId(f.skin, skins)
+      const form = skinId(f.skin, skins, cat.variants)
       return { group: t('cmd.followers'), label: f.name, sub: [form ? nameOf('skins', form) : f.skin, f.dead ? t('status.Dead') : ''].filter(Boolean).join(' · '),
         thumb: form ? lists.skins?.find(e => e.id === form)?.thumb : null, kind: 'skins',
         run: () => { go('followers'); selection.follower = { index: f.index, dead: f.dead } } }

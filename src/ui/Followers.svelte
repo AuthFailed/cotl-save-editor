@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Search } from '@lucide/svelte'
-  import { cat, entry, nameOf, want } from '../data/catalogs.svelte'
+  import { cat, entry, nameOf, want, wantVariants } from '../data/catalogs.svelte'
   import Thumb from './Thumb.svelte'
   import { edits } from '../model/edits'
   import { push, session } from '../model/session.svelte'
@@ -11,6 +11,7 @@
   import { route } from './route.svelte'
 
   want('skins')
+  wantVariants()
   want('traits')
   const all = $derived(session.root && session.schema ? followers(session.schema, session.root) : [])
   const FILTERS: ('All' | Status)[] = ['All', 'Hungry', 'Ill', 'Elderly', 'Dead']
@@ -23,7 +24,7 @@
   const shown = $derived(all.filter(f => (filter === 'All' || f.status === filter) &&
     `${f.name} ${f.skin} ${f.traits.map(t => nameOf('traits', t)).join(' ')}`.toLowerCase().includes(query.trim().toLowerCase())))
   const skins = $derived(new Set(cat.maps.skins?.keys() ?? []))
-  const portrait = (f: FollowerView) => { const id = skinId(f.skin, skins); return id ? entry('skins', id)?.thumb ?? null : null }
+  const portrait = (f: FollowerView) => { const id = skinId(f.skin, skins, cat.variants); return id ? entry('skins', id)?.thumb ?? null : null }
   const isSelected = (f: FollowerView) => selection.follower?.index === f.index && selection.follower?.dead === f.dead
   const picked = $derived(all.filter(f => checked.includes(key(f))))
 
@@ -68,7 +69,7 @@
                 <Thumb {src} kind="skins" size={40} dim={f.dead} />
                 <span class="names">
                   <button class="name" onclick={() => (selection.follower = { index: f.index, dead: f.dead })}>{f.name}</button>
-                  <span class="sub">{nameOf('skins', skinId(f.skin, skins) ?? f.skin)} · {t('fol.days', { n: f.age })}</span>
+                  <span class="sub">{nameOf('skins', skinId(f.skin, skins, cat.variants) ?? f.skin)} · {t('fol.days', { n: f.age })}</span>
                 </span>
               </span>
             </td>
