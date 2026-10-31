@@ -1,0 +1,35 @@
+// Writing the edited slot back: same format and name, checked by reading it again before anything is downloaded.
+import { SaveFormatError } from '../codec/errors'
+import { openSave, saveSave, type Opened } from '../codec/formats'
+import { encodeMp } from '../codec/msgpack'
+import { fromTree } from './json'
+import { session } from './session.svelte'
+
+const backedUp = new WeakSet<File>()
+
+export async function exportSlot(): Promise<{ files: { name: string; bytes: Uint8Array }[] }> {
+  const { slot, root, schema, entry } = session
+  if (!slot || !root || !schema || !entry) throw new SaveFormatError('No save is open.')
+  const data: Opened['data'] = slot.data.kind === 'msgpack'
+    ? { kind: 'msgpack', root }
+    : { kind: 'json', root: fromTree(schema, root, slot.data.root) }
+  const edited: Opened = { ...slot, data }
+  const bytes = await saveSave(edited)
+
+  // Spec, Safety 4: the file we built must read back as exactly what was edited.
+  const back = await openSave(slot.name, bytes)
+  const sameBytes = (a: Uint8Array, b: Uint8Array) => a.length === b.length && a.every((x, i) => x === b[i])
+  const same = data.kind === 'msgpack'
+    ? back.data.kind === 'msgpack' && sameBytes(encodeMp(back.data.root), encodeMp(data.root))
+    : back.data.kind === 'json' && JSON.stringify(back.data.root) === JSON.stringify(data.root)
+  if (!same) throw new SaveFormatError("The edited save didn't read back the same, so nothing was downloaded. Please report this.")
+
+  const files = [{ name: slot.name, bytes }]
+  if (!backedUp.has(entry.slotFile)) {
+    files.push({ name: `${slot.name}.backup`, bytes: new Uint8Array(await entry.slotFile.arrayBuffer()) })
+    backedUp.add(entry.slotFile)
+  }
+  // What was exported is the new starting point: the change list is spent.
+  Object.assign(session, { slot: edited, original: root, changes: [], undone: [], error: null })
+  return { files }
+}

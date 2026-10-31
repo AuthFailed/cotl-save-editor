@@ -63,6 +63,7 @@ class Session {
   meta = $state.raw<Opened | null>(null)
   schema = $state.raw<SaveSchema | null>(null)
   schemaExact = $state.raw(true)
+  saveVersion = $state.raw<string | null>(null)
   original = $state.raw<MpNode | null>(null)
   root = $state.raw<MpNode | null>(null)
   changes = $state.raw<Change[]>([])
@@ -76,9 +77,10 @@ export const session = new Session()
 export async function openSlot(entry: SlotEntry, schemaFor: SchemaFor): Promise<void> {
   const slot = await read(entry.slotFile)
   const meta = entry.metaFile ? await read(entry.metaFile) : null
-  const { schema, exact } = await schemaFor(meta ? gameVersionOf(meta, (await schemaFor(null)).schema) : null)
+  const saveVersion = meta ? gameVersionOf(meta, (await schemaFor(null)).schema) : null
+  const { schema, exact } = await schemaFor(saveVersion)
   const root = slot.data.kind === 'msgpack' ? slot.data.root : jsonToTree(schema, slot.data.root)
-  Object.assign(session, { entry, slot, meta, schema, schemaExact: exact, original: root, root, changes: [], undone: [], error: null, readOnly: !slot.exact })
+  Object.assign(session, { entry, slot, meta, schema, schemaExact: exact, saveVersion, original: root, root, changes: [], undone: [], error: null, readOnly: !slot.exact })
 }
 
 function settle(changes: Change[], undone: Change[]) {

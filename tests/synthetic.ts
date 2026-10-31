@@ -29,7 +29,7 @@ const follower = (id: number, name: string, skin: string, level: number, extra: 
 const item = (id: string, quantity: number) =>
   object('InventoryItem', { type: int(enumValue('InventoryItem.ITEM_TYPE', id)), quantity: int(quantity), QuantityReserved: int(0) })
 
-export function syntheticRoots() {
+export function syntheticRoots(version = '1.5.26.1058') {
   const slot = object('DataManager', {
     AllowSaving: { t: 'bool', v: true }, CultName: str('Test Cult'), CultFaith: f32(82),
     Followers: arr([follower(1, 'Pip', 'Axolotl', 3, { _satiation: f32(12) }), follower(2, 'Ash', 'Fox', 9, { OldAge: { t: 'bool', v: true } })]),
@@ -38,14 +38,14 @@ export function syntheticRoots() {
     PlayerFoundRelics: nil, PlayerFoundTrinkets: arr([]),
   })
   const meta = object('MetaData', { CultName: str('Test Cult'), FollowerCount: int(2), Day: int(47), Difficulty: int(1),
-    PlayTime: f32(11520), Version: str('1.5.26.1058') })
+    PlayTime: f32(11520), Version: str(version) })
   return { slot, meta }
 }
 
 const KEY = new Uint8Array(16).fill(7)
 const IV = new Uint8Array(16).fill(9)
-export async function syntheticSaves(): Promise<{ name: string; bytes: Uint8Array }[]> {
-  const { slot, meta } = syntheticRoots()
+export async function syntheticSaves(version?: string): Promise<{ name: string; bytes: Uint8Array }[]> {
+  const { slot, meta } = syntheticRoots(version)
   return [
     { name: 'slot_0.mp', bytes: await aesWrap({ key: KEY, iv: IV }, wrapBlockArray(encodeMp(slot))) },
     { name: 'meta_0.mp', bytes: await aesWrap({ key: KEY, iv: IV }, wrapBlockArray(encodeMp(meta))) },
