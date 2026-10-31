@@ -43,6 +43,6 @@ describe.skipIf(!hasSaves)('real saves', () => {
     const files = readdirSync(dir).map(n => new File([readFileSync(new URL(n, dir))], n))
     const slots = await listSlots(files, loadSchema)
     expect(slots.map(s => [s.slot, s.slotFile.name, s.cultName])).toEqual([
-      [0, 'slot_0.mp', 'Рога и Копыта'], [1, 'slot_1.json', expect.any(String)], [10, 'slot_10.mp', expect.any(String)]])
+      [0, 'slot_0.mp', expect.any(String)], [1, 'slot_1.json', expect.any(String)], [10, 'slot_10.mp', expect.any(String)]])
   })
 })

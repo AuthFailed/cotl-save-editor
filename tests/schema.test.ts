@@ -42,7 +42,9 @@ describe.skipIf(!hasSaves)('real saves', () => {
   test('a follower name by path, and the game version from meta', async () => {
     const o = await openSave('slot_0.mp', readSave('slot_0.mp'))
     const root = (o.data as Extract<typeof o.data, { kind: 'msgpack' }>).root
-    expect(toPlain(get(schema, root, 'DataManager', ['Followers', '0', '_name'])!.node)).toBe('Треджулно')
+    const name = toPlain(get(schema, root, 'DataManager', ['Followers', '0', '_name'])!.node)
+    expect(name).toBe((toPlain(root) as any[])[1109][0][1])
+    expect(name).toEqual(expect.stringMatching(/\S/))
     expect(gameVersionOf(await openSave('meta_0.mp', readSave('meta_0.mp')), schema)).toBe('1.5.26.1058')
     expect(gameVersionOf(await openSave('meta_0.json', readSave('meta_0.json')), schema)).toBe('1.4.6\n.596')
   })

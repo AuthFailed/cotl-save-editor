@@ -72,8 +72,11 @@ describe.skipIf(!hasSaves)('real saves', () => {
   test('slot_0.mp opens with the known facts and is exact', async () => {
     const o = await openSave('slot_0.mp', readSave('slot_0.mp'))
     const root = rootOf(o)
+    // names are personal, so the cult name is checked against the meta file rather than quoted
+    const meta = rootOf(await openSave('meta_0.mp', readSave('meta_0.mp')))
     expect([o.exact, root.length, root[410], root[1109].length, root[1109][0][1], root[1109][0][15], root[1111].length, root[1162][0]])
-      .toEqual([true, 1397, 'Рога и Копыта', 18, 'Треджулно', 'Unicorn2', 46, [2, 871, 0]])
+      .toEqual([true, 1397, meta[0], 18, expect.stringMatching(/\S/), 'Unicorn2', 46, [2, 871, 0]])
+    expect(meta[0]).toEqual(expect.stringMatching(/\S/))
   })
   test('meta_0.mp is a 31-element array with the version at 29', async () => {
     const root = rootOf(await openSave('meta_0.mp', readSave('meta_0.mp')))

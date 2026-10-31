@@ -26,7 +26,7 @@ test('setValue keeps a fitting wire type and widens one that no longer fits', ()
 test('a string grown past fixstr gets a wider header', () => {
   const s = setValue(decodeMp(fromHex('a3616263')), 'x'.repeat(40), 'name')
   expect(hexOf(encodeMp(s)).slice(0, 4)).toBe('d928')
-  expect(toPlain(decodeMp(encodeMp(setValue(decodeMp(fromHex('a0')), 'Рога и Копыта', 'n'))))).toBe('Рога и Копыта')
+  expect(toPlain(decodeMp(encodeMp(setValue(decodeMp(fromHex('a0')), 'Культ Ягнёнка', 'n'))))).toBe('Культ Ягнёнка')
 })
 
 test('a run of values decodes as a sequence', () => {
