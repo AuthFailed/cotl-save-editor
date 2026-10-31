@@ -5,7 +5,8 @@ import { SaveFormatError } from '../src/codec/errors'
 import { saveSave } from '../src/codec/formats'
 import { exportSlot } from '../src/model/export'
 import { adopt, discard, failure, keyOf, listSlots, openSlot, pendingFor, push, redo, revert, session, undo, unexported } from '../src/model/session.svelte'
-import { schema, syntheticFiles, syntheticSaves } from './synthetic'
+import { get, unfit } from '../src/schema/schema'
+import { arr, at, int, schema, shifted, syntheticFiles, syntheticSaves } from './synthetic'
 import { hasSaves, unreadable } from './util'
 
 const asFiles = (list: { name: string; bytes: Uint8Array }[]) => list.map(f => new File([f.bytes as Uint8Array<ArrayBuffer>], f.name))
@@ -161,7 +162,42 @@ test('unexported counts kept slots once, and export spends only the open one', a
   expect(unexported()).toBe(base)
 })
 
+test('a save whose keys moved opens read-only and stays so after a switch', async () => {
+  const [a] = await listSlots(await syntheticFiles(undefined, shifted), loadSchema), [b] = await listSlots(await syntheticFiles(), loadSchema)
+  await openSlot(a, loadSchema)
+  expect([session.readOnly, (session.misfit?.length ?? 0) > 5]).toEqual([true, true])
+  await openSlot(b, loadSchema)
+  expect([session.readOnly, session.misfit]).toEqual([false, null])
+  await openSlot(a, loadSchema)
+  expect([session.readOnly, (session.misfit?.length ?? 0) > 5]).toEqual([true, true])
+})
+
+test('a single value that does not fit is locked; the rest of the save edits as usual', async () => {
+  const [a] = await listSlots(await syntheticFiles(undefined, at('playerDeaths', arr([int(1)]))), loadSchema), [b] = await twoSlots()
+  await openSlot(a, loadSchema)
+  expect([session.readOnly, session.misfit]).toEqual([false, null])
+  expect(push(() => edits.setPath(schema, session.root!, ['playerDeaths'], 3))).toBe(false)
+  expect(session.error).toMatch(/playerDeaths/)
+  expect(cultName('Kept')).toBe(true)
+  await openSlot(b, loadSchema)
+  await openSlot(a, loadSchema)
+  expect([session.readOnly, session.misfit, session.changes.length]).toEqual([false, null, 1])
+  expect(push(() => edits.setPath(schema, session.root!, ['playerDeaths'], 3))).toBe(false)
+})
+
 describe.skipIf(!hasSaves)('real saves', () => {
+  test('the real .mp slots open editable, with only their unions locked', async () => {
+    const dir = new URL('./saves/', import.meta.url)
+    const read = (n: string) => new File([readFileSync(new URL(n, dir))], n)
+    for (const n of [0, 10]) {
+      const [entry] = await listSlots([read(`slot_${n}.mp`), read(`meta_${n}.mp`)], loadSchema)
+      await openSlot(entry, loadSchema)
+      expect([session.readOnly, session.misfit], `slot_${n}`).toEqual([false, null])
+      if (n === 0) expect(unfit.has(get(schema, session.root!, 'DataManager', ['Objectives', '0'])!.node)).toBe(true)
+      expect(rename(0, 'Test'), `slot_${n}`).toBe(true)
+      undo()
+    }
+  })
   test('a real folder: .mp wins over .json for the same slot, and slot 10 is listed', async () => {
     const dir = new URL('./saves/', import.meta.url)
     const files = readdirSync(dir).map(n => new File([readFileSync(new URL(n, dir))], n))

@@ -155,6 +155,11 @@ const tr: Dict = {
   'export.reopen': "Klasörü yeniden seç",
   'open.changedKept': { one: "{file}, açtığından beri diskte değişti. Dışa aktarılmamış {n} değişikliği, açtığın kopyada korunuyor.", other: "{file}, açtığından beri diskte değişti. Dışa aktarılmamış {n} değişikliği, açtığın kopyada korunuyor." },
   'open.useNew': "Yeni dosyayı kullan",
+  'banner.misfit': "Bu kaydın alanları oyunun {schema} sürümündeki adlarla eşleşmiyor ({fields}), bu yüzden güvenlik için salt okunur açıldı.",
+  'banner.schemaOlder': "Alan adları oyunun {schema} sürümünden geliyor; bu sürüm kaydından ({save}) daha yeni. Alanına uymayan değerler kaydedildiği gibi gösterilir ve düzenlenemez.",
+  'raw.unfit': "Bu, şemanın verdiği türle eşleşmiyor, bu yüzden alan adları bilinmiyor: kaydedildiği gibi, salt okunur gösteriliyor.",
+  'ops.unfit': "{path} şemadaki türle eşleşmiyor, bu yüzden düzenlenemez.",
+  'export.unfit': "{field} artık şemadaki türüyle eşleşmiyor, bu yüzden hiçbir şey indirilmedi. Lütfen bunu bildir.",
 }
 
 export default tr

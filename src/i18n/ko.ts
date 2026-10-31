@@ -155,6 +155,11 @@ const ko: Dict = {
   'export.reopen': "폴더 다시 선택",
   'open.changedKept': { other: "연 뒤에 {file} 파일이 디스크에서 바뀌었습니다. 내보내지 않은 변경 {n}개는 처음 연 사본에 그대로 남아 있습니다." },
   'open.useNew': "새 파일 사용",
+  'banner.misfit': "이 저장 파일의 필드가 게임 버전 {schema}의 이름과 맞지 않아서({fields}), 안전을 위해 읽기 전용으로 열었습니다.",
+  'banner.schemaOlder': "필드 이름은 저장 파일({save})보다 새로운 게임 버전 {schema} 기준입니다. 필드와 맞지 않는 값은 저장된 그대로 보이며 편집할 수 없습니다.",
+  'raw.unfit': "스키마가 지정한 타입과 맞지 않아 필드 이름을 알 수 없습니다. 저장된 그대로 읽기 전용으로 보여 줍니다.",
+  'ops.unfit': "{path}은(는) 스키마의 타입과 맞지 않아 편집할 수 없습니다.",
+  'export.unfit': "{field}이(가) 스키마의 타입과 더 이상 맞지 않아 아무것도 다운로드하지 않았습니다. 신고해 주세요.",
 }
 
 export default ko

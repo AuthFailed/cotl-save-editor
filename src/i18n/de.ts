@@ -155,6 +155,11 @@ const de: Dict = {
   'export.reopen': "Ordner erneut wählen",
   'open.changedKept': { one: "{file} wurde auf der Festplatte geändert, seit du es geöffnet hast. Seine {n} nicht exportierte Änderung bleibt erhalten, auf der geöffneten Kopie.", other: "{file} wurde auf der Festplatte geändert, seit du es geöffnet hast. Seine {n} nicht exportierten Änderungen bleiben erhalten, auf der geöffneten Kopie." },
   'open.useNew': "Neue Datei verwenden",
+  'banner.misfit': "Die Felder dieses Spielstands passen nicht zu den Namen für Spielversion {schema} ({fields}), daher ist er zur Sicherheit nur lesbar geöffnet.",
+  'banner.schemaOlder': "Feldnamen stammen aus Spielversion {schema}, neuer als dein Spielstand ({save}). Werte, die nicht zu ihrem Feld passen, werden wie gespeichert angezeigt und lassen sich nicht bearbeiten.",
+  'raw.unfit': "Das passt nicht zum Typ, den das Schema angibt, daher sind die Feldnamen unbekannt: Es wird wie gespeichert angezeigt, nur lesbar.",
+  'ops.unfit': "{path} passt nicht zum Typ im Schema und lässt sich daher nicht bearbeiten.",
+  'export.unfit': "{field} passt nicht mehr zu seinem Typ im Schema, daher wurde nichts heruntergeladen. Bitte melde das.",
 }
 
 export default de

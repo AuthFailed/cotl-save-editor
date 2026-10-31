@@ -24,6 +24,7 @@
   import { go, route } from './ui/route.svelte'
   import { selection } from './ui/selection.svelte'
   import { RTL, t } from './i18n/i18n.svelte'
+  import { compare } from './schema/schema'
 
   const schemaFor: SchemaFor = saveSchemaFor
   initLanguage((() => { try { return localStorage.getItem('lang') } catch { return null } })())
@@ -94,11 +95,15 @@
   {#if session.error}<p class="toast" role="alert">{session.error}</p>{/if}
   {#if session.slot && route.page !== 'open'}
     {#if session.readOnly}
-      <Banner>{t('banner.readOnly')}
+      <Banner>{session.misfit
+        ? t('banner.misfit', { schema: session.schema?.gameVersion ?? '', fields: session.misfit.slice(0, 3).join(', ') })
+        : t('banner.readOnly')}
         <a href={readOnlyReport(session.slot.format, session.saveVersion)} target="_blank" rel="noreferrer">{t('banner.report')}</a> {t('banner.reportTail')}</Banner>
     {/if}
     {#if !session.schemaExact}
-      <Banner>{t('banner.schema', { schema: session.schema?.gameVersion ?? '', save: session.saveVersion ?? t('banner.unknownVersion') })}</Banner>
+      <Banner>{session.saveVersion && session.schema && compare(session.saveVersion, session.schema.gameVersion) < 0
+        ? t('banner.schemaOlder', { schema: session.schema.gameVersion, save: session.saveVersion })
+        : t('banner.schema', { schema: session.schema?.gameVersion ?? '', save: session.saveVersion ?? t('banner.unknownVersion') })}</Banner>
     {/if}
     {#if session.slot.beta}<Banner>{t('banner.beta')}</Banner>{/if}
     {#if stale === session.entry}

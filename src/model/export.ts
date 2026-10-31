@@ -2,6 +2,8 @@
 import { SaveFormatError } from '../codec/errors'
 import { openSave, sameBytes, saveSave, type Opened } from '../codec/formats'
 import { encodeMp } from '../codec/msgpack'
+import { t } from '../i18n/i18n.svelte'
+import { fit, unfit } from '../schema/schema'
 import { fromTree } from './json'
 import { keyOf, session } from './session.svelte'
 
@@ -11,6 +13,9 @@ const backedUp = new Set<string>()
 export async function exportSlot(): Promise<{ files: { name: string; bytes: Uint8Array }[] }> {
   const { slot, root, schema, entry } = session
   if (!slot || !root || !schema || !entry) throw new SaveFormatError('No save is open.')
+  // Safety 4 again: what was locked on opening is unchanged, so any other misfit is one an edit made.
+  const bad = fit(schema, root).find(m => !unfit.has(m.node))
+  if (bad) throw new SaveFormatError(t('export.unfit', { field: bad.field }), true)
   const data: Opened['data'] = slot.data.kind === 'msgpack'
     ? { kind: 'msgpack', root }
     : { kind: 'json', root: fromTree(schema, root, slot.data.root) }

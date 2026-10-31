@@ -4,7 +4,7 @@ import { SaveFormatError } from '../codec/errors'
 import { openSave, sameBytes, type Format, type Opened } from '../codec/formats'
 import type { MpNode } from '../codec/msgpack'
 import { t } from '../i18n/i18n.svelte'
-import { field, gameVersionOf, type SaveSchema } from '../schema/schema'
+import { field, fit, gameVersionOf, moved, unfit, type SaveSchema } from '../schema/schema'
 import { jsonToTree } from './json'
 import { OpError, replay, revertOne, type Change } from './ops'
 
@@ -79,6 +79,8 @@ class Session {
   /** The last edit that couldn't be made, for the screens to show. */
   error = $state.raw<string | null>(null)
   readOnly = $state.raw(false)
+  /** The fields that don't fit the schema when so many don't that the save's keys have moved; the slot is then read-only. */
+  misfit = $state.raw<string[] | null>(null)
   /** The slots of the folder that was opened, for the switcher. */
   slots = $state.raw<SlotEntry[]>([])
 }
@@ -86,7 +88,7 @@ export const session = new Session()
 
 // Each slot's open state, kept while another slot is open, so switching never loses edits. Never holds the open slot.
 // Keyed by name and contents, so choosing the same folder again (or a copy of it) finds them too.
-type Kept = Pick<Session, 'slot' | 'meta' | 'schema' | 'schemaExact' | 'saveVersion' | 'original' | 'root' | 'changes' | 'undone' | 'readOnly'>
+type Kept = Pick<Session, 'slot' | 'meta' | 'schema' | 'schemaExact' | 'saveVersion' | 'original' | 'root' | 'changes' | 'undone' | 'readOnly' | 'misfit'>
 const kept = new SvelteMap<string, Kept>()
 export const keyOf = (e: SlotEntry) => `${e.slotFile.name}:${e.hash}`
 export const pendingFor = (e: SlotEntry) =>
@@ -107,7 +109,10 @@ async function load(entry: SlotEntry, schemaFor: SchemaFor): Promise<Kept> {
   const saveVersion = meta ? gameVersionOf(meta, (await schemaFor(null)).schema) : null
   const { schema, exact } = await schemaFor(saveVersion)
   const root = slot.data.kind === 'msgpack' ? slot.data.root : jsonToTree(schema, slot.data.root)
-  return { slot, meta, schema, schemaExact: exact, saveVersion, original: root, root, changes: [], undone: [], readOnly: !slot.exact }
+  const found = fit(schema, root)
+  for (const m of found) unfit.add(m.node)
+  const misfit = moved(found)
+  return { slot, meta, schema, schemaExact: exact, saveVersion, original: root, root, changes: [], undone: [], readOnly: !slot.exact || !!misfit, misfit }
 }
 
 /** Opens a slot, or brings back its kept edits; a failure leaves the open slot as it was. */
@@ -123,8 +128,8 @@ export async function openSlot(entry: SlotEntry, schemaFor: SchemaFor): Promise<
   }
   const next = back ?? await load(entry, schemaFor)
   if (session.entry && session.slot) {
-    const { slot, meta, schema, schemaExact, saveVersion, original, root, changes, undone, readOnly } = session
-    kept.set(keyOf(session.entry), { slot, meta, schema, schemaExact, saveVersion, original, root, changes, undone, readOnly })
+    const { slot, meta, schema, schemaExact, saveVersion, original, root, changes, undone, readOnly, misfit } = session
+    kept.set(keyOf(session.entry), { slot, meta, schema, schemaExact, saveVersion, original, root, changes, undone, readOnly, misfit })
   }
   kept.delete(key)
   Object.assign(session, { entry, ...next, error: changed ? t('export.changed', { file: entry.slotFile.name }) : null })

@@ -155,6 +155,11 @@ const zhTW: Dict = {
   'export.reopen': "重新選擇資料夾",
   'open.changedKept': { other: "開啟後，{file} 在磁碟上被更動。它的 {n} 項未匯出的變更保留在你開啟的副本上。" },
   'open.useNew': "使用新檔案",
+  'banner.misfit': "這個存檔的欄位與遊戲版本 {schema} 的欄位名稱不符（{fields}），為了安全以唯讀方式開啟。",
+  'banner.schemaOlder': "欄位名稱來自遊戲版本 {schema}，比你的存檔（{save}）更新。與欄位不符的值會依儲存原樣顯示，無法編輯。",
+  'raw.unfit': "這與結構定義給出的型別不符，因此其欄位名稱未知：依儲存原樣以唯讀顯示。",
+  'ops.unfit': "{path} 與結構定義的型別不符，因此無法編輯。",
+  'export.unfit': "{field} 已與結構定義中的型別不符，因此沒有下載任何內容。請回報此問題。",
 }
 
 export default zhTW

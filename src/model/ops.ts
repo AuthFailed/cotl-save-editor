@@ -1,6 +1,7 @@
 // Every edit is a change of one or more ops; Review, undo and export all replay this one list from the original.
 import { setValue, toPlain, type MpNode } from '../codec/msgpack'
-import { field, get, type FieldType, type SaveSchema } from '../schema/schema'
+import { t as tr } from '../i18n/i18n.svelte'
+import { field, get, unfit, type FieldType, type SaveSchema } from '../schema/schema'
 import { nodeLike } from './build'
 
 /** guard: a value that must still be at that path, so an op never lands on a different follower or item. */
@@ -28,6 +29,7 @@ const unwrap = (t: FieldType): FieldType => (typeof t === 'object' && 'nullable'
 
 function update(schema: SaveSchema, node: MpNode, type: FieldType, path: string[], i: number,
   fn: (node: MpNode, type: FieldType) => MpNode): MpNode {
+  if (unfit.has(node)) throw new OpError(tr('ops.unfit', { path: path.slice(0, i).join('.') }))
   if (i === path.length) return fn(node, type)
   const t = unwrap(type)
   const seg = path[i]
@@ -74,6 +76,8 @@ export function apply(schema: SaveSchema, root: MpNode, op: Op): MpNode {
       const at = get(schema, without, schema.roots.slot, op.to)?.node
       return apply(schema, without, { kind: 'insert', path: op.to, index: at?.t === 'arr' ? at.v.length : 0, node })
     }
+    // A clone would be an unlocked copy of what doesn't fit.
+    if (unfit.has(node)) throw new OpError(tr('ops.unfit', { path: `${where}.${op.index}` }))
     const key = field(schema, op.set.type, op.set.field)
     if (!key) throw new OpError(`${op.set.type}.${op.set.field}: not in this schema`)
     const v = node.v.slice()

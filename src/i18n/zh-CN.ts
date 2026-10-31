@@ -155,6 +155,11 @@ const zhCN: Dict = {
   'export.reopen': "重新选择文件夹",
   'open.changedKept': { other: "打开后，{file} 在磁盘上被改动。它的 {n} 处未导出的更改保留在你打开的副本上。" },
   'open.useNew': "使用新文件",
+  'banner.misfit': "这个存档的字段与游戏版本 {schema} 的字段名不符（{fields}），为了安全以只读方式打开。",
+  'banner.schemaOlder': "字段名来自游戏版本 {schema}，比你的存档（{save}）更新。与字段不符的值按存储原样显示，无法编辑。",
+  'raw.unfit': "这与结构定义给出的类型不符，因此其字段名未知：按存储原样只读显示。",
+  'ops.unfit': "{path} 与结构定义的类型不符，因此无法编辑。",
+  'export.unfit': "{field} 已与结构定义中的类型不符，因此没有下载任何内容。请报告此问题。",
 }
 
 export default zhCN

@@ -41,8 +41,20 @@ test('a save from a version with no exact schema says so and stays editable', as
   await page.goto('/')
   await page.getByLabel('Choose your saves folder').setInputFiles(await savesFolder('1.4.0'))
   await page.getByRole('listitem').filter({ hasText: 'Test Cult' }).getByRole('button', { name: 'Open' }).click()
-  await expect(page.getByRole('status').filter({ hasText: 'Field names come from game version 1.5.26.1058; your save is from 1.4.0' })).toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: 'newer than your save (1.4.0)' })).toBeVisible()
   await expect(page.getByRole('main').getByLabel('Gold', { exact: true })).toBeEnabled()
+})
+
+test('a save whose fields moved opens read-only and names them', async ({ page }) => {
+  const { savesFolder } = await import('./fixtures')
+  const { shifted } = await import('../tests/synthetic')
+  await page.goto('/')
+  await page.getByLabel('Choose your saves folder').setInputFiles(await savesFolder(undefined, {}, [0], shifted))
+  await page.getByRole('listitem').filter({ hasText: 'Test Cult' }).getByRole('button', { name: 'Open' }).click()
+  const banner = page.getByRole('status').filter({ hasText: 'open read-only' })
+  await expect(banner).toContainText('DataManager.')
+  await expect(page.getByRole('main').getByLabel('Cult name', { exact: true })).toBeDisabled()
+  await expect(page.getByRole('main').getByLabel('Gold', { exact: true })).toBeDisabled()
 })
 
 test('a save that would not write back exactly opens read-only', async ({ page }) => {

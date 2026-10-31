@@ -155,6 +155,11 @@ const ptBR: Dict = {
   'export.reopen': "Escolher a pasta de novo",
   'open.changedKept': { one: "{file} mudou no disco desde que você o abriu. Sua {n} alteração não exportada foi mantida, na cópia que você abriu.", other: "{file} mudou no disco desde que você o abriu. Suas {n} alterações não exportadas foram mantidas, na cópia que você abriu." },
   'open.useNew': "Usar o arquivo novo",
+  'banner.misfit': "Os campos deste save não correspondem aos nomes da versão {schema} do jogo ({fields}), então ele foi aberto só para leitura, por segurança.",
+  'banner.schemaOlder': "Os nomes dos campos vêm da versão {schema} do jogo, mais nova que o seu save ({save}). Valores que não correspondem ao seu campo aparecem como foram salvos e não podem ser editados.",
+  'raw.unfit': "Isto não corresponde ao tipo que o esquema indica, então os nomes dos campos são desconhecidos: aparece como foi salvo, só para leitura.",
+  'ops.unfit': "{path} não corresponde ao tipo do esquema, então não pode ser editado.",
+  'export.unfit': "{field} não corresponde mais ao seu tipo no esquema, então nada foi baixado. Por favor, relate isso.",
 }
 
 export default ptBR

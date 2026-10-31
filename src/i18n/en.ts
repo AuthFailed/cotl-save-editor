@@ -183,6 +183,11 @@ const en = {
   'export.reopen': "Choose the folder again",
   'open.changedKept': { one: "{file} changed on disk since you opened it. Its {n} unexported change is kept, on the copy you opened.", other: "{file} changed on disk since you opened it. Its {n} unexported changes are kept, on the copy you opened." } as Plural,
   'open.useNew': "Use the new file",
+  'banner.misfit': "Fields of this save don't match the names for game version {schema} ({fields}), so it's open read-only to keep it safe.",
+  'banner.schemaOlder': "Field names come from game version {schema}, newer than your save ({save}). Values that don't match their field are shown as stored and can't be edited.",
+  'raw.unfit': "This doesn't match the type the schema gives, so its field names are unknown: it's shown as stored, read-only.",
+  'ops.unfit': "{path} doesn't match the schema's type, so it can't be edited.",
+  'export.unfit': "{field} no longer matches its type in the schema, so nothing was downloaded. Please report this.",
 }
 
 export default en

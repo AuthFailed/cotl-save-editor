@@ -4,14 +4,17 @@
   import { edits } from '../model/edits'
   import { push, session } from '../model/session.svelte'
   import { enumName, enumValue } from '../model/views'
-  import { nameAt, type FieldType } from '../schema/schema'
+  import { nameAt, unfit, type FieldType } from '../schema/schema'
   import { t as tr } from '../i18n/i18n.svelte'
   import RawNode from './RawNode.svelte'
 
-  let { name, path, node, type, depth = 0 }: { name: string; path: string[]; node: MpNode; type: FieldType | undefined; depth?: number } = $props()
+  let { name, path, node, type, depth = 0, locked = false }:
+    { name: string; path: string[]; node: MpNode; type: FieldType | undefined; depth?: number; locked?: boolean } = $props()
 
   const unwrap = (t: FieldType | undefined): FieldType | undefined => (typeof t === 'object' && 'nullable' in t ? unwrap(t.nullable) : t)
-  const t = $derived(unwrap(type))
+  // What doesn't fit its declared type, and all under it, is shown as stored: by index, with its wire type.
+  const stored = $derived(locked || unfit.has(node))
+  const t = $derived(stored ? undefined : unwrap(type))
   const container = $derived(node.t === 'arr' || node.t === 'map')
   const enumOf = $derived(typeof t === 'object' && 'enum' in t ? t.enum : null)
   const kind = $derived.by((): 'int' | 'float' | 'str' | 'bool' | 'enum' | null => {
@@ -37,7 +40,7 @@
     if (node.t === 'map') return node.v.map(([k, n]) => ({ name: String(toPlain(k)), path: [...path, String(toPlain(k))], node: n, type: typeof t === 'object' && 'map' in t ? t.map[1] : undefined }))
     return []
   })
-  const editable = $derived(!path.some(p => p.startsWith('#')))
+  const editable = $derived(!stored && !path.some(p => p.startsWith('#')))
 
   function commit(raw: string) {
     let v: unknown = raw
@@ -80,9 +83,10 @@
       {/if}
     </span>
   </div>
+  {#if unfit.has(node) && !locked}<p class="note">{tr('raw.unfit')}</p>{/if}
   {#if open}
     <ul role="group">
-      {#each children as c (c.path.join('.'))}<RawNode {...c} depth={depth + 1} />{/each}
+      {#each children as c (c.path.join('.'))}<RawNode {...c} depth={depth + 1} locked={stored} />{/each}
     </ul>
   {/if}
 </li>
@@ -101,5 +105,6 @@
   .value { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .value input:not([type]), .value input.mono, select { width: 100%; height: 30px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-6); background: var(--bg); font-size: 13px; }
   .dim { color: var(--faint); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .note { margin: 0; padding: 0 8px 6px calc(40px + var(--depth) * 18px); color: var(--faint); font-size: 12px; }
   .error { color: var(--accent-text); font-size: 12px; white-space: nowrap; }
 </style>

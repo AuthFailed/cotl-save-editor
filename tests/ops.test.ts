@@ -4,6 +4,7 @@ import { encodeMp, type MpNode } from '../src/codec/msgpack'
 import { edits } from '../src/model/edits'
 import { OpError, replay, revertOne, type Change } from '../src/model/ops'
 import { followers, inventory, unlocked } from '../src/model/views'
+import { get, unfit } from '../src/schema/schema'
 import { schema, syntheticRoots } from './synthetic'
 import { hasSaves, readSave } from './util'
 
@@ -83,4 +84,32 @@ test('setPath edits any scalar by path, and refuses a wrong type', () => {
   expect(followers(schema, next)[1].level).toBe(12)
   expect(edits.setPath(schema, root, ['CultName'], 'X').label).toBe('CultName Test Cult → X')
   expect(() => run(root, edits.setPath(schema, root, ['CultFaith'], 'abc'))).toThrow(/CultFaith/)
+})
+
+describe('a node that does not fit its schema', () => {
+  // Fresh roots each time: the lock is on the node itself.
+  const locked = (path: string[]) => {
+    const r = syntheticRoots().slot, node = get(schema, r, 'DataManager', path)!.node
+    unfit.add(node)
+    return { r, node }
+  }
+  test('refuses a set on it, not on another field', () => {
+    const { r } = locked(['CultName'])
+    expect(() => run(r, edits.setRoot(schema, r, 'CultName', 'X', 'Cult name'))).toThrow(OpError)
+    expect(() => run(r, edits.setRoot(schema, r, 'CultName', 'X', 'Cult name'))).toThrow(/CultName/)
+    expect(get(schema, run(r, edits.setRoot(schema, r, 'CultFaith', 3, 'Faith')), 'DataManager', ['CultFaith'])?.node).toMatchObject({ v: 3 })
+  })
+  test('a locked list refuses an insert; an unlocked one gives up a locked element', () => {
+    const { r } = locked(['items'])
+    expect(() => run(r, edits.addItem(schema, r, 'BERRY', 5))).toThrow(OpError)
+    const other = locked(['Followers', '0'])
+    expect(followers(schema, run(other.r, edits.removeFollower(schema, other.r, 0))).map(f => f.id)).toEqual([2, 3])
+  })
+  test('a locked follower is not cloned, and stays locked when moved', () => {
+    const { r } = locked(['Followers', '0'])
+    expect(() => run(r, edits.clone(schema, r, 0))).toThrow(OpError)
+    const dead = locked(['Followers_Dead', '0'])
+    const next = run(dead.r, edits.revive(schema, dead.r, 0))
+    expect(unfit.has(get(schema, next, 'DataManager', ['Followers', '2'])!.node)).toBe(true)
+  })
 })

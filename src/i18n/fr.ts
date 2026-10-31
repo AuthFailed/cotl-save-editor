@@ -155,6 +155,11 @@ const fr: Dict = {
   'export.reopen': "Choisir à nouveau le dossier",
   'open.changedKept': { one: "{file} a changé sur le disque depuis son ouverture. Sa {n} modification non exportée est conservée, sur la copie ouverte.", other: "{file} a changé sur le disque depuis son ouverture. Ses {n} modifications non exportées sont conservées, sur la copie ouverte." },
   'open.useNew': "Utiliser le nouveau fichier",
+  'banner.misfit': "Les champs de cette sauvegarde ne correspondent pas aux noms de la version {schema} du jeu ({fields}), elle est donc ouverte en lecture seule pour la protéger.",
+  'banner.schemaOlder': "Les noms de champs viennent de la version {schema} du jeu, plus récente que votre sauvegarde ({save}). Les valeurs qui ne correspondent pas à leur champ sont affichées telles qu’enregistrées et ne peuvent pas être modifiées.",
+  'raw.unfit': "Ceci ne correspond pas au type indiqué par le schéma, les noms de ses champs sont donc inconnus : il est affiché tel qu’enregistré, en lecture seule.",
+  'ops.unfit': "{path} ne correspond pas au type du schéma, il ne peut donc pas être modifié.",
+  'export.unfit': "{field} ne correspond plus à son type dans le schéma, rien n’a donc été téléchargé. Merci de le signaler.",
 }
 
 export default fr

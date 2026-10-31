@@ -6,7 +6,8 @@ import { edits } from '../src/model/edits'
 import { exportSlot } from '../src/model/export'
 import { listSlots, openSlot, push, session } from '../src/model/session.svelte'
 import { followers } from '../src/model/views'
-import { schema, syntheticFiles, syntheticSaves } from './synthetic'
+import { format } from '../src/i18n/i18n.svelte'
+import { arr, at, int, schema, syntheticFiles, syntheticSaves } from './synthetic'
 import { hasSaves, readSave, unreadable } from './util'
 
 const loadSchema = async () => ({ schema, exact: true })
@@ -38,6 +39,20 @@ test('the backup is the bytes that were opened, even when the file can no longer
   expect(out.files.map(f => f.name)).toEqual([picked[0].name, `${picked[0].name}.backup`])
   expect(out.files[1].bytes).toEqual(opened)
   expect(session.changes).toEqual([])
+})
+
+test('export refuses a tree with a value its schema type contradicts', async () => {
+  await openSlot((await listSlots(await syntheticFiles(), loadSchema))[0], loadSchema)
+  const root = session.root as Extract<MpNode, { t: 'arr' }>, v = root.v.slice()
+  v[schema.types.DataManager.fields.find(f => f.name === 'CultName')!.key] = int(1)
+  session.root = { ...root, v }
+  await expect(exportSlot()).rejects.toThrow(format('en', 'export.unfit', { field: 'DataManager.CultName' }))
+})
+
+test('a value that was locked on opening does not stop an export', async () => {
+  await openSlot((await listSlots(await syntheticFiles(undefined, at('playerDeaths', arr([int(1)]))), loadSchema))[0], loadSchema)
+  push(() => edits.setRoot(schema, session.root!, 'CultName', 'Other', 'Cult name'))
+  expect((await exportSlot()).files.length).toBe(2)
 })
 
 describe.skipIf(!hasSaves)('real saves', () => {
