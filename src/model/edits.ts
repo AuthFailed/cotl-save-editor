@@ -61,26 +61,26 @@ export const edits = {
     const { f, base, guard } = followerAt(schema, root, who)
     const index = f.traits.indexOf(trait)
     if (index < 0) return { label: '', ops: [] }
-    return { label: `${f.name} loses ${name ?? trait}`, ops: [{ kind: 'remove', path: [...base, 'Traits'], index, guard }] }
+    const at = { path: [...base, 'Traits', String(index)], value: enumValue(schema, 'FollowerTrait.TraitType', trait) }
+    return { label: `${f.name} loses ${name ?? trait}`, ops: [{ kind: 'remove', path: [...base, 'Traits'], index, guard: [guard, at] }] }
   },
 
   revive(schema: SaveSchema, root: MpNode, deadIndex: number): Change {
-    const { f, base, guard } = followerAt(schema, root, { index: deadIndex, dead: true })
-    return { label: `${f.name} revived`, ops: [
-      { kind: 'insert', path: ['Followers'], index: listLength(schema, root, 'Followers'), node: nodeAt(schema, root, base) },
-      { kind: 'remove', path: ['Followers_Dead'], index: deadIndex, guard },
-    ] }
+    const { f, guard } = followerAt(schema, root, { index: deadIndex, dead: true })
+    return { label: `${f.name} revived`, ops: [{ kind: 'move', path: ['Followers_Dead'], index: deadIndex, to: ['Followers'], guard }] }
   },
 
   clone(schema: SaveSchema, root: MpNode, who: Who): Change {
-    const { f, base } = followerAt(schema, root, who)
-    const node = nodeAt(schema, root, base)
-    const key = field(schema, 'FollowerInfo', 'ID')!.key
-    const id = Math.max(...followers(schema, root).map(x => x.id)) + 1
-    if (node.t !== 'arr') throw new TypeError('Not a follower')
-    const v = node.v.slice()
-    v[key] = setValue(v[key], id, 'ID')
-    return { label: `${f.name} cloned`, ops: [{ kind: 'insert', path: ['Followers'], index: listLength(schema, root, 'Followers'), node: { ...node, v } }] }
+    const { f, guard } = followerAt(schema, root, who)
+    const { index, dead } = ref(who)
+    // The game hands out new ids from DataManager.FollowerID; the clone takes the next one and advances it.
+    const taken = new Set(followers(schema, root).map(x => x.id))
+    let id = Number(toPlain(get(schema, root, schema.roots.slot, ['FollowerID'])?.node ?? { t: 'nil' }) ?? 0) + 1
+    if (!field(schema, schema.roots.slot, 'FollowerID') || id <= 1) id = Math.max(...taken) + 1
+    while (taken.has(id)) id++
+    const ops: Op[] = [{ kind: 'clone', path: [list(dead)], index, set: { field: 'ID', type: 'FollowerInfo', value: id }, guard }]
+    if (field(schema, schema.roots.slot, 'FollowerID')) ops.push({ kind: 'set', path: ['FollowerID'], value: id })
+    return { label: `${f.name} cloned`, ops }
   },
 
   removeFollower(schema: SaveSchema, root: MpNode, who: Who): Change {

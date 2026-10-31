@@ -13,6 +13,8 @@
   $effect(() => { text = show(value) })
 
   function commit(raw: string) {
+    // the field shows a rounded value; leaving it untouched must not write the rounding back
+    if (raw.trim() === show(value)) return (error = null)
     const v = Number(raw.trim())
     if (raw.trim() === '' || !Number.isFinite(v)) return (error = 'Enter a number')
     if (integer && !Number.isInteger(v)) return (error = 'Enter a whole number')

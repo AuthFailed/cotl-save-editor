@@ -61,3 +61,13 @@ test('at phone width the inspector is a sheet with a close button', async ({ pag
   await inspector.getByRole('button', { name: 'Close' }).click()
   await expect(inspector).toBeHidden()
 })
+
+test('tabbing through a float field records nothing', async ({ page }) => {
+  await openSynthetic(page, 'followers')
+  await page.getByRole('table').getByRole('button', { name: 'Ash' }).click()
+  const loyalty = page.getByRole('complementary', { name: 'Inspector' }).getByLabel('Loyalty', { exact: true })
+  await expect(loyalty).toHaveValue('50.4')
+  await loyalty.focus()
+  await page.keyboard.press('Tab')
+  await expect(changes(page)).toHaveText('0 changes')
+})

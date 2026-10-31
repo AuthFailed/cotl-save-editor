@@ -32,7 +32,7 @@ const item = (id: string, quantity: number) =>
 export function syntheticRoots(version = '1.5.26.1058') {
   const slot = object('DataManager', {
     AllowSaving: { t: 'bool', v: true }, CultName: str('Test Cult'), CultFaith: f32(82),
-    Followers: arr([follower(1, 'Pip', 'Axolotl', 3, { _satiation: f32(12) }), follower(2, 'Ash', 'Fox', 9, { OldAge: { t: 'bool', v: true } })]),
+    Followers: arr([follower(1, 'Pip', 'Axolotl', 3, { _satiation: f32(12) }), follower(2, 'Ash', 'Fox', 9, { OldAge: { t: 'bool', v: true }, Adoration: f32(50.37) })]),
     Followers_Dead: arr([follower(3, 'Thistle', 'Hedgehog', 1)]),
     items: arr([item('LOG', 12), item('BLACK_GOLD', 300)]),
     PlayerFoundRelics: nil, PlayerFoundTrinkets: arr([]),
