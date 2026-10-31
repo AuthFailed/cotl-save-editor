@@ -6,6 +6,7 @@
   import { nameAt } from '../schema/schema'
   import { go, type Page } from './route.svelte'
   import { selection } from './selection.svelte'
+  import { t, type Key } from '../i18n/i18n.svelte'
 
   let { onClose, onRaw }: { onClose: () => void; onRaw: (field: string) => void } = $props()
   const id = $props.id()
@@ -15,11 +16,11 @@
   $effect(() => { dialog.showModal() })
 
   type Hit = { label: string; run: () => void }
-  const PLACES: [string, Page, string?][] = [
-    ['Overview', 'overview'], ['Followers', 'followers'], ['Inventory', 'inventory'], ['Raw data', 'raw'],
-    ...['Doctrines', 'Rituals', 'Structures', 'Crown abilities'].map(t => [`Cult › ${t}`, 'cult', t] as [string, Page, string]),
-    ...['Tarot', 'Relics', 'Weapons', 'Curses', 'Fleeces', 'Outfits', 'Forms'].map(t => [`Collection › ${t}`, 'collection', t] as [string, Page, string]),
-  ]
+  const PLACES = $derived<[string, Page, string?][]>([
+    [t('nav.overview'), 'overview'], [t('nav.followers'), 'followers'], [t('nav.inventory'), 'inventory'], [t('nav.raw'), 'raw'],
+    ...['doctrines', 'rituals', 'structures', 'crown'].map(id => [`${t('nav.cult')} › ${t(`tab.${id}` as Key)}`, 'cult', id] as [string, Page, string]),
+    ...['tarot', 'relics', 'weapons', 'curses', 'fleeces', 'outfits', 'forms'].map(id => [`${t('nav.collection')} › ${t(`tab.${id}` as Key)}`, 'collection', id] as [string, Page, string]),
+  ])
   const hits = $derived.by((): Hit[] => {
     const q = query.trim().toLowerCase()
     if (!q || !session.schema || !session.root) return PLACES.map(([label, page, tab]) => ({ label, run: () => go(page, tab) }))
@@ -27,10 +28,10 @@
     const has = (t: string) => t.toLowerCase().includes(q)
     return [
       ...PLACES.filter(([label]) => has(label)).map(([label, page, tab]) => ({ label, run: () => go(page, tab) })),
-      ...followers(s, r).filter(f => has(f.name)).slice(0, 8).map(f => ({ label: `Follower: ${f.name}${f.dead ? ' (dead)' : ''}`,
+      ...followers(s, r).filter(f => has(f.name)).slice(0, 8).map(f => ({ label: t('cmd.follower', { name: f.name }) + (f.dead ? ` ${t('cmd.dead')}` : ''),
         run: () => { go('followers'); selection.follower = { index: f.index, dead: f.dead } } })),
-      ...inventory(s, r).filter(i => has(nameOf('items', i.id)) || has(i.id)).slice(0, 5).map(i => ({ label: `Item: ${nameOf('items', i.id)} ×${i.quantity}`, run: () => go('inventory') })),
-      ...(r.t === 'arr' ? r.v.map((_, k) => nameAt(s, s.roots.slot, k)) : []).filter(has).slice(0, 8).map(n => ({ label: `Field: ${n}`, run: () => onRaw(n) })),
+      ...inventory(s, r).filter(i => has(nameOf('items', i.id)) || has(i.id)).slice(0, 5).map(i => ({ label: t('cmd.item', { name: nameOf('items', i.id), n: i.quantity }), run: () => go('inventory') })),
+      ...(r.t === 'arr' ? r.v.map((_, k) => nameAt(s, s.roots.slot, k)) : []).filter(has).slice(0, 8).map(n => ({ label: t('cmd.field', { name: n }), run: () => onRaw(n) })),
     ]
   })
   $effect(() => { void query; active = 0 })
@@ -47,18 +48,18 @@
   }
 </script>
 
-<dialog bind:this={dialog} aria-label="Search" onclose={onClose}>
+<dialog bind:this={dialog} aria-label={t('top.search')} onclose={onClose}>
   <div class="field">
     <Search size={16} aria-hidden="true" />
     <input role="combobox" aria-expanded="true" aria-controls="{id}-list" aria-activedescendant={hits.length ? `${id}-${active}` : undefined}
-      aria-label="Search followers, items, fields and screens" placeholder="Search followers, items, fields, screens" bind:value={query} onkeydown={key} />
+      aria-label={t('cmd.placeholder')} placeholder={t('cmd.placeholder')} bind:value={query} onkeydown={key} />
     <kbd>esc</kbd>
   </div>
-  <ul role="listbox" id="{id}-list" aria-label="Results">
+  <ul role="listbox" id="{id}-list" aria-label={t('cmd.results')}>
     {#each hits as h, i (h.label)}
       <li role="option" id="{id}-{i}" aria-selected={i === active} onclick={() => choose(h)} onkeydown={() => {}} onmousemove={() => (active = i)}>{h.label}</li>
     {:else}
-      <li class="none">No matches.</li>
+      <li class="none">{t('cmd.none')}</li>
     {/each}
   </ul>
 </dialog>

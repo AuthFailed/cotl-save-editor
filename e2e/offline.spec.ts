@@ -41,6 +41,6 @@ for (const theme of ['dark', 'light'] as const) {
 
 test('game names switch language', async ({ page }) => {
   await openSynthetic(page, 'inventory')
-  await page.getByRole('combobox', { name: 'Game language' }).selectOption('ru')
+  await page.getByRole('combobox', { name: 'Language' }).selectOption('ru')
   await expect(page.getByRole('main')).toContainText('Монета')
 })

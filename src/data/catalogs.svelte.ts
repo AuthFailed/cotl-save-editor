@@ -1,9 +1,9 @@
 // Loaded game names and pictures, per kind, in the player's language; screens ask for what they show.
-import { catalog, language, languages, type Entry, type Kind } from './api'
+import { LANGUAGES } from '../i18n/languages'
+import { catalog, language, type Entry, type Kind } from './api'
 
 class Catalogs {
   lang = $state('en')
-  langs = $state.raw<string[]>(['en'])
   offline = $state(false)
   maps = $state.raw<Partial<Record<Kind, Map<string, Entry>>>>({})
 }
@@ -24,9 +24,9 @@ export function want(kind: Kind, text = false) {
 export const entry = (kind: Kind, id: string) => cat.maps[kind]?.get(id)
 export const nameOf = (kind: Kind, id: string) => entry(kind, id)?.name ?? id
 
-export async function initLanguage(saved?: string | null) {
-  cat.langs = await languages()
-  cat.lang = saved && cat.langs.includes(saved) ? saved : language(navigator.languages, cat.langs)
+/** Set at once from the saved choice or the browser: nothing arrives later to override a choice made meanwhile. */
+export function initLanguage(saved?: string | null) {
+  cat.lang = saved && LANGUAGES.includes(saved) ? saved : language(navigator.languages, LANGUAGES)
 }
 export function setLanguage(lang: string) {
   cat.lang = lang

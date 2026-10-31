@@ -1,19 +1,17 @@
 <script lang="ts">
   import { Check, Copy, FolderOpen, Upload } from '@lucide/svelte'
   import { hasUnexported, listSlots, openSlot, session, type SchemaFor, type SlotEntry } from '../model/session.svelte'
+  import { t, type Key } from '../i18n/i18n.svelte'
   import { go } from './route.svelte'
 
   let { schemaFor }: { schemaFor: SchemaFor } = $props()
 
   const PATHS = [
-    { os: 'Windows', path: '%USERPROFILE%\\AppData\\LocalLow\\Massive Monster\\Cult Of The Lamb\\saves' },
-    { os: 'macOS (Steam)', path: '~/Library/Application Support/Massive Monster/Cult Of The Lamb/saves' },
-    { os: 'macOS (App Store, Apple Arcade)', path: '~/Library/Containers/com.devolverdigital.cultofthelamb/Data/Library/Application Support/com.devolverdigital.cultofthelamb/user/' },
-    { os: 'Linux, Steam Deck', path: '~/.local/share/Steam/steamapps/compatdata/1313140/pfx/drive_c/users/steamuser/AppData/LocalLow/Massive Monster/Cult Of The Lamb/saves' },
+    { os: 'os.windows' as Key, path: '%USERPROFILE%\\AppData\\LocalLow\\Massive Monster\\Cult Of The Lamb\\saves' },
+    { os: 'os.macSteam' as Key, path: '~/Library/Application Support/Massive Monster/Cult Of The Lamb/saves' },
+    { os: 'os.macStore' as Key, path: '~/Library/Containers/com.devolverdigital.cultofthelamb/Data/Library/Application Support/com.devolverdigital.cultofthelamb/user/' },
+    { os: 'os.linux' as Key, path: '~/.local/share/Steam/steamapps/compatdata/1313140/pfx/drive_c/users/steamuser/AppData/LocalLow/Massive Monster/Cult Of The Lamb/saves' },
   ]
-  const FORMAT: Record<SlotEntry['format'], string> = {
-    'pc-mp': 'PC 1.5+', 'pc-json': 'PC before 1.5', 'plain-json': 'JSON', 'apple-zb': 'Apple', 'switch-mp': 'Switch',
-  }
 
   let slots = $state<SlotEntry[] | null>(null)
   let busy = $state(false)
@@ -26,7 +24,7 @@
     error = null
     try {
       slots = await listSlots(files, schemaFor)
-      if (!slots.length) error = 'No Cult of the Lamb saves found there. Pick the saves folder itself, or slot_N and meta_N files.'
+      if (!slots.length) error = t('open.none')
     } finally { busy = false }
   }
 
@@ -50,7 +48,7 @@
   }
 
   async function open(entry: SlotEntry) {
-    if (hasUnexported() && !confirm(`Discard ${session.changes.length} unexported change${session.changes.length === 1 ? '' : 's'}?`)) return
+    if (hasUnexported() && !confirm(t('open.discard', { n: session.changes.length }))) return
     await openSlot(entry, schemaFor)
     go('overview')
   }
@@ -61,26 +59,26 @@
     setTimeout(() => (copied = null), 1500)
   }
 
-  const hours = (s: number | null) => (s == null ? null : `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`)
+  const hours = (s: number | null) => (s == null ? null : t('open.time', { h: Math.floor(s / 3600), m: Math.floor((s % 3600) / 60) }))
 </script>
 
 <section class="open">
-  <h1>Open your saves</h1>
-  <p class="lead">Drop your <span class="mono">saves</span> folder here, or choose it. Everything stays in this browser: nothing is uploaded.</p>
+  <h1>{t('open.title')}</h1>
+  <p class="lead">{t('open.lead')}</p>
 
-  <div class="drop" class:dragging role="region" aria-label="Drop saves here"
+  <div class="drop" class:dragging role="region" aria-label={t('open.dropRegion')}
     ondragover={e => { e.preventDefault(); dragging = true }} ondragleave={() => (dragging = false)} ondrop={drop}>
     <FolderOpen size={32} aria-hidden="true" />
-    <span>{busy ? 'Reading…' : 'Drop the saves folder or files'}</span>
+    <span>{busy ? t('open.reading') : t('open.drop')}</span>
     <div class="pick">
       <label class="btn primary">
-        <Upload size={16} aria-hidden="true" />Choose folder
-        <input class="sr-only" type="file" webkitdirectory aria-label="Choose your saves folder"
+        <Upload size={16} aria-hidden="true" />{t('open.chooseFolder')}
+        <input class="sr-only" type="file" webkitdirectory aria-label={t('open.chooseFolderLabel')}
           onchange={e => take([...(e.currentTarget.files ?? [])])} />
       </label>
       <label class="btn">
-        Choose files
-        <input class="sr-only" type="file" multiple aria-label="Choose save files" onchange={e => take([...(e.currentTarget.files ?? [])])} />
+        {t('open.chooseFiles')}
+        <input class="sr-only" type="file" multiple aria-label={t('open.chooseFilesLabel')} onchange={e => take([...(e.currentTarget.files ?? [])])} />
       </label>
     </div>
   </div>
@@ -88,33 +86,33 @@
   {#if error}<p class="error" role="alert">{error}</p>{/if}
 
   {#if slots?.length}
-    <h2>Slots</h2>
+    <h2>{t('open.slots')}</h2>
     <ul class="slots">
       {#each slots as s (s.slot)}
         <li>
-          <span class="name">{s.cultName ?? 'Unnamed cult'}</span>
+          <span class="name">{s.cultName ?? t('open.unnamed')}</span>
           <span class="meta">
             <span class="mono">{s.slotFile.name}</span>
-            {#if s.day != null}<span>Day {s.day}</span>{/if}
+            {#if s.day != null}<span>{t('open.day', { n: s.day })}</span>{/if}
             {#if s.playTime != null}<span>{hours(s.playTime)}</span>{/if}
-            <span class="chip">{FORMAT[s.format]}</span>
-            {#if s.beta}<span class="chip beta" title="No real save of this format has been tested yet">Beta</span>{/if}
+            <span class="chip">{t(`format.${s.format}`)}</span>
+            {#if s.beta}<span class="chip beta" title={t('open.betaHint')}>{t('open.beta')}</span>{/if}
           </span>
-          <button class="btn primary" onclick={() => open(s)}>Open</button>
+          <button class="btn primary" onclick={() => open(s)}>{t('open.open')}</button>
         </li>
       {/each}
     </ul>
   {/if}
 
-  <h2>Where the saves are</h2>
-  <p class="hint">Close the game first. The editor never changes your files: it downloads an edited copy (and a backup) for you to put back.</p>
+  <h2>{t('open.where')}</h2>
+  <p class="hint">{t('open.hint')}</p>
   <dl class="paths">
     {#each PATHS as p (p.os)}
       <div>
-        <dt>{p.os}</dt>
+        <dt>{t(p.os)}</dt>
         <dd>
           <code class="mono">{p.path}</code>
-          <button class="btn ghost" aria-label="Copy the {p.os} path" onclick={() => copy(p.path)}>
+          <button class="btn ghost" aria-label={t('open.copy', { os: t(p.os) })} onclick={() => copy(p.path)}>
             {#if copied === p.path}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}
           </button>
         </dd>

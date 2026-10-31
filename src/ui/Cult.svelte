@@ -1,18 +1,20 @@
 <script lang="ts">
+  import { t } from '../i18n/i18n.svelte'
   import { route } from './route.svelte'
   import Tabs from './Tabs.svelte'
   import UnlockGrid from './UnlockGrid.svelte'
 </script>
 
 <section>
-  <h1>Cult</h1>
-  {#key route.tab}<Tabs initial={route.tab} tabs={['Doctrines', 'Rituals', 'Structures', 'Crown abilities']}>
-    {#snippet panel(t)}
-      {#if t === 'Doctrines'}<UnlockGrid kind="doctrines" field="DoctrineUnlockedUpgrades" enumName="DoctrineUpgradeSystem.DoctrineType" groupBy={e => String(e.category ?? '')} />
-      {:else if t === 'Rituals'}<UnlockGrid kind="rituals" field="UnlockedUpgrades" enumName="UpgradeSystem.Type" groupBy={e => String(e.group ?? '')} />
-      {:else if t === 'Structures'}<UnlockGrid kind="structures" field="UnlockedStructures" enumName="StructureBrain.TYPES" include={e => e.buildable === true}
+  <h1>{t('nav.cult')}</h1>
+  {#key route.tab}<Tabs initial={route.tab} tabs={['doctrines', 'rituals', 'structures', 'crown']} label={id => t(`tab.${id}` as 'tab.tarot')}>
+    {#snippet panel(id)}
+      {@const label = t(`tab.${id}` as 'tab.tarot')}
+      {#if id === 'doctrines'}<UnlockGrid {label} kind="doctrines" field="DoctrineUnlockedUpgrades" enumName="DoctrineUpgradeSystem.DoctrineType" groupBy={e => String(e.category ?? '')} />
+      {:else if id === 'rituals'}<UnlockGrid {label} kind="rituals" field="UnlockedUpgrades" enumName="UpgradeSystem.Type" groupBy={e => String(e.group ?? '')} />
+      {:else if id === 'structures'}<UnlockGrid {label} kind="structures" field="UnlockedStructures" enumName="StructureBrain.TYPES" include={e => e.buildable === true}
         groupBy={e => String(e.menu ?? '').split('/')[0]} />
-      {:else}<UnlockGrid kind="crownAbilities" field="UnlockedUpgrades" enumName="UpgradeSystem.Type" />{/if}
+      {:else}<UnlockGrid {label} kind="crownAbilities" field="UnlockedUpgrades" enumName="UpgradeSystem.Type" />{/if}
     {/snippet}
   </Tabs>{/key}
 </section>

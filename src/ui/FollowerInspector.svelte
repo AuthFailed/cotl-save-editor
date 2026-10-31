@@ -7,6 +7,7 @@
   import { followers, skinId } from '../model/views'
   import NumberField from './NumberField.svelte'
   import Picker from './Picker.svelte'
+  import { t } from '../i18n/i18n.svelte'
   import { selection } from './selection.svelte'
 
   want('skins')
@@ -28,7 +29,7 @@
     if (v && v !== f!.name) push(() => edits.rename(session.schema!, session.root!, who(), v))
   }
   function remove() {
-    if (!confirm(`Remove ${f!.name} from the cult? You can undo this until you export.`)) return
+    if (!confirm(t('insp.removeConfirm', { name: f!.name }))) return
     push(() => edits.removeFollower(session.schema!, session.root!, who()))
     selection.follower = null
   }
@@ -41,61 +42,61 @@
 {#if f}
   <div class="insp">
     <div class="top">
-      <span class="label">Inspector</span>
-      <button class="btn ghost" aria-label="Close" onclick={() => (selection.follower = null)}><X size={16} /></button>
+      <span class="label">{t('insp.title')}</span>
+      <button class="btn ghost" aria-label={t('common.close')} onclick={() => (selection.follower = null)}><X size={16} /></button>
     </div>
     <div class="hero">
       {#if form}<img src={iconUrl(`icons/skins/${form}.png`)} alt="{f.name}, {nameOf('skins', form)}" width="96" height="96" class:dead={f.dead} />{/if}
       <div>
         <div class="title">{f.name}</div>
-        <div class="sub">ID {f.id} · {nameOf('skins', form ?? f.skin)}{f.dead ? ' · dead' : ''}</div>
-        <button class="btn" disabled={session.readOnly} onclick={() => (picking = 'form')}>Change form</button>
+        <div class="sub">{t('insp.id', { id: f.id })} · {nameOf('skins', form ?? f.skin)}{f.dead ? ` · ${t('insp.dead')}` : ''}</div>
+        <button class="btn" disabled={session.readOnly} onclick={() => (picking = 'form')}>{t('insp.changeForm')}</button>
       </div>
     </div>
 
-    <label class="text">Name
+    <label class="text">{t('insp.name')}
       <input class="input" bind:value={nameText} disabled={session.readOnly} onkeydown={e => { if (e.key === 'Enter') rename() }} onblur={rename} />
     </label>
 
     <div class="grid">
-      <NumberField label="Level" value={f.level} min={0} max={99} disabled={session.readOnly} onCommit={v => set('XPLevel', v, 'level')} />
-      <NumberField label="Age (days)" value={f.age} min={0} max={9999} disabled={session.readOnly} onCommit={v => set('Age', v, 'age')} />
-      <NumberField label="Life expectancy" value={f.lifeExpectancy} min={0} max={9999} disabled={session.readOnly} onCommit={v => set('LifeExpectancy', v, 'life expectancy')} />
-      <NumberField label="Loyalty" value={f.loyalty} min={0} max={100} step={10} integer={false} disabled={session.readOnly} onCommit={v => set('Adoration', v, 'loyalty')} />
-      <NumberField label="Hunger" value={f.needs.satiation} min={0} max={100} step={10} integer={false} disabled={session.readOnly} onCommit={v => set('_satiation', v, 'hunger')} />
-      <NumberField label="Rest" value={f.needs.rest} min={0} max={100} step={10} integer={false} disabled={session.readOnly} onCommit={v => set('_rest', v, 'rest')} />
-      <NumberField label="Illness" value={f.needs.illness} min={0} max={100} step={10} integer={false} disabled={session.readOnly} onCommit={v => set('_illness', v, 'illness')} />
-      <NumberField label="Exhaustion" value={f.needs.exhaustion} min={0} max={100} step={10} integer={false} disabled={session.readOnly} onCommit={v => set('_exhaustion', v, 'exhaustion')} />
+      <NumberField label={t('insp.level')} value={f.level} min={0} max={99} disabled={session.readOnly} onCommit={v => set('XPLevel', v, t('what.level'))} />
+      <NumberField label={t('insp.age')} value={f.age} min={0} max={9999} disabled={session.readOnly} onCommit={v => set('Age', v, t('what.age'))} />
+      <NumberField label={t('insp.life')} value={f.lifeExpectancy} min={0} max={9999} disabled={session.readOnly} onCommit={v => set('LifeExpectancy', v, t('what.life'))} />
+      <NumberField label={t('insp.loyalty')} value={f.loyalty} min={0} max={100} step={10} integer={false} disabled={session.readOnly} onCommit={v => set('Adoration', v, t('what.loyalty'))} />
+      <NumberField label={t('insp.hunger')} value={f.needs.satiation} min={0} max={100} step={10} integer={false} disabled={session.readOnly} onCommit={v => set('_satiation', v, t('what.hunger'))} />
+      <NumberField label={t('insp.rest')} value={f.needs.rest} min={0} max={100} step={10} integer={false} disabled={session.readOnly} onCommit={v => set('_rest', v, t('what.rest'))} />
+      <NumberField label={t('insp.illness')} value={f.needs.illness} min={0} max={100} step={10} integer={false} disabled={session.readOnly} onCommit={v => set('_illness', v, t('what.illness'))} />
+      <NumberField label={t('insp.exhaustion')} value={f.needs.exhaustion} min={0} max={100} step={10} integer={false} disabled={session.readOnly} onCommit={v => set('_exhaustion', v, t('what.exhaustion'))} />
     </div>
 
     <div class="traits">
-      <span class="label">Traits</span>
-      {#each f.traits as t (t)}
-        {@const e = entry('traits', t)}
+      <span class="label">{t('insp.traits')}</span>
+      {#each f.traits as tr (tr)}
+        {@const e = entry('traits', tr)}
         <div class="trait">
           {#if e?.thumb}<img class="tile" src={iconUrl(e.thumb)} alt="" width="32" height="32" />{/if}
-          <span><b>{e?.name ?? t}</b>{#if e?.description}<small>{e.description}</small>{/if}</span>
-          <button class="btn ghost" aria-label="Remove {e?.name ?? t}" disabled={session.readOnly}
-            onclick={() => push(() => edits.removeTrait(session.schema!, session.root!, who(), t, e?.name))}><X size={14} /></button>
+          <span><b>{e?.name ?? tr}</b>{#if e?.description}<small>{e.description}</small>{/if}</span>
+          <button class="btn ghost" aria-label={t('insp.removeTrait', { name: e?.name ?? tr })} disabled={session.readOnly}
+            onclick={() => push(() => edits.removeTrait(session.schema!, session.root!, who(), tr, e?.name))}><X size={14} /></button>
         </div>
       {:else}
-        <p class="none">No traits.</p>
+        <p class="none">{t('insp.noTraits')}</p>
       {/each}
-      <button class="btn add" disabled={session.readOnly} onclick={() => (picking = 'trait')}><Plus size={14} />Add trait</button>
+      <button class="btn add" disabled={session.readOnly} onclick={() => (picking = 'trait')}><Plus size={14} />{t('insp.addTrait')}</button>
     </div>
 
     <div class="actions">
-      {#if f.dead}<button class="btn primary" disabled={session.readOnly} onclick={revive}><HeartPulse size={16} />Revive</button>{/if}
-      <button class="btn" disabled={session.readOnly} onclick={() => push(() => edits.clone(session.schema!, session.root!, who()))}><Copy size={16} />Clone</button>
-      <button class="btn danger" disabled={session.readOnly} onclick={remove}><Trash2 size={16} />Remove</button>
+      {#if f.dead}<button class="btn primary" disabled={session.readOnly} onclick={revive}><HeartPulse size={16} />{t('insp.revive')}</button>{/if}
+      <button class="btn" disabled={session.readOnly} onclick={() => push(() => edits.clone(session.schema!, session.root!, who()))}><Copy size={16} />{t('insp.clone')}</button>
+      <button class="btn danger" disabled={session.readOnly} onclick={remove}><Trash2 size={16} />{t('insp.remove')}</button>
     </div>
   </div>
 
   {#if picking === 'form'}
-    <Picker title="Choose a form" search="Search forms" items={all('skins')} current={form ?? undefined} onClose={() => (picking = null)}
-      onPick={id => push(() => edits.setFollower(session.schema!, session.root!, who(), 'SkinName', id, 'form'))} />
+    <Picker title={t('insp.chooseForm')} search={t('insp.searchForms')} items={all('skins')} current={form ?? undefined} onClose={() => (picking = null)}
+      onPick={id => push(() => edits.setFollower(session.schema!, session.root!, who(), 'SkinName', id, t('what.form')))} />
   {:else if picking === 'trait'}
-    <Picker tile title="Add a trait" search="Search traits" items={all('traits').filter(t => !f.traits.includes(t.id))} onClose={() => (picking = null)}
+    <Picker tile title={t('insp.addTraitTitle')} search={t('insp.searchTraits')} items={all('traits').filter(x => !f.traits.includes(x.id))} onClose={() => (picking = null)}
       onPick={id => push(() => edits.addTrait(session.schema!, session.root!, who(), id, nameOf('traits', id)))} />
   {/if}
 {/if}

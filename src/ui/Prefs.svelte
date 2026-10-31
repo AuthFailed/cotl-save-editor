@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Monitor, Moon, Sun } from '@lucide/svelte'
   import { cat, setLanguage } from '../data/catalogs.svelte'
+  import { LANGUAGES, t, type Key } from '../i18n/i18n.svelte'
 
   type Theme = 'system' | 'light' | 'dark'
   // Per-viewer conveniences only; storage may be unavailable (private windows), so every access is guarded.
@@ -14,22 +15,27 @@
     else document.documentElement.dataset.theme = theme
   })
   const pick = (t: Theme) => { theme = t; save('theme', t); open = false }
-  const label = (code: string) => { try { return new Intl.DisplayNames([code], { type: 'language' }).of(code) ?? code } catch { return code } }
-  const THEMES: [Theme, string, typeof Sun][] = [['system', 'System', Monitor], ['light', 'Light', Sun], ['dark', 'Dark', Moon]]
+  // each language named in itself, capitalised (some, like Russian, come back lower case)
+  const label = (code: string) => {
+    let name = code
+    try { name = new Intl.DisplayNames([code], { type: 'language' }).of(code) ?? code } catch { /* the code itself */ }
+    return name.charAt(0).toLocaleUpperCase(code) + name.slice(1)
+  }
+  const THEMES: [Theme, Key, typeof Sun][] = [['system', 'prefs.system', Monitor], ['light', 'prefs.light', Sun], ['dark', 'prefs.dark', Moon]]
   const Current = $derived(THEMES.find(t => t[0] === theme)![2])
 </script>
 
-<label class="lang"><span class="sr-only">Game language</span>
-  <select aria-label="Game language" value={cat.lang} onchange={e => { setLanguage(e.currentTarget.value); save('lang', e.currentTarget.value) }}>
-    {#each cat.langs as l (l)}<option value={l}>{label(l)}</option>{/each}
+<label class="lang"><span class="sr-only">{t('prefs.language')}</span>
+  <select aria-label={t('prefs.language')} value={cat.lang} onchange={e => { setLanguage(e.currentTarget.value); save('lang', e.currentTarget.value) }}>
+    {#each LANGUAGES as l (l)}<option value={l}>{label(l)}</option>{/each}
   </select>
 </label>
 <div class="theme">
-  <button class="btn ghost" aria-label="Theme: {theme}" aria-haspopup="menu" aria-expanded={open} onclick={() => (open = !open)}><Current size={16} /></button>
+  <button class="btn ghost" aria-label={t('prefs.theme', { theme: t(THEMES.find(x => x[0] === theme)![1]) })} aria-haspopup="menu" aria-expanded={open} onclick={() => (open = !open)}><Current size={16} /></button>
   {#if open}
     <div class="menu" role="menu">
-      {#each THEMES as [t, name, Icon] (t)}
-        <button role="menuitemradio" aria-checked={theme === t} onclick={() => pick(t)}><Icon size={14} aria-hidden="true" />{name}</button>
+      {#each THEMES as [th, name, Icon] (th)}
+        <button role="menuitemradio" aria-checked={theme === th} onclick={() => pick(th)}><Icon size={14} aria-hidden="true" />{t(name)}</button>
       {/each}
     </div>
   {/if}

@@ -6,6 +6,7 @@
   import { push, session } from '../model/session.svelte'
   import { inventory } from '../model/views'
   import NumberField from './NumberField.svelte'
+  import { t } from '../i18n/i18n.svelte'
   import Picker from './Picker.svelte'
 
   want('items')
@@ -24,12 +25,12 @@
 
 <section>
   <div class="bar">
-    <h1>Inventory</h1>
-    <span class="count">{items.length} kinds</span>
+    <h1>{t('nav.inventory')}</h1>
+    <span class="count">{t('inv.kinds', { n: items.length })}</span>
     <span class="spacer"></span>
     <label class="search"><Search size={14} aria-hidden="true" />
-      <input type="search" placeholder="Search" aria-label="Search items" bind:value={query} /></label>
-    <button class="btn primary" disabled={session.readOnly} onclick={() => (adding = true)}><Plus size={16} />Add item</button>
+      <input type="search" placeholder={t('common.search')} aria-label={t('inv.searchLabel')} bind:value={query} /></label>
+    <button class="btn primary" disabled={session.readOnly} onclick={() => (adding = true)}><Plus size={16} />{t('inv.add')}</button>
   </div>
 
   <ul>
@@ -41,13 +42,13 @@
           onCommit={v => push(() => edits.setQuantity(session.schema!, session.root!, i.index, v, nameOf('items', i.id)))} />
       </li>
     {:else}
-      <p class="none">{items.length ? 'Nothing matches.' : 'The inventory is empty.'}</p>
+      <p class="none">{items.length ? t('common.nothing') : t('inv.empty')}</p>
     {/each}
   </ul>
 </section>
 
 {#if adding}
-  <Picker title="Add an item" search="Search items" items={addable} onClose={() => (adding = false)}
+  <Picker title={t('inv.addTitle')} search={t('inv.searchLabel')} items={addable} onClose={() => (adding = false)}
     onPick={id => push(() => edits.addItem(session.schema!, session.root!, id, 1, nameOf('items', id)))} />
 {/if}
 

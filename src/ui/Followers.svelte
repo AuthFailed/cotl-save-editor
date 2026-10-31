@@ -5,6 +5,7 @@
   import { edits } from '../model/edits'
   import { push, session } from '../model/session.svelte'
   import { followers, skinId, type FollowerView, type Status } from '../model/views'
+  import { t } from '../i18n/i18n.svelte'
   import StatusChip from './StatusChip.svelte'
   import { selection } from './selection.svelte'
 
@@ -32,52 +33,52 @@
 
 <section>
   <div class="bar">
-    <h1>Followers</h1>
+    <h1>{t('nav.followers')}</h1>
     {#each FILTERS as s (s)}
-      <button class="chip" class:on={filter === s} aria-pressed={filter === s} onclick={() => (filter = s)}>{s} <span>{count(s)}</span></button>
+      <button class="chip" class:on={filter === s} aria-pressed={filter === s} onclick={() => (filter = s)}>{s === 'All' ? t('common.all') : t(`status.${s}`)} <span>{count(s)}</span></button>
     {/each}
     <span class="spacer"></span>
-    <label class="search"><Search size={14} aria-hidden="true" /><span class="sr-only">Search followers</span>
-      <input type="search" placeholder="Name, form or trait" bind:value={query} /></label>
+    <label class="search"><Search size={14} aria-hidden="true" /><span class="sr-only">{t('fol.searchLabel')}</span>
+      <input type="search" placeholder={t('fol.search')} bind:value={query} /></label>
   </div>
 
   {#if picked.length}
-    <div class="bulk" role="region" aria-label="Selected followers">
-      <span>{picked.length} selected</span>
-      <button class="btn" disabled={session.readOnly} onclick={() => bulk({ _satiation: 100, _starvation: 0, _rest: 100, _illness: 0, _exhaustion: 0 }, 'needs maxed')}>Max needs</button>
-      <button class="btn" disabled={session.readOnly} onclick={() => bulk({ Adoration: 100 }, 'loyalty maxed')}>Max loyalty</button>
-      <button class="btn ghost" onclick={() => (checked = [])}>Clear</button>
+    <div class="bulk" role="region" aria-label={t('fol.selectedRegion')}>
+      <span>{t('fol.selected', { n: picked.length })}</span>
+      <button class="btn" disabled={session.readOnly} onclick={() => bulk({ _satiation: 100, _starvation: 0, _rest: 100, _illness: 0, _exhaustion: 0 }, t('ch.needsMaxed'))}>{t('fol.maxNeeds')}</button>
+      <button class="btn" disabled={session.readOnly} onclick={() => bulk({ Adoration: 100 }, t('ch.loyaltyMaxed'))}>{t('fol.maxLoyalty')}</button>
+      <button class="btn ghost" onclick={() => (checked = [])}>{t('common.clear')}</button>
     </div>
   {/if}
 
   <div class="scroll">
     <table>
       <thead>
-        <tr><th class="check"><span class="sr-only">Select</span></th><th>Follower</th><th>Status</th><th>Lv</th><th>Loyalty</th><th>Hunger</th><th>Traits</th></tr>
+        <tr><th class="check"><span class="sr-only">{t('fol.colSelect')}</span></th><th>{t('fol.colFollower')}</th><th>{t('fol.colStatus')}</th><th>{t('fol.colLevel')}</th><th>{t('fol.colLoyalty')}</th><th>{t('fol.colHunger')}</th><th>{t('fol.colTraits')}</th></tr>
       </thead>
       <tbody>
         {#each shown as f (key(f))}
           {@const src = portrait(f)}
           <tr class:selected={isSelected(f)}>
-            <td class="check"><input type="checkbox" aria-label="Select {f.name}" checked={checked.includes(key(f))} onchange={e => toggle(f, e.currentTarget.checked)} /></td>
+            <td class="check"><input type="checkbox" aria-label={t('fol.select', { name: f.name })} checked={checked.includes(key(f))} onchange={e => toggle(f, e.currentTarget.checked)} /></td>
             <td>
               <span class="who">
                 {#if src}<img src={src} alt="" width="40" height="40" class:dead={f.dead} />{:else}<span class="ph" aria-hidden="true"></span>{/if}
                 <span class="names">
                   <button class="name" onclick={() => (selection.follower = { index: f.index, dead: f.dead })}>{f.name}</button>
-                  <span class="sub">{nameOf('skins', skinId(f.skin, skins) ?? f.skin)} · {f.age} days</span>
+                  <span class="sub">{nameOf('skins', skinId(f.skin, skins) ?? f.skin)} · {t('fol.days', { n: f.age })}</span>
                 </span>
               </span>
             </td>
             <td><StatusChip status={f.status} /></td>
             <td class="mono">{f.level}</td>
-            <td><span class="meter" role="img" aria-label="Loyalty {Math.round(f.loyalty)}%"><span style:width="{Math.min(100, Math.max(0, f.loyalty))}%"></span></span>
+            <td><span class="meter" role="img" aria-label={t('fol.loyaltyMeter', { n: Math.round(f.loyalty) })}><span style:width="{Math.min(100, Math.max(0, f.loyalty))}%"></span></span>
               <span class="mono num">{Math.round(f.loyalty)}%</span></td>
             <td class="mono num">{Math.round(f.needs.satiation)}%</td>
             <td><span class="traits">{#each f.traits as t (t)}{@const th = entry('traits', t)?.thumb}{#if th}<img class="tile" src={iconUrl(th)} alt={nameOf('traits', t)} title={nameOf('traits', t)} width="24" height="24" />{/if}{/each}</span></td>
           </tr>
         {:else}
-          <tr><td colspan="7" class="empty">No followers match.</td></tr>
+          <tr><td colspan="7" class="empty">{t('fol.none')}</td></tr>
         {/each}
       </tbody>
     </table>
@@ -112,6 +113,7 @@
   .name { padding: 0; border: 0; background: none; font-weight: 600; text-align: left; }
   .name:hover { text-decoration: underline; }
   .sub { font-size: 13px; color: var(--faint); }
+  td:nth-child(5) { white-space: nowrap; }
   .meter { display: inline-block; width: 72px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; vertical-align: middle; margin-right: 8px; }
   .meter span { display: block; height: 100%; background: var(--accent); }
   .num { font-size: 13px; color: var(--muted); }

@@ -19,6 +19,7 @@
   import Shell from './ui/Shell.svelte'
   import { go, route } from './ui/route.svelte'
   import { selection } from './ui/selection.svelte'
+  import { RTL, t } from './i18n/i18n.svelte'
 
   const schemaFor: SchemaFor = saveSchemaFor
   initLanguage((() => { try { return localStorage.getItem('lang') } catch { return null } })())
@@ -36,7 +37,7 @@
   }
 
   async function exportNow() {
-    if (session.slot?.beta && !confirm(`${session.slot.name} is in a format no real save has been tested with yet. Export anyway? Keep the backup.`)) return
+    if (session.slot?.beta && !confirm(t('export.betaConfirm', { file: session.slot.name }))) return
     try {
       const { files } = await exportSlot()
       for (const f of files) {
@@ -51,6 +52,8 @@
       session.error = e instanceof Error ? e.message : String(e)
     }
   }
+  // The page's language and direction follow the picker (screen readers, fonts, Arabic right to left).
+  $effect(() => { document.documentElement.lang = cat.lang; document.documentElement.dir = RTL.has(cat.lang) ? 'rtl' : 'ltr' })
   // A page that needs a save sends you to Open when none is.
   $effect(() => { if (!session.slot && route.page !== 'open') go('open') })
 </script>
@@ -66,28 +69,27 @@
   {#snippet actions()}
     <Prefs />
     {#if session.slot}
-      <button class="btn" onclick={() => (palette = true)}><Search size={14} aria-hidden="true" />Search <kbd>⌘K</kbd></button>
-      <button class="btn" onclick={() => (reviewing = true)}>{#if n}<span class="dot" aria-hidden="true"></span>{/if}{n} change{n === 1 ? '' : 's'}</button>
-      <button class="btn primary" disabled={!n || session.readOnly} onclick={exportNow}><Download size={16} aria-hidden="true" />Export</button>
+      <button class="btn" onclick={() => (palette = true)}><Search size={14} aria-hidden="true" />{t('top.search')} <kbd>⌘K</kbd></button>
+      <button class="btn" onclick={() => (reviewing = true)}>{#if n}<span class="dot" aria-hidden="true"></span>{/if}{t('top.changes', { n })}</button>
+      <button class="btn primary" disabled={!n || session.readOnly} onclick={exportNow}><Download size={16} aria-hidden="true" />{t('top.export')}</button>
     {/if}
   {/snippet}
   {#if session.error}<p class="toast" role="alert">{session.error}</p>{/if}
   {#if session.slot && route.page !== 'open'}
     {#if session.readOnly}
-      <Banner>This save doesn't write back exactly as it was read, so it's open read-only to keep it safe.
-        <a href="https://github.com/AuthFailed/cotl-save-editor/issues" target="_blank" rel="noreferrer">Report it</a> and we'll look.</Banner>
+      <Banner>{t('banner.readOnly')}
+        <a href="https://github.com/AuthFailed/cotl-save-editor/issues" target="_blank" rel="noreferrer">{t('banner.report')}</a> {t('banner.reportTail')}</Banner>
     {/if}
     {#if !session.schemaExact}
-      <Banner>Field names come from game version {session.schema?.gameVersion}; your save is from {session.saveVersion ?? 'an unknown version'}.
-        Fields added since may show as #numbers in Raw data.</Banner>
+      <Banner>{t('banner.schema', { schema: session.schema?.gameVersion ?? '', save: session.saveVersion ?? t('banner.unknownVersion') })}</Banner>
     {/if}
-    {#if session.slot.beta}<Banner>This save format is in beta: no real save of it has been tested yet. Keep the backup the export gives you.</Banner>{/if}
+    {#if session.slot.beta}<Banner>{t('banner.beta')}</Banner>{/if}
     {#if exported}
-      <Banner tone="info">Downloaded {exported.join(' and ')}. With the game closed, put {exported[0]} into your saves folder in place of the old one.
-        <button class="link" onclick={() => (exported = null)}>Dismiss</button></Banner>
+      <Banner tone="info">{t('banner.exported', { files: exported.join(t('banner.and')), file: exported[0] })}
+        <button class="link" onclick={() => (exported = null)}>{t('banner.dismiss')}</button></Banner>
     {/if}
   {/if}
-  {#if cat.offline && session.slot}<p class="note" role="status">Game names and pictures are unavailable offline; ids are shown instead.</p>{/if}
+  {#if cat.offline && session.slot}<p class="note" role="status">{t('note.offline')}</p>{/if}
   {#if route.page === 'open'}<Open {schemaFor} />
   {:else if session.slot}
     {#if route.page === 'overview'}<Overview />

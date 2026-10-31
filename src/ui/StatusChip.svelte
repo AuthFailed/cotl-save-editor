@@ -1,9 +1,10 @@
 <script lang="ts">
+  import { t } from '../i18n/i18n.svelte'
   import type { Status } from '../model/views'
   let { status }: { status: Status } = $props()
 </script>
 
-<span class="chip {status.toLowerCase()}">{status}</span>
+<span class="chip {status.toLowerCase()}">{t(`status.${status}`)}</span>
 
 <style>
   .chip { display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: var(--radius-6); white-space: nowrap; }

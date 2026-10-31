@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  let { tabs, panel, initial }: { tabs: string[]; panel: Snippet<[string]>; initial?: string | null } = $props()
+  let { tabs, panel, initial, label = (id: string) => id }: { tabs: string[]; panel: Snippet<[string]>; initial?: string | null; label?: (id: string) => string } = $props()
   const id = $props.id()
   // svelte-ignore state_referenced_locally
   let current = $state(initial && tabs.includes(initial) ? initial : tabs[0]) // set once; tabs switch it after
@@ -15,7 +15,7 @@
 <div class="tabs" role="tablist">
   {#each tabs as t, i (t)}
     <button role="tab" id="{id}-{i}" aria-selected={current === t} aria-controls="{id}-panel" tabindex={current === t ? 0 : -1}
-      onclick={() => (current = t)} onkeydown={e => key(e, i)}>{t}</button>
+      onclick={() => (current = t)} onkeydown={e => key(e, i)}>{label(t)}</button>
   {/each}
 </div>
 <div role="tabpanel" id="{id}-panel" aria-labelledby="{id}-{tabs.indexOf(current)}">

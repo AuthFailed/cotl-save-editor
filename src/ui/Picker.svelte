@@ -1,6 +1,7 @@
 <script lang="ts">
   import { X } from '@lucide/svelte'
   import { iconUrl } from '../data/api'
+  import { t } from '../i18n/i18n.svelte'
 
   type Item = { id: string; name: string; thumb: string | null; description?: string }
   let { title, search, items, current, onPick, onClose, tile = false }: {
@@ -17,7 +18,7 @@
 <dialog bind:this={dialog} aria-labelledby="{id}-title" onclose={onClose}>
   <header>
     <h2 id="{id}-title">{title}</h2>
-    <button class="btn ghost" aria-label="Close" onclick={() => dialog.close()}><X size={16} /></button>
+    <button class="btn ghost" aria-label={t('common.close')} onclick={() => dialog.close()}><X size={16} /></button>
   </header>
   <input class="input" type="search" aria-label={search} placeholder={search} bind:value={query} />
   <div class="grid">
@@ -29,7 +30,7 @@
         {#if item.description}<span class="desc">{item.description}</span>{/if}
       </button>
     {:else}
-      <p class="none">Nothing matches “{query}”.</p>
+      <p class="none">{t('common.nothingFor', { q: query })}</p>
     {/each}
   </div>
 </dialog>

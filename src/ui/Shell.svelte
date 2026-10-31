@@ -1,27 +1,28 @@
 <script lang="ts">
   import { Boxes, Braces, Church, FolderOpen, Gem, LayoutDashboard, Menu, Users, X } from '@lucide/svelte'
   import type { Snippet } from 'svelte'
+  import { t, type Key } from '../i18n/i18n.svelte'
   import { route, type Page } from './route.svelte'
 
   let { status, actions, inspector, children, opened = false }: {
     status?: Snippet; actions?: Snippet; inspector?: Snippet; children: Snippet; opened?: boolean
   } = $props()
 
-  const nav: { page: Page; label: string; icon: typeof Users }[] = [
-    { page: 'open', label: 'Open', icon: FolderOpen },
-    { page: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { page: 'followers', label: 'Followers', icon: Users },
-    { page: 'inventory', label: 'Inventory', icon: Boxes },
-    { page: 'cult', label: 'Cult', icon: Church },
-    { page: 'collection', label: 'Collection', icon: Gem },
-    { page: 'raw', label: 'Raw data', icon: Braces },
+  const nav: { page: Page; label: Key; icon: typeof Users }[] = [
+    { page: 'open', label: 'nav.open', icon: FolderOpen },
+    { page: 'overview', label: 'nav.overview', icon: LayoutDashboard },
+    { page: 'followers', label: 'nav.followers', icon: Users },
+    { page: 'inventory', label: 'nav.inventory', icon: Boxes },
+    { page: 'cult', label: 'nav.cult', icon: Church },
+    { page: 'collection', label: 'nav.collection', icon: Gem },
+    { page: 'raw', label: 'nav.raw', icon: Braces },
   ]
   let menu = $state(false)
 </script>
 
 <div class="app">
   <header>
-    <button class="btn ghost menu" aria-label="Menu" aria-expanded={menu} onclick={() => (menu = !menu)}>
+    <button class="btn ghost menu" aria-label={t('nav.menu')} aria-expanded={menu} onclick={() => (menu = !menu)}>
       {#if menu}<X size={18} />{:else}<Menu size={18} />{/if}
     </button>
     <a class="brand" href="#/open">
@@ -35,17 +36,17 @@
     {@render actions?.()}
   </header>
   <div class="body">
-    <nav aria-label="Sections" class:open={menu}>
+    <nav aria-label={t('nav.sections')} class:open={menu}>
       {#each nav as item (item.page)}
         {@const Icon = item.icon}
         <a href="#/{item.page}" class:current={route.page === item.page} aria-current={route.page === item.page ? 'page' : undefined}
           aria-disabled={!opened && item.page !== 'open' ? 'true' : undefined} onclick={() => (menu = false)}>
-          <Icon size={16} aria-hidden="true" />{item.label}
+          <Icon size={16} aria-hidden="true" />{t(item.label)}
         </a>
       {/each}
     </nav>
     <main>{@render children()}</main>
-    {#if inspector}<aside aria-label="Inspector">{@render inspector()}</aside>{/if}
+    {#if inspector}<aside aria-label={t('insp.title')}>{@render inspector()}</aside>{/if}
   </div>
 </div>
 

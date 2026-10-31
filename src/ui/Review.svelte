@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Undo2, X } from '@lucide/svelte'
+  import { t } from '../i18n/i18n.svelte'
   import { revert, session, undo } from '../model/session.svelte'
 
   let { onClose, onExport }: { onClose: () => void; onExport: () => void } = $props()
@@ -11,8 +12,8 @@
 
 <dialog bind:this={dialog} aria-labelledby="{id}-t" onclose={onClose}>
   <header>
-    <h2 id="{id}-t">Review changes</h2>
-    <button class="btn ghost" aria-label="Close" onclick={() => dialog.close()}><X size={16} /></button>
+    <h2 id="{id}-t">{t('rev.title')}</h2>
+    <button class="btn ghost" aria-label={t('common.close')} onclick={() => dialog.close()}><X size={16} /></button>
   </header>
   {#if session.error}<p class="err" role="alert">{session.error}</p>{/if}
   {#if session.changes.length}
@@ -21,17 +22,17 @@
         <li>
           <span class="n mono">{i + 1}</span>
           <span class="label">{c.label}</span>
-          <button class="btn ghost" aria-label="Undo {c.label}" onclick={() => revert(i)}><Undo2 size={14} />Undo</button>
+          <button class="btn ghost" aria-label={t('rev.undoLabel', { label: c.label })} onclick={() => revert(i)}><Undo2 size={14} />{t('rev.undo')}</button>
         </li>
       {/each}
     </ol>
     <footer>
-      <button class="btn ghost" onclick={undoAll}>Undo all</button>
+      <button class="btn ghost" onclick={undoAll}>{t('rev.undoAll')}</button>
       <span class="spacer"></span>
-      <button class="btn primary" onclick={() => { dialog.close(); onExport() }}>Export</button>
+      <button class="btn primary" onclick={() => { dialog.close(); onExport() }}>{t('top.export')}</button>
     </footer>
   {:else}
-    <p class="none">No changes yet. Edits you make appear here, each one undoable until you export.</p>
+    <p class="none">{t('rev.none')}</p>
   {/if}
 </dialog>
 

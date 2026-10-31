@@ -49,8 +49,6 @@ export async function saveSchemaFor(version: string | null): Promise<{ schema: S
   return { schema: BUNDLED, exact: pick.version === BUNDLED.gameVersion && pick.exact }
 }
 
-export const languages = async () => (await json<{ languages: string[] }>('index.json'))?.languages ?? ['en']
-
 /** The first browser language the game has: exact, by region (zh-Hans-CN → zh-CN), by language, else English. */
 export function language(wanted: readonly string[], available: string[]): string {
   for (const tag of wanted) {

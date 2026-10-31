@@ -2,6 +2,7 @@
   import { Search } from '@lucide/svelte'
   import { session } from '../model/session.svelte'
   import { nameAt } from '../schema/schema'
+  import { t } from '../i18n/i18n.svelte'
   import RawNode from './RawNode.svelte'
 
   let { filter = '' }: { filter?: string } = $props()
@@ -15,16 +16,16 @@
 
 <section>
   <div class="bar">
-    <h1>Raw data</h1>
-    <span class="count">{fields.length} fields · names from game version {s.gameVersion}</span>
+    <h1>{t('nav.raw')}</h1>
+    <span class="count">{t('raw.count', { n: fields.length, v: s.gameVersion })}</span>
     <span class="spacer"></span>
     <label class="search"><Search size={14} aria-hidden="true" />
-      <input type="search" placeholder="Filter by name" aria-label="Filter fields" bind:value={query} /></label>
+      <input type="search" placeholder={t('raw.filter')} aria-label={t('raw.filterLabel')} bind:value={query} /></label>
   </div>
-  <p class="hint">Every value in the save. Changes here join the same list as everywhere else and can be undone.</p>
+  <p class="hint">{t('raw.hint')}</p>
   <div class="tree-box">
-    <div class="head" aria-hidden="true"><span></span><span>Field</span><span>Type</span><span>Value</span></div>
-    <ul role="tree" aria-label="Save fields">
+    <div class="head" aria-hidden="true"><span></span><span>{t('raw.field')}</span><span>{t('raw.type')}</span><span>{t('raw.value')}</span></div>
+    <ul role="tree" aria-label={t('raw.tree')}>
       {#each shown as f (f.name)}<RawNode name={f.name} path={[f.name]} node={f.node} type={f.type} />{/each}
     </ul>
   </div>

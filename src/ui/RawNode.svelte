@@ -5,6 +5,7 @@
   import { push, session } from '../model/session.svelte'
   import { enumName, enumValue } from '../model/views'
   import { nameAt, type FieldType } from '../schema/schema'
+  import { t as tr } from '../i18n/i18n.svelte'
   import RawNode from './RawNode.svelte'
 
   let { name, path, node, type, depth = 0 }: { name: string; path: string[]; node: MpNode; type: FieldType | undefined; depth?: number } = $props()
@@ -42,8 +43,8 @@
     let v: unknown = raw
     if (kind === 'int' || kind === 'float') {
       const n = Number(raw.trim())
-      if (raw.trim() === '' || !Number.isFinite(n)) return (error = 'Enter a number')
-      if (kind === 'int' && !Number.isInteger(n)) return (error = 'Enter a whole number')
+      if (raw.trim() === '' || !Number.isFinite(n)) return (error = tr('num.number'))
+      if (kind === 'int' && !Number.isInteger(n)) return (error = tr('num.whole'))
       v = n
     }
     error = null
@@ -54,13 +55,13 @@
 <li role="treeitem" aria-label={name} aria-expanded={container ? open : undefined} aria-selected="false" style:--depth={depth}>
   <div class="row">
     {#if container}
-      <button class="tw" aria-label="{open ? 'Collapse' : 'Expand'} {name}" onclick={() => (open = !open)}><ChevronRight size={14} class={open ? 'down' : ''} /></button>
+      <button class="tw" aria-label={tr(open ? 'raw.collapse' : 'raw.expand', { name })} onclick={() => (open = !open)}><ChevronRight size={14} class={open ? 'down' : ''} /></button>
     {:else}<span class="tw"></span>{/if}
     <span class="name mono" class:unknown={name.startsWith('#')}>{name}</span>
     <span class="type mono">{typeText}</span>
     <span class="value">
       {#if container}
-        <span class="dim">{node.t === 'arr' || node.t === 'map' ? node.v.length : 0} {node.t === 'map' ? 'entries' : 'items'}</span>
+        <span class="dim">{tr(node.t === 'map' ? 'raw.entries' : 'raw.items', { n: node.t === 'arr' || node.t === 'map' ? node.v.length : 0 })}</span>
       {:else if kind === 'bool' && editable}
         <input type="checkbox" aria-label={name} checked={plain === true} disabled={session.readOnly}
           onchange={e => push(() => edits.setPath(session.schema!, session.root!, path, e.currentTarget.checked))} />
@@ -75,7 +76,7 @@
           onkeydown={e => { if (e.key === 'Enter') commit(text) }} onblur={() => { if (text !== (plain == null ? '' : String(plain))) commit(text) }} />
         {#if error}<span class="error">{error}</span>{/if}
       {:else}
-        <span class="dim mono">{plain === null ? 'null' : node.t === 'bin' ? `${(node as { v: Uint8Array }).v.length} bytes` : JSON.stringify(plain)}</span>
+        <span class="dim mono">{plain === null ? 'null' : node.t === 'bin' ? tr('raw.bytes', { n: (node as { v: Uint8Array }).v.length }) : JSON.stringify(plain)}</span>
       {/if}
     </span>
   </div>
