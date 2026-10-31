@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte'
   import { Copy, HeartPulse, Info, Plus, Trash2, X } from '@lucide/svelte'
   import { detail } from './detail.svelte'
   import Thumb from './Thumb.svelte'
@@ -8,7 +9,7 @@
   import { followers, skinId } from '../model/views'
   import NumberField from './NumberField.svelte'
   import Picker from './Picker.svelte'
-  import { t } from '../i18n/i18n.svelte'
+  import { t, type Key } from '../i18n/i18n.svelte'
   import { key, revived, selection } from './selection.svelte'
 
   want('skins')
@@ -20,6 +21,10 @@
   let picking = $state<'form' | 'trait' | null>(null)
   let nameText = $state('')
   $effect(() => { nameText = f?.name ?? '' })
+  // Set afresh for each follower, and when they die or come back; edits to the same follower leave the player's choice alone.
+  const dead = $derived(!!f?.dead)
+  let young = $state(false)
+  $effect(() => { void selection.follower; void dead; young = untrack(() => !!f?.dead && (f.old || f.death === 'DiedOfOldAge')) })
 
   const who = () => ({ index: f!.index, dead: f!.dead })
   const set = (name: string, v: number, what: string) => push(() => edits.setFollower(session.schema!, session.root!, who(), name, v, what))
@@ -36,7 +41,7 @@
   }
   function revive() {
     const { id, index } = f!
-    if (push(() => edits.revive(session.schema!, session.root!, index))) revived(id)
+    if (push(() => edits.revive(session.schema!, session.root!, index, young, session.schemaExact))) revived(id)
   }
 </script>
 
@@ -50,7 +55,7 @@
       <Thumb src={form ? `icons/skins/${form}.png` : null} kind="skins" size={96} dim={f.dead} alt="{f.name}, {form ? nameOf('skins', form) : f.skin}" />
       <div>
         <div class="title">{f.name}</div>
-        <div class="sub">{t('insp.id', { id: f.id })} · {nameOf('skins', form ?? f.skin)}{f.dead ? ` · ${t('insp.dead')}` : ''}</div>
+        <div class="sub">{t('insp.id', { id: f.id })} · {nameOf('skins', form ?? f.skin)}{f.dead ? ` · ${t(`death.${f.death ?? 'unknown'}` as Key)}` : ''}</div>
         <button class="btn" disabled={session.readOnly || !forms.length} title={forms.length ? undefined : t('note.offline')} onclick={() => (picking = 'form')}>{t('insp.changeForm')}</button>
       </div>
     </div>
@@ -88,7 +93,10 @@
     </div>
 
     <div class="actions">
-      {#if f.dead}<button class="btn primary" disabled={session.readOnly} onclick={revive}><HeartPulse size={16} />{t('insp.revive')}</button>{/if}
+      {#if f.dead}
+        <label class="young"><input type="checkbox" bind:checked={young} disabled={session.readOnly} />{t('insp.young')}</label>
+        <button class="btn primary" disabled={session.readOnly} onclick={revive}><HeartPulse size={16} />{t('insp.revive')}</button>
+      {/if}
       <button class="btn" disabled={session.readOnly} onclick={() => push(() => edits.clone(session.schema!, session.root!, who()))}><Copy size={16} />{t('insp.clone')}</button>
       <button class="btn danger" disabled={session.readOnly} onclick={remove}><Trash2 size={16} />{t('insp.remove')}</button>
     </div>
@@ -122,4 +130,5 @@
   .add { border-style: dashed; justify-content: center; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .actions .btn { flex: 1; justify-content: center; }
+  .young { flex-basis: 100%; display: flex; align-items: center; gap: 8px; font-size: 14px; }
 </style>

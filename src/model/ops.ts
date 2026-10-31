@@ -100,10 +100,10 @@ export function apply(schema: SaveSchema, root: MpNode, op: Op): MpNode {
       v.splice(op.index, 0, op.node)
       return { ...node, v, w: v.length > 15 && node.w === 'fix' ? 'a16' : node.w }
     }
-    if (node.t !== 'arr' || op.index >= node.v.length) throw new OpError(`${where}: no entry ${op.index} to remove`)
+    if ((node.t !== 'arr' && node.t !== 'map') || op.index >= node.v.length) throw new OpError(`${where}: no entry ${op.index} to remove`)
     const v = node.v.slice()
     v.splice(op.index, 1)
-    return { ...node, v }
+    return { ...node, v } as MpNode
   })
 }
 

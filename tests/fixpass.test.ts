@@ -6,9 +6,9 @@ import { toPlain, type MpNode } from '../src/codec/msgpack'
 import { edits } from '../src/model/edits'
 import { fromTree, jsonToTree } from '../src/model/json'
 import { replay, revertOne, type Change } from '../src/model/ops'
-import { followers, value } from '../src/model/views'
+import { enumName, followers, value } from '../src/model/views'
 import { schema, syntheticRoots } from './synthetic'
-import { hasSaves } from './util'
+import { hasSaves, readSave } from './util'
 
 const { slot: root } = syntheticRoots()
 const run = (r: MpNode, ...c: Change[]) => replay(schema, r, c)
@@ -40,6 +40,15 @@ test('JSON revive keeps the dead follower\'s unknown keys', () => {
   const json = { Followers: [], Followers_Dead: [{ ID: 3, Name: 'T', Extra: 't' }] }
   const tree = jsonToTree(schema, json)
   expect((fromTree(schema, run(tree, edits.revive(schema, tree, 0)), json) as { Followers: unknown[] }).Followers).toEqual([{ ID: 3, Name: 'T', Extra: 't' }])
+})
+
+test('a JSON revive clears the dead list and the grave, and adds no keys the save never had', () => {
+  const json = { Followers: [], Followers_Dead: [{ ID: 3, _name: 'T', DiedOfOldAge: true, TimeOfDeath: 9, Extra: 1 }], Followers_Dead_IDs: [3],
+    BaseStructures: [{ ID: 9, Type: 46, FollowerID: 3 }, { ID: 10, Type: 306, FollowerID: -1, MultipleFollowerIDs: [3] }] }
+  const tree = jsonToTree(schema, json)
+  expect(fromTree(schema, run(tree, edits.revive(schema, tree, 0, true)), json)).toEqual({
+    Followers: [{ ID: 3, _name: 'T', DiedOfOldAge: false, TimeOfDeath: 0, Extra: 1 }], Followers_Dead: [], Followers_Dead_IDs: [],
+    BaseStructures: [{ ID: 9, Type: 46, FollowerID: -1 }, { ID: 10, Type: 306, FollowerID: -1, MultipleFollowerIDs: [] }] })
 })
 
 test('undoing the first of two trait removals restores that trait, or refuses', () => {
@@ -80,5 +89,17 @@ describe.skipIf(!hasSaves)('real saves', () => {
     const out = fromTree(schema, run(tree, edits.removeFollower(schema, tree, 0)), json) as typeof json
     expect(out.Followers.map(f => [f.ID, f.Name])).toEqual(json.Followers.slice(1).map(f => [f.ID, f.Name]))
     expect(toPlain).toBeTypeOf('function')
+  })
+
+  test('real slot_0.json: a revive out of a crypt leaves no reference, and the 1.4 outfit as it was', async () => {
+    const json = (await openSave('slot_0.json', readSave('slot_0.json'))).data.root as {
+      Followers_Dead: { ID: number; Outfit: number }[]; Followers_Dead_IDs: number[]; BaseStructures: { Type: number; FollowerID: number; MultipleFollowerIDs?: number[] }[] }
+    const crypt = json.BaseStructures.find(s => enumName(schema, 'StructureBrain.TYPES', s.Type) === 'CRYPT_1' && s.MultipleFollowerIDs?.length)!
+    const index = json.Followers_Dead.findIndex(f => crypt.MultipleFollowerIDs!.includes(f.ID)), { ID: id, Outfit: outfit } = json.Followers_Dead[index]
+    const tree = jsonToTree(schema, json)
+    const out = fromTree(schema, run(tree, edits.revive(schema, tree, index, true, false)), json) as typeof json & { Followers: { ID: number; Outfit: number }[] }
+    expect(out.BaseStructures.filter(s => s.FollowerID === id || s.MultipleFollowerIDs?.includes(id))).toEqual([])
+    expect([out.Followers_Dead_IDs.length, out.Followers_Dead_IDs.includes(id)]).toEqual([out.Followers_Dead.length, false])
+    expect(out.Followers.find(f => f.ID === id)!.Outfit).toBe(outfit)
   })
 })

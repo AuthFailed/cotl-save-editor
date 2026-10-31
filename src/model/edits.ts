@@ -4,7 +4,7 @@ import { field, get, type SaveSchema } from '../schema/schema'
 import { nodeLike } from './build'
 import { t } from '../i18n/i18n.svelte'
 import type { Change, Op } from './ops'
-import { enumOf, enumValue, followers, inventory, listKind, listLength, unlocked } from './views'
+import { DEATHS, enumName, enumOf, enumValue, followers, inventory, listKind, listLength, unlocked } from './views'
 
 type Who = number | { index: number; dead?: boolean }
 const ref = (who: Who) => (typeof who === 'number' ? { index: who, dead: false } : { dead: false, ...who })
@@ -18,6 +18,46 @@ function followerAt(schema: SaveSchema, root: MpNode, who: Who) {
 }
 
 const nodeAt = (schema: SaveSchema, root: MpNode, path: string[]) => get(schema, root, schema.roots.slot, path)!.node
+
+export const FULL_NEEDS = { _satiation: 100, _starvation: 0, _rest: 100, _illness: 0, _exhaustion: 0 }
+const STRUCTURES = JSON.stringify({ list: { object: 'StructuresData' } })
+
+/** Ops that take a follower ID out of every DataManager Followers_*_IDs list (but `keep`) and every structure that holds it. */
+export function unlink(schema: SaveSchema, root: MpNode, id: number, keep: string[] = []): { ops: Op[]; cleared: string[] } {
+  const ops: Op[] = [], cleared = new Set<string>()
+  const at = (path: string[]) => get(schema, root, schema.roots.slot, path)?.node
+  const plain = (path: string[]) => { const n = at(path); return n && toPlain(n) }
+  const touch = (what: string, add: () => void) => { const n = ops.length; add(); if (ops.length > n) cleared.add(what) }
+  // Highest index first, so each remove leaves the earlier indices in place.
+  const drop = (path: string[], paired?: string[]) => {
+    const list = at(path)
+    if (list?.t === 'arr') for (let i = list.v.length - 1; i >= 0; i--) if (toPlain(list.v[i]) === id) {
+      ops.push({ kind: 'remove', path, index: i, guard: { path: [...path, String(i)], value: id } })
+      // Guarded with what is there now, so a shorter paired list refuses the change rather than misaligning the pair.
+      if (paired) ops.push({ kind: 'remove', path: paired, index: i, guard: { path: [...paired, String(i)], value: plain([...paired, String(i)]) } })
+    }
+  }
+  const fields = schema.types[schema.roots.slot].fields
+  for (const { name } of fields)
+    if (/^Followers_\w+_IDs$/.test(name) && name !== 'Followers_RecruitedUnique_IDs' && !keep.includes(name))
+      touch(name, () => drop([name], name === 'Followers_Demons_IDs' ? ['Followers_Demons_Types'] : undefined))
+  for (const { name, type } of fields) {
+    const list = JSON.stringify(type) === STRUCTURES ? at([name]) : undefined
+    if (list?.t === 'arr') list.v.forEach((_, si) => {
+      const base = [name, String(si)], reserved = [...base, 'ReservedFollowers']
+      touch(enumName(schema, 'StructureBrain.TYPES', plain([...base, 'Type'])), () => {
+        if (plain([...base, 'FollowerID']) === id) ops.push({ kind: 'set', path: [...base, 'FollowerID'], value: -1, guard: { path: [...base, 'FollowerID'], value: id } })
+        drop([...base, 'MultipleFollowerIDs'])
+        drop([...base, 'FollowersClaimedSlots'])
+        // Matched on values only: what the keys mean isn't known yet.
+        const map = at(reserved)
+        if (map?.t === 'map') for (let i = map.v.length - 1; i >= 0; i--) if (toPlain(map.v[i][1]) === id)
+          ops.push({ kind: 'remove', path: reserved, index: i, guard: { path: [...reserved, String(toPlain(map.v[i][0]))], value: id } })
+      })
+    })
+  }
+  return { ops, cleared: [...cleared] }
+}
 
 export const edits = {
   rename(schema: SaveSchema, root: MpNode, who: Who, name: string): Change {
@@ -74,9 +114,38 @@ export const edits = {
     return { label: t('ch.loses', { name: f.name, trait: name ?? trait }), ops: [{ kind: 'remove', path: [...base, 'Traits'], index, guard: [guard, at] }] }
   },
 
-  revive(schema: SaveSchema, root: MpNode, deadIndex: number): Change {
-    const { f, guard } = followerAt(schema, root, { index: deadIndex, dead: true })
-    return { label: t('ch.revived', { name: f.name }), ops: [{ kind: 'move', path: ['Followers_Dead'], index: deadIndex, to: ['Followers'], guard }] }
+  /** Back among the living as the game's own revive leaves them: off the dead lists, out of graves and beds, homeless,
+   * and either young or as elderly as living elders are. Only fields this save already holds are set. Without an exact
+   * schema the enum fields stay as they are, since older saves number those enums differently. */
+  revive(schema: SaveSchema, root: MpNode, deadIndex: number, young = false, exact = true): Change {
+    const { f, base, guard } = followerAt(schema, root, { index: deadIndex, dead: true })
+    const node = nodeAt(schema, root, base)
+    const now = (name: string) => { const n = get(schema, node, 'FollowerInfo', [name])?.node; return n && n.t !== 'nil' ? toPlain(n) : undefined }
+    const ops: Op[] = []
+    const set = (name: string, value: unknown) => {
+      const old = now(name)
+      if (old !== undefined && value !== undefined && old !== value) ops.push({ kind: 'set', path: [...base, name], value, guard })
+    }
+    const named = (name: string, type: string, id: string) => { if (exact) set(name, enumValue(schema, type, id)) }
+    const stays = !young && f.old
+    for (const d of DEATHS) set(d, false)
+    // A dead follower's house no longer lists them, so the old home would clash with whoever has the bed now.
+    for (const [k, v] of Object.entries({ TimeOfDeath: 0, HasBeenBuried: false, HadFuneral: false, MurderedBy: 0, LeavingCult: false, DwellingID: 0, DwellingSlot: 0, DwellingLevel: 0 })) set(k, v)
+    named('Location', 'FollowerLocation', 'Base')
+    named('SavedFollowerTaskType', 'FollowerTaskType', stays ? 'OldAge' : 'None')
+    if (['Ghost', 'Dissenter', 'Old'].includes(enumName(schema, 'FollowerOutfitType', now('Outfit')))) named('Outfit', 'FollowerOutfitType', stays ? 'Old' : 'None')
+    named('CursedState', 'Thought', stays ? 'OldAge' : 'None')
+    // The game adds 20 to 30 years; a fixed 20 keeps replay deterministic.
+    if (f.age >= f.lifeExpectancy) set('LifeExpectancy', f.age + 20)
+    if (young) {
+      set('OldAge', false)
+      for (const [k, v] of Object.entries(FULL_NEEDS)) set(k, v)
+      set('_HP', now('_maxHP'))
+    }
+    // The sets come first: move reads the element at replay, so they travel and undo with it.
+    ops.push(...unlink(schema, root, f.id, stays ? ['Followers_Elderly_IDs'] : []).ops,
+      { kind: 'move', path: ['Followers_Dead'], index: deadIndex, to: ['Followers'], guard })
+    return { label: t(young ? 'ch.revivedYoung' : 'ch.revived', { name: f.name }), ops }
   },
 
   clone(schema: SaveSchema, root: MpNode, who: Who): Change {

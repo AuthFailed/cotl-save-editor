@@ -3,7 +3,7 @@
   import { Search } from '@lucide/svelte'
   import { cat, entry, nameOf, want, wantVariants } from '../data/catalogs.svelte'
   import Thumb from './Thumb.svelte'
-  import { edits } from '../model/edits'
+  import { edits, FULL_NEEDS } from '../model/edits'
   import { push, session } from '../model/session.svelte'
   import { followers, skinId, type FollowerView, type Status } from '../model/views'
   import { t } from '../i18n/i18n.svelte'
@@ -49,7 +49,7 @@
   {#if picked.length}
     <div class="bulk" role="region" aria-label={t('fol.selectedRegion')}>
       <span>{t('fol.selected', { n: picked.length })}</span>
-      <button class="btn" disabled={session.readOnly} onclick={() => bulk({ _satiation: 100, _starvation: 0, _rest: 100, _illness: 0, _exhaustion: 0 }, t('ch.needsMaxed'))}>{t('fol.maxNeeds')}</button>
+      <button class="btn" disabled={session.readOnly} onclick={() => bulk(FULL_NEEDS, t('ch.needsMaxed'))}>{t('fol.maxNeeds')}</button>
       <button class="btn" disabled={session.readOnly} onclick={() => bulk({ Adoration: 100 }, t('ch.loyaltyMaxed'))}>{t('fol.maxLoyalty')}</button>
       <button class="btn ghost" onclick={() => (selection.ticked = [])}>{t('common.clear')}</button>
     </div>

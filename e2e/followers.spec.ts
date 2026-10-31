@@ -76,6 +76,38 @@ test('revive, bulk max needs, and edits survive choosing the folder again', asyn
   await expect(changes(page)).toHaveText('3 changes')
 })
 
+test('a dead follower shows its cause and comes back young', async ({ page }) => {
+  await openSynthetic(page, 'followers')
+  const table = page.getByRole('table'), inspector = page.getByRole('complementary', { name: 'Inspector' })
+  await table.getByRole('button', { name: 'Thistle' }).click()
+  await expect(inspector).toContainText('Died of old age')
+  await expect(inspector.getByRole('checkbox', { name: 'Come back young' })).toBeChecked()
+  await inspector.getByRole('button', { name: 'Revive' }).click()
+  await expect(table.getByRole('row').filter({ hasText: 'Thistle' })).toContainText('Faithful')
+  await expect(page.getByRole('button', { name: /^Elderly/ })).toHaveText('Elderly 1')
+  await expect(changes(page)).toHaveText('1 change')
+  await changes(page).click()
+  const review = page.getByRole('dialog', { name: 'Review changes' })
+  await expect(review.getByRole('listitem')).toHaveCount(1)
+  await review.getByRole('button', { name: 'Undo Thistle revived young' }).click()
+  await review.getByRole('button', { name: 'Close' }).click()
+  await expect(page.getByRole('button', { name: /^Dead/ })).toHaveText('Dead 1')
+})
+
+test('plain revive keeps an elderly follower elderly', async ({ page }) => {
+  await openSynthetic(page, 'followers')
+  const table = page.getByRole('table'), inspector = page.getByRole('complementary', { name: 'Inspector' })
+  await table.getByRole('button', { name: 'Thistle' }).click()
+  await inspector.getByRole('checkbox', { name: 'Come back young' }).uncheck()
+  await inspector.getByRole('button', { name: 'Revive' }).click()
+  await expect(table.getByRole('row').filter({ hasText: 'Thistle' })).toContainText('Elderly')
+  await expect(page.getByRole('button', { name: /^Elderly/ })).toHaveText('Elderly 2')
+  await changes(page).click()
+  const review = page.getByRole('dialog', { name: 'Review changes' })
+  await expect(review.getByRole('listitem')).toHaveCount(1)
+  await expect(review.getByRole('button', { name: 'Undo Thistle revived', exact: true })).toBeVisible()
+})
+
 test('at phone width the inspector is a sheet with a close button', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
   await openSynthetic(page)

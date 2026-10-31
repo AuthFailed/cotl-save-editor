@@ -53,7 +53,7 @@ const en = {
   'fol.loyaltyMeter': 'Loyalty {n}%', 'fol.none': 'No followers match.', 'fol.select': 'Select {name}',
 
   // inspector
-  'insp.title': 'Inspector', 'insp.id': 'ID {id}', 'insp.dead': 'dead', 'insp.changeForm': 'Change form', 'insp.name': 'Name',
+  'insp.title': 'Inspector', 'insp.id': 'ID {id}', 'insp.changeForm': 'Change form', 'insp.name': 'Name',
   'insp.level': 'Level', 'insp.age': 'Age (days)', 'insp.life': 'Life expectancy', 'insp.loyalty': 'Loyalty', 'insp.hunger': 'Hunger',
   'insp.rest': 'Rest', 'insp.illness': 'Illness', 'insp.exhaustion': 'Exhaustion', 'insp.traits': 'Traits', 'insp.noTraits': 'No traits.',
   'insp.removeTrait': 'Remove {name}', 'insp.addTrait': 'Add trait', 'insp.revive': 'Revive', 'insp.clone': 'Clone', 'insp.remove': 'Remove',
@@ -188,6 +188,24 @@ const en = {
   'raw.unfit': "This value isn't the kind game version {version} expects here, so it's shown as stored, read-only.",
   'ops.unfit': "{path} isn't the kind of value game version {version} expects, so it can't be edited.",
   'export.unfit': "{field} is no longer the kind of value game version {version} expects, so nothing was downloaded. Please report this.",
+  'insp.young': "Come back young",
+  'ch.revivedYoung': "{name} revived young",
+  'death.DiedOfOldAge': "Died of old age",
+  'death.DiedOfIllness': "Died of illness",
+  'death.DiedOfStarvation': "Starved to death",
+  'death.DiedOfInjury': "Died of injuries",
+  'death.FrozeToDeath': "Froze to death",
+  'death.BurntToDeath': "Burned to death",
+  'death.DiedFromOverheating': "Died from overheating",
+  'death.DiedFromLightning': "Struck by lightning",
+  'death.DiedFromMurder': "Murdered",
+  'death.DiedFromDeadlyDish': "Died from a deadly meal",
+  'death.DiedFromRot': "Died from rot",
+  'death.DiedInPrison': "Died in prison",
+  'death.DiedFromMissionary': "Died on a mission",
+  'death.DiedFromTwitchChat': "Killed by Twitch chat",
+  'death.LeavingCult': "Left the cult",
+  'death.unknown': "Dead, cause unknown",
 }
 
 export default en

@@ -6,6 +6,7 @@ import { saveSave } from '../src/codec/formats'
 import { exportSlot } from '../src/model/export'
 import { adopt, discard, failure, keyOf, listSlots, openSlot, pendingFor, push, redo, revert, session, undo, unexported } from '../src/model/session.svelte'
 import { get, unfit } from '../src/schema/schema'
+import { encodeMp } from '../src/codec/msgpack'
 import { arr, at, int, schema, shifted, str, syntheticFiles, syntheticSaves } from './synthetic'
 import { hasSaves, unreadable } from './util'
 
@@ -189,7 +190,30 @@ test('an object that does not fit is locked; the rest of the save edits as usual
   expect(session.error).toMatch(/^Objectives\.0 /)
 })
 
+/** A young revive of the first dead follower is one change, and its undo gives back the tree as it was. */
+async function reviveAndUndo(files: File[]) {
+  const [entry] = await listSlots(files, loadSchema)
+  await openSlot(entry, loadSchema)
+  const was = encodeMp(session.root!), n = session.changes.length
+  expect(push(() => edits.revive(schema, session.root!, 0, true))).toBe(true)
+  expect(session.changes.length).toBe(n + 1)
+  undo()
+  expect([encodeMp(session.root!), session.changes.length]).toEqual([was, n])
+  redo()
+  expect(session.changes.length).toBe(n + 1)
+  undo()
+}
+
+test('a revive is one change that one undo takes back whole', async () => {
+  await reviveAndUndo(await syntheticFiles())
+  expect(encodeMp(session.root!)).toEqual(encodeMp(session.original!))
+})
+
 describe.skipIf(!hasSaves)('real saves', () => {
+  test('a real revive is one change that one undo takes back whole', async () => {
+    const read = (n: string) => new File([readFileSync(new URL(`./saves/${n}`, import.meta.url))], n)
+    await reviveAndUndo([read('slot_0.mp'), read('meta_0.mp')])
+  })
   test('the real .mp slots open editable, with only their unions locked', async () => {
     const dir = new URL('./saves/', import.meta.url)
     const read = (n: string) => new File([readFileSync(new URL(n, dir))], n)

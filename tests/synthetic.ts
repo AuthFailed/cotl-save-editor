@@ -13,6 +13,7 @@ export const str = (v: string): MpNode => ({ t: 'str', v, w: new TextEncoder().e
 export const f32 = (v: number): MpNode => ({ t: 'float', v, w: 'f32' })
 export const arr = (v: MpNode[]): MpNode => ({ t: 'arr', v, w: v.length <= 15 ? 'fix' : 'a16' })
 export const map = (v: [MpNode, MpNode][]): MpNode => ({ t: 'map', v, w: 'fix' })
+const bool = (v: boolean): MpNode => ({ t: 'bool', v })
 export const enumValue = (name: string, value: string) =>
   Number(Object.entries(schema.enums[name]).find(([, n]) => n === value)![0])
 
@@ -26,15 +27,29 @@ function object(type: string, values: Record<string, MpNode>): MpNode {
 const follower = (id: number, name: string, skin: string, level: number, extra: Record<string, MpNode> = {}) =>
   object('FollowerInfo', { ID: int(id), _name: str(name), SkinName: str(skin), XPLevel: int(level), Age: int(20),
     LifeExpectancy: int(60), Adoration: f32(50), Traits: arr([]), _satiation: f32(80), _starvation: f32(0), _rest: f32(90),
-    _illness: f32(0), _exhaustion: f32(0), OldAge: { t: 'bool', v: false }, ...extra })
+    _illness: f32(0), _exhaustion: f32(0), OldAge: bool(false), ...extra })
 const item = (id: string, quantity: number) =>
   object('InventoryItem', { type: int(enumValue('InventoryItem.ITEM_TYPE', id)), quantity: int(quantity), QuantityReserved: int(0) })
+const structure = (type: string, id: number, follower: number, values: Record<string, MpNode> = {}) =>
+  object('StructuresData', { Type: int(enumValue('StructureBrain.TYPES', type)), ID: int(id), FollowerID: int(follower), ...values })
+const ids = (...v: number[]) => arr(v.map(int))
+const home = (slot: number) => ({ DwellingID: int(10), DwellingSlot: int(slot), DwellingLevel: int(1) })
 
 export function syntheticRoots(version = '1.5.26.1058', tweak: (slot: MpNode) => MpNode = s => s) {
   const slot = object('DataManager', {
     AllowSaving: { t: 'bool', v: true }, CultName: str('Test Cult'), CultFaith: f32(82),
-    Followers: arr([follower(1, 'Pip', 'Axolotl', 3, { _satiation: f32(12) }), follower(2, 'Ash', 'Fox', 9, { OldAge: { t: 'bool', v: true }, Adoration: f32(50.37) })]),
-    Followers_Dead: arr([follower(3, 'Thistle', 'Hedgehog', 1)]),
+    Followers: arr([follower(1, 'Pip', 'Axolotl', 3, { _satiation: f32(12), ...home(0) }),
+      follower(2, 'Ash', 'Fox', 9, { OldAge: bool(true), Adoration: f32(50.37), ...home(1) })]),
+    // Died of old age, with the bookkeeping the game leaves on the dead, and a stale home that clashes with Pip's.
+    Followers_Dead: arr([follower(3, 'Thistle', 'Hedgehog', 1, { OldAge: bool(true), Age: int(70), LifeExpectancy: int(60),
+      DiedOfOldAge: bool(true), TimeOfDeath: int(40), HasBeenBuried: bool(true), Outfit: int(enumValue('FollowerOutfitType', 'Old')),
+      CursedState: int(enumValue('Thought', 'OldAge')), Location: int(enumValue('FollowerLocation', 'Church')),
+      SavedFollowerTaskType: int(enumValue('FollowerTaskType', 'FindPlaceToDie')), _HP: f32(10), _maxHP: f32(25), ...home(0) })]),
+    CurrentDayIndex: int(47), Followers_Dead_IDs: ids(3), Followers_Elderly_IDs: ids(2, 3), Followers_Imprisoned_IDs: ids(),
+    Followers_OnMissionary_IDs: ids(1), Followers_RecruitedUnique_IDs: ids(2),
+    BaseStructures: arr([
+      structure('SHARED_HOUSE', 10, 1, { MultipleFollowerIDs: ids(1, 2), FollowersClaimedSlots: ids(1, 2), ReservedFollowers: map([[int(0), int(1)]]) }),
+      structure('MISSIONARY', 11, -1, { MultipleFollowerIDs: ids(1) }), structure('GRAVE', 12, 3), structure('CRYPT_1', 13, -1, { MultipleFollowerIDs: ids(3) })]),
     items: arr([item('LOG', 12), item('BLACK_GOLD', 300)]),
     PlayerFoundRelics: nil, PlayerFoundTrinkets: arr([]),
   })

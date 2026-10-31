@@ -7,7 +7,15 @@ export type Need = 'satiation' | 'starvation' | 'rest' | 'illness' | 'exhaustion
 export interface FollowerView {
   index: number; dead: boolean; id: number; name: string; skin: string; level: number; age: number; lifeExpectancy: number
   loyalty: number; traits: string[]; needs: Record<Need, number>; status: Status
+  /** OldAge, which the game also keeps on the dead. */
+  old: boolean
+  /** For the dead: the first death flag set, else LeavingCult when set, else null (cause unknown). */
+  death: string | null
 }
+
+/** FollowerInfo's death flags, in the order a cause is shown. */
+export const DEATHS = ['DiedOfOldAge', 'DiedOfIllness', 'DiedOfStarvation', 'DiedOfInjury', 'FrozeToDeath', 'BurntToDeath', 'DiedFromOverheating',
+  'DiedFromLightning', 'DiedFromMurder', 'DiedFromDeadlyDish', 'DiedFromRot', 'DiedInPrison', 'DiedFromMissionary', 'DiedFromTwitchChat']
 
 export const enumName = (schema: SaveSchema, name: string, value: unknown) => schema.enums[name]?.[String(value)] ?? String(value)
 export function enumValue(schema: SaveSchema, name: string, id: string): number | undefined {
@@ -40,6 +48,7 @@ function follower(schema: SaveSchema, node: MpNode, index: number, dead: boolean
     index, dead, id: num('ID'), name: String(v('_name') ?? ''), skin: String(v('SkinName') ?? ''), level: num('XPLevel'),
     age: num('Age'), lifeExpectancy: num('LifeExpectancy'), loyalty: num('Adoration'),
     traits: ((v('Traits') as unknown[] | null) ?? []).map(t => enumName(schema, traitEnum, t)), needs, status,
+    old: v('OldAge') === true, death: dead ? DEATHS.find(d => v(d) === true) ?? (v('LeavingCult') === true ? 'LeavingCult' : null) : null,
   }
 }
 
