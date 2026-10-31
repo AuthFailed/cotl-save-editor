@@ -145,6 +145,10 @@ const it: Dict = {
   'cmd.fields': "Campi del salvataggio",
   'cmd.followersWith': "Seguaci con {name}",
   'cmd.hint': "↑↓ per spostarti · Invio per aprire · Esc per chiudere",
+  "about.title": "Informazioni",
+  "about.licenses": "Licenze di terze parti",
+  "about.gameNotice": "Queste licenze non coprono la grafica e i dati del gioco.",
+
 }
 
 export default it

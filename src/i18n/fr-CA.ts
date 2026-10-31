@@ -13,6 +13,10 @@ const frCA: Dict = {
   'rev.title': 'Vérifier les changements',
   'rev.none': 'Aucun changement pour l’instant. Vos changements apparaîtront ici, chacun annulable jusqu’à l’exportation.',
   'raw.hint': 'Toutes les valeurs de la sauvegarde. Les changements faits ici rejoignent la même liste que les autres et s’annulent de la même façon.',
+  "about.title": "À propos",
+  "about.licenses": "Licences tierces",
+  "about.gameNotice": "Ces licences ne couvrent pas les illustrations et les données du jeu.",
+
 }
 
 export default frCA

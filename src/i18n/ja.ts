@@ -145,6 +145,10 @@ const ja: Dict = {
   'cmd.fields': "セーブのフィールド",
   'cmd.followersWith': "{name} を持つ信者",
   'cmd.hint': "↑↓ 移動 · Enter 開く · Esc 閉じる",
+  "about.title": "このサイトについて",
+  "about.licenses": "サードパーティのライセンス",
+  "about.gameNotice": "ゲームのアートとデータはこれらのライセンスの対象外です。",
+
 }
 
 export default ja

@@ -1,3 +1,4 @@
+import { notices } from './scripts/notices'
 import { csp } from './scripts/csp'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -7,6 +8,7 @@ export default defineConfig({
   base: '/',
   plugins: [
     csp(),
+    notices(),
     svelte(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -17,6 +19,7 @@ export default defineConfig({
         icons: [{ src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }],
       },
       workbox: {
+        sourcemap: true,
         globPatterns: ['**/*.{js,css,html,svg,woff2,json}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // game data and pictures: shown from cache at once, refreshed in the background

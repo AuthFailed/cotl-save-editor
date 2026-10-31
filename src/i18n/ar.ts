@@ -147,6 +147,10 @@ const ar: Dict = {
   'cmd.fields': "حقول الحفظ",
   'cmd.followersWith': "أتباع لديهم {name}",
   'cmd.hint': "↑↓ للتنقل · Enter للفتح · Esc للإغلاق",
+  "about.title": "حول",
+  "about.licenses": "تراخيص الجهات الخارجية",
+  "about.gameNotice": "لا تشمل هذه التراخيص رسومات اللعبة وبياناتها.",
+
 }
 
 export default ar

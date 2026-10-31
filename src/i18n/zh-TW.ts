@@ -145,6 +145,10 @@ const zhTW: Dict = {
   'cmd.fields': "存檔欄位",
   'cmd.followersWith': "擁有 {name} 的教徒",
   'cmd.hint': "↑↓ 選擇 · Enter 開啟 · Esc 關閉",
+  "about.title": "關於",
+  "about.licenses": "第三方授權",
+  "about.gameNotice": "這些授權不涵蓋遊戲美術和資料。",
+
 }
 
 export default zhTW

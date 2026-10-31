@@ -145,6 +145,10 @@ const de: Dict = {
   'cmd.fields': "Felder des Spielstands",
   'cmd.followersWith': "Anhänger mit {name}",
   'cmd.hint': "↑↓ wählen · Enter öffnen · Esc schließen",
+  "about.title": "Über",
+  "about.licenses": "Lizenzen Dritter",
+  "about.gameNotice": "Spielgrafiken und Spieldaten fallen nicht unter diese Lizenzen.",
+
 }
 
 export default de

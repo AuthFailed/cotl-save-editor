@@ -50,9 +50,15 @@
     <main>{@render children()}</main>
     {#if inspector}<aside aria-label={t('insp.title')}>{@render inspector()}</aside>{/if}
   </div>
+  <footer aria-label={t('about.title')}>
+    <a href="/third-party-licenses.txt" target="_blank" rel="noreferrer">{t('about.licenses')}</a>
+    <span>{t('about.gameNotice')}</span>
+  </footer>
 </div>
 
 <style>
+  footer { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 12px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+  footer a { color: inherit; }
   .app { min-height: 100vh; display: flex; flex-direction: column; }
   header { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 60px;
     padding: 8px 20px; border-bottom: 1px solid var(--border); background: var(--bg); }

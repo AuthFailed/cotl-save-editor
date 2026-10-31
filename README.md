@@ -36,6 +36,9 @@ from the published schema. Pushes to `main` deploy to GitHub Pages.
 
 Design: [docs/specs](docs/specs/2026-10-31-cotl-save-editor-design.md).
 
+The built site includes [third-party licence notices](https://save.cotl.info/third-party-licenses.txt) for its libraries, icons and fonts.
+Game art and data are not covered by these licences.
+
 ## Credits
 
 The save formats were first worked out by
