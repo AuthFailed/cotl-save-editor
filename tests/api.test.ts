@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { API, catalog, clearCache, iconUrl, language, saveSchemaFor } from '../src/data/api'
+import { cat, wantVariants } from '../src/data/catalogs.svelte'
 import { schema } from './synthetic'
 
 let served: Record<string, unknown>
@@ -23,6 +24,18 @@ test('catalog reads the slim per-language list; with text, the full list in that
 test('an unreachable API gives null, not an error', async () => {
   vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline') }))
   expect(await catalog('items', 'en')).toBeNull()
+})
+
+test('a failed lookup is asked again, and so are the form variants', async () => {
+  expect(await catalog('items', 'en')).toBeNull()
+  served[`${API}en/items.json`] = [{ id: 'LOG', name: 'Log', thumb: null }]
+  expect((await catalog('items', 'en'))?.has('LOG')).toBe(true)
+  wantVariants()
+  await vi.waitFor(() => expect(cat.offline).toBe(true))
+  served[`${API}skins.json`] = [{ id: 'Fennec_Fox', variants: ['Fennec Fox', 'Fennec Fox2'] }, { id: 'Nothing', variants: [] }]
+  wantVariants()
+  await vi.waitFor(() => expect([...cat.forms]).toEqual([['Fennec_Fox', ['Fennec Fox', 'Fennec Fox2']]]))
+  expect(cat.variants.get('Fennec Fox2')).toBe('Fennec_Fox')
 })
 
 test('saveSchemaFor picks from the published versions and falls back to the bundled one', async () => {

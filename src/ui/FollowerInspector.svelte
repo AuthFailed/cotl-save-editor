@@ -51,7 +51,7 @@
       <div>
         <div class="title">{f.name}</div>
         <div class="sub">{t('insp.id', { id: f.id })} · {nameOf('skins', form ?? f.skin)}{f.dead ? ` · ${t('insp.dead')}` : ''}</div>
-        <button class="btn" disabled={session.readOnly || !forms.length} onclick={() => (picking = 'form')}>{t('insp.changeForm')}</button>
+        <button class="btn" disabled={session.readOnly || !forms.length} title={forms.length ? undefined : t('note.offline')} onclick={() => (picking = 'form')}>{t('insp.changeForm')}</button>
       </div>
     </div>
 

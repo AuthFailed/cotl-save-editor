@@ -30,7 +30,8 @@ export function wantVariants() {
   if (variantsAsked) return
   variantsAsked = true
   entities('skins').then(l => {
-    const forms = (l ?? []).map(e => [e.id, (e.variants as string[] | undefined) ?? []] as [string, string[]]).filter(([, v]) => v.length)
+    if (!l) { variantsAsked = false; cat.offline = true; return }
+    const forms = l.map(e => [e.id, (e.variants as string[] | undefined) ?? []] as [string, string[]]).filter(([, v]) => v.length)
     cat.forms = new Map(forms)
     cat.variants = new Map(forms.flatMap(([id, vs]) => vs.map(v => [v, id] as [string, string])))
   })

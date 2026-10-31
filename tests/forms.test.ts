@@ -32,7 +32,8 @@ test('the fixture is the 189 published forms', () => {
 
 test.each(all.map(e => e.id))('changing to %s writes one of its skin names and points SkinVariation at it', id => {
   const { slot } = syntheticRoots()
-  const [name, variation] = formOf(replay(schema, slot, [setForm(slot, id)]))
+  const from = replay(schema, slot, [edits.setPath(schema, slot, ['Followers', '0', 'SkinName'], 'Unpublished')])
+  const [name, variation] = formOf(replay(schema, from, [setForm(from, id)]))
   expect(spine(byId(id)).indexOf(name as string)).toBe(variation)
 })
 
@@ -42,11 +43,24 @@ test.each([['Fennec_Fox', 'Fennec Fox'], ['Boss_Beholder_1', 'Boss Beholder 1'],
   expect(formOf(replay(schema, slot, [setForm(slot, id)]))).toEqual([name, 0])
 })
 
-test('a form change is one change of two ops, labelled with display names, and undoes to the original bytes', () => {
+test('a form change is one change of two ops, labelled with display names, and undoes on its own', () => {
   const { slot } = syntheticRoots()
   const c = edits.setForm(schema, slot, 0, spine(byId('Fennec_Fox')), 'Axolotl', 'Fennec Fox')
   expect([c.label, c.ops.length]).toEqual(['Pip · form Axolotl → Fennec Fox', 2])
-  expect(encodeMp(replay(schema, slot, revertOne(schema, slot, [c], 0)))).toEqual(encodeMp(slot))
+  const other = edits.setFollower(schema, slot, 0, 'XPLevel', 5, 'level')
+  const both = replay(schema, slot, [other, c])
+  expect(formOf(both)).toEqual(['Fennec Fox', 0])
+  const undone = replay(schema, slot, revertOne(schema, slot, [other, c], 1))
+  expect(formOf(undone)).toEqual(formOf(slot))
+  expect(encodeMp(undone)).toEqual(encodeMp(replay(schema, slot, [other])))
+})
+
+test('picking the form a follower already has, under any of its skin names, changes nothing', () => {
+  const { slot } = syntheticRoots()
+  const held = replay(schema, slot, [edits.setPath(schema, slot, ['Followers', '0', 'SkinName'], 'Fennec Fox3'),
+    edits.setPath(schema, slot, ['Followers', '0', 'SkinVariation'], 2)])
+  expect(setForm(held, 'Fennec_Fox').ops).toEqual([])
+  expect(setForm(held, 'Deer').ops).toHaveLength(2)
 })
 
 test('a form with no skin names is refused', async () => {
@@ -76,6 +90,7 @@ test('other kinds hold by their save id, and forms without skin names are not of
   const relics = unlockTab('relics'), e: Full = { id: 'Relic', namePlain: {}, thumb: null }
   for (const have of [new Set(['Relic']), new Set<string>()]) expect(heldOf(relics, e, have) !== undefined).toBe(have.has(saveIdOf(relics, e)))
   expect([forms.include!({ ...e, variants: [] }), forms.include!(e), forms.include!(byId('Deer'))]).toEqual([false, false, true])
+  expect(() => saveIdOf(forms, e)).toThrow(RangeError)
 })
 
 describe.skipIf(!hasSaves)('real saves', () => {

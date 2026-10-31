@@ -54,6 +54,7 @@ test('a new form is written under its skin name, as one change that undoes', asy
   await review.getByRole('button', { name: 'Close' }).click()
   await expect(inspector).toContainText('Axolotl')
   await pick()
+  await pick() // the form it already has: still one change
   const read = await exported(page)
   expect([read('Followers', '0', 'SkinName'), read('Followers', '0', 'SkinVariation')]).toEqual(['Fennec Fox', 0])
 })

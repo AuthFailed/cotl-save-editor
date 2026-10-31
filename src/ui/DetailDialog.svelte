@@ -29,10 +29,10 @@
 
   function toggle() {
     if (!unlock || !e) return
-    const sid = saveIdOf(unlock, e), name = info!.name
+    const name = info!.name
     push(() => held !== undefined
       ? edits.lock(session.schema!, session.root!, unlock.field, held, t('ch.locked', { name }))
-      : edits.unlock(session.schema!, session.root!, unlock.field, [sid], t('ch.unlocked', { name })))
+      : edits.unlock(session.schema!, session.root!, unlock.field, [saveIdOf(unlock, e!)], t('ch.unlocked', { name })))
   }
   function quantity(v: number) {
     push(() => item ? edits.setQuantity(session.schema!, session.root!, item.index, v, nameOf('items', open.id))

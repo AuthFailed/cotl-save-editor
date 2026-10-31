@@ -7,6 +7,11 @@ export interface Unlock {
 }
 
 const spine = (e: Full) => (e.variants as string[] | undefined) ?? []
+function firstSkin(e: Full) {
+  const [s] = spine(e)
+  if (!s) throw new RangeError(`No skin names for ${e.id}`)
+  return s
+}
 
 export const UNLOCKS: Unlock[] = [
   { tab: 'tarot', page: 'collection', kind: 'tarot', field: 'PlayerFoundTrinkets', groupBy: e => String((e.groups as string[])?.[0] ?? '') },
@@ -16,7 +21,7 @@ export const UNLOCKS: Unlock[] = [
   { tab: 'fleeces', page: 'collection', kind: 'fleeces', field: 'UnlockedFleeces', saveId: e => String(e.fleece) },
   { tab: 'outfits', page: 'collection', kind: 'outfits', field: 'UnlockedClothing', groupBy: e => String(e.tab ?? '') },
   // a save holds Spine skin names (Fennec Fox), not API ids (Fennec_Fox); the game writes the first
-  { tab: 'forms', page: 'collection', kind: 'skins', field: 'FollowerSkinsUnlocked', include: e => spine(e).length > 0, saveId: e => spine(e)[0],
+  { tab: 'forms', page: 'collection', kind: 'skins', field: 'FollowerSkinsUnlocked', include: e => spine(e).length > 0, saveId: firstSkin,
     owns: spine, groupBy: e => String(e.unlock ?? '') },
   { tab: 'doctrines', page: 'cult', kind: 'doctrines', field: 'DoctrineUnlockedUpgrades', groupBy: e => String(e.category ?? '') },
   { tab: 'rituals', page: 'cult', kind: 'rituals', field: 'UnlockedUpgrades', groupBy: e => String(e.group ?? '') },

@@ -37,12 +37,12 @@ export const edits = {
     return { label: t('ch.followerFields', { name: f.name, label }), ops: Object.entries(values).map(([k, value]): Op => ({ kind: 'set', path: [...base, k], value, guard })) }
   },
 
-  /** A new form as the game names it: its first skin name, and SkinVariation pointing at it. */
+  /** A new form as the game names it: its first skin name, and SkinVariation pointing at it; no ops if the follower already has it. */
   setForm(schema: SaveSchema, root: MpNode, who: Who, variants: string[], from: string, to: string): Change {
     const { f, base, guard } = followerAt(schema, root, who)
     if (!variants.length) throw new RangeError(`No skin names for ${to}`)
-    return { label: t('ch.follower', { name: f.name, what: t('what.form'), old: from, value: to }),
-      ops: [{ kind: 'set', path: [...base, 'SkinName'], value: variants[0], guard }, { kind: 'set', path: [...base, 'SkinVariation'], value: 0, guard }] }
+    return { label: t('ch.follower', { name: f.name, what: t('what.form'), old: from, value: to }), ops: variants.includes(f.skin) ? []
+      : [{ kind: 'set', path: [...base, 'SkinName'], value: variants[0], guard }, { kind: 'set', path: [...base, 'SkinVariation'], value: 0, guard }] }
   },
 
   /** Any scalar by path (Raw data). */

@@ -13,7 +13,8 @@ export const clearCache = () => cache.clear()
 
 function json<T>(path: string): Promise<T | null> {
   if (!cache.has(path)) {
-    cache.set(path, fetch(API + path).then(r => (r.ok ? r.json() : null)).catch(() => null))
+    // a failure is not kept, so the next ask tries again
+    cache.set(path, fetch(API + path).then(r => (r.ok ? r.json() : null)).catch(() => null).then(v => { if (v === null) cache.delete(path); return v }))
   }
   return cache.get(path) as Promise<T | null>
 }
