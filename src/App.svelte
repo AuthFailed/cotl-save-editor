@@ -1,7 +1,7 @@
 <script lang="ts">
   import { saveSchemaFor } from './data/api'
   import { cat, initLanguage } from './data/catalogs.svelte'
-  import { redo, session, undo, type SchemaFor } from './model/session.svelte'
+  import { changedOnDisk, failure, redo, session, undo, type SchemaFor, type SlotEntry } from './model/session.svelte'
   import Collection from './ui/Collection.svelte'
   import CommandPalette from './ui/CommandPalette.svelte'
   import Raw from './ui/Raw.svelte'
@@ -33,6 +33,8 @@
   let rawFilter = $state('')
   let reviewing = $state(false)
   let exported = $state<string[] | null>(null)
+  // The slot whose file changed on disk after it was opened, until the player exports anyway or chooses the folder again.
+  let stale = $state.raw<SlotEntry | null>(null)
   function keys(e: KeyboardEvent) {
     const mod = e.metaKey || e.ctrlKey
     if (mod && e.key.toLowerCase() === 'k' && session.slot) { e.preventDefault(); palette = true }
@@ -41,8 +43,12 @@
     if (mod && e.key.toLowerCase() === 'z' && session.slot && !typing) { e.preventDefault(); if (e.shiftKey) redo(); else undo() }
   }
 
-  async function exportNow() {
-    if (session.slot?.beta && !confirm(t('export.betaConfirm', { file: session.slot.name }))) return
+  async function exportNow(anyway = false) {
+    if (!anyway) {
+      if (session.slot?.beta && !confirm(t('export.betaConfirm', { file: session.slot.name }))) return
+      if (await changedOnDisk(session.entry!)) { stale = session.entry; return }
+    }
+    stale = null
     try {
       const { files } = await exportSlot()
       for (const f of files) {
@@ -54,7 +60,7 @@
       }
       exported = files.map(f => f.name)
     } catch (e) {
-      session.error = e instanceof Error ? e.message : String(e)
+      session.error = failure(e, session.slot?.name ?? '')
     }
   }
   // The page's language and direction follow the picker (screen readers, fonts, Arabic right to left).
@@ -78,7 +84,7 @@
         <Search size={16} aria-hidden="true" /><span class="hint">{t('top.searchHint')}</span><kbd>{mac ? '⌘K' : 'Ctrl K'}</kbd>
       </button>
       <button class="btn" onclick={() => (reviewing = true)}>{#if n}<span class="dot" aria-hidden="true"></span>{/if}{t('top.changes', { n })}</button>
-      <button class="btn primary" disabled={!n || session.readOnly} onclick={exportNow}><Download size={16} aria-hidden="true" />{t('top.export')}</button>
+      <button class="btn primary" disabled={!n || session.readOnly} onclick={() => exportNow()}><Download size={16} aria-hidden="true" />{t('top.export')}</button>
     {/if}
   {/snippet}
   {#if session.error}<p class="toast" role="alert">{session.error}</p>{/if}
@@ -91,6 +97,11 @@
       <Banner>{t('banner.schema', { schema: session.schema?.gameVersion ?? '', save: session.saveVersion ?? t('banner.unknownVersion') })}</Banner>
     {/if}
     {#if session.slot.beta}<Banner>{t('banner.beta')}</Banner>{/if}
+    {#if stale === session.entry}
+      <Banner>{t('export.changed', { file: session.slot.name })}
+        <button class="link" onclick={() => exportNow(true)}>{t('export.anyway')}</button>
+        <button class="link" onclick={() => { stale = null; go('open') }}>{t('export.reopen')}</button></Banner>
+    {/if}
     {#if exported}
       <Banner tone="info">{t('banner.exported', { files: exported.join(t('banner.and')), file: exported[0] })}
         <button class="link" onclick={() => (exported = null)}>{t('banner.dismiss')}</button></Banner>

@@ -13,6 +13,9 @@ const frCA: Dict = {
   'rev.title': 'Vérifier les changements',
   'rev.none': 'Aucun changement pour l’instant. Vos changements apparaîtront ici, chacun annulable jusqu’à l’exportation.',
   'raw.hint': 'Toutes les valeurs de la sauvegarde. Les changements faits ici rejoignent la même liste que les autres et s’annulent de la même façon.',
+  'file.failed': 'Impossible de lire ou d’écrire {file}. Vos changements sont toujours là; choisissez à nouveau le dossier, ou signalez-le si cela se reproduit.',
+  'export.changed': '{file} a changé sur le disque après son ouverture : le jeu, la synchronisation infonuagique ou un fichier que vous avez remis en place l’a écrit. Exporter maintenant remplacerait ce fichier plus récent.',
+  'open.changedKept': { one: '{file} a changé sur le disque depuis son ouverture. Son {n} changement non exporté est conservé, sur la copie ouverte.', other: '{file} a changé sur le disque depuis son ouverture. Ses {n} changements non exportés sont conservés, sur la copie ouverte.' },
 }
 
 export default frCA

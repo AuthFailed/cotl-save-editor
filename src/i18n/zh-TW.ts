@@ -148,6 +148,13 @@ const zhTW: Dict = {
   'about.title': "關於",
   'about.licenses': "第三方授權",
   'about.gameNotice': "這些授權不涵蓋遊戲美術和資料。",
+  'open.changed': "選擇資料夾後，{file} 在磁碟上被更動，或已無法讀取。請重新選擇資料夾。",
+  'file.failed': "無法讀取或寫入 {file}。你的變更仍在；請重新選擇資料夾，若一再發生請回報。",
+  'export.changed': "開啟後，{file} 在磁碟上被更動：遊戲、雲端同步或你放回的檔案寫入了它。現在匯出會取代那個較新的檔案。",
+  'export.anyway': "仍要匯出",
+  'export.reopen': "重新選擇資料夾",
+  'open.changedKept': { other: "開啟後，{file} 在磁碟上被更動。它的 {n} 項未匯出的變更保留在你開啟的副本上。" },
+  'open.useNew': "使用新檔案",
 }
 
 export default zhTW

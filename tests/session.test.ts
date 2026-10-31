@@ -1,12 +1,17 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 import { edits } from '../src/model/edits'
-import { hasUnexported, listSlots, openSlot, push, redo, revert, session, undo } from '../src/model/session.svelte'
-import { schema, syntheticSaves } from './synthetic'
-import { hasSaves } from './util'
+import { SaveFormatError } from '../src/codec/errors'
+import { saveSave } from '../src/codec/formats'
+import { adopt, discard, failure, hasUnexported, keyOf, listSlots, openSlot, pendingFor, push, redo, revert, session, undo } from '../src/model/session.svelte'
+import { schema, syntheticFiles, syntheticSaves } from './synthetic'
+import { hasSaves, unreadable } from './util'
 
 const asFiles = (list: { name: string; bytes: Uint8Array }[]) => list.map(f => new File([f.bytes as Uint8Array<ArrayBuffer>], f.name))
 const loadSchema = async () => ({ schema, exact: true })
+const dated = (files: File[], lastModified: number) => files.map(f => new File([f], f.name, { lastModified }))
+const twoSlots = async () => listSlots([...await syntheticFiles(), ...await syntheticFiles()], loadSchema)
+const rename = (i: number, name: string) => push(() => edits.rename(schema, session.root!, i, name))
 
 test('the synthetic folder lists slot 0 with its cult, day and play time', async () => {
   const [entry, ...rest] = await listSlots(asFiles(await syntheticSaves()), loadSchema)
@@ -15,9 +20,10 @@ test('the synthetic folder lists slot 0 with its cult, day and play time', async
 })
 
 test('opening a slot fills the session; an op makes it unexported', async () => {
-  const [entry] = await listSlots(asFiles(await syntheticSaves()), loadSchema)
+  const picked = await syntheticFiles()
+  const [entry] = await listSlots(picked, loadSchema)
   await openSlot(entry, loadSchema)
-  expect([session.slot?.name, session.meta?.name, session.readOnly, hasUnexported()]).toEqual(['slot_0.mp', 'meta_0.mp', false, false])
+  expect([session.slot?.name, session.meta?.name, session.readOnly, hasUnexported()]).toEqual([...picked.map(f => f.name), false, false])
   expect(push(() => edits.rename(schema, session.root!, 0, 'Gerald'))).toBe(true)
   expect(hasUnexported()).toBe(true)
   undo()
@@ -27,7 +33,7 @@ test('opening a slot fills the session; an op makes it unexported', async () => 
 })
 
 test('a refused edit is reported, not thrown; an undo that would misapply is refused', async () => {
-  const [entry] = await listSlots(asFiles(await syntheticSaves()), loadSchema)
+  const [entry] = await listSlots(await syntheticFiles(), loadSchema)
   await openSlot(entry, loadSchema)
   expect(push(() => edits.setFollower(schema, session.root!, 0, 'XPLevel', 7.5, 'Level'))).toBe(false)
   expect(session.error).toMatch(/XPLevel/)
@@ -37,6 +43,70 @@ test('a refused edit is reported, not thrown; an undo that would misapply is ref
   expect([session.changes.length, session.error]).toEqual([2, expect.stringMatching(/later change depends on it/)])
 })
 
+test('a changed slot will not open; the open slot keeps its edits', async () => {
+  const [a, b, c] = await listSlots([...await syntheticFiles(), ...await syntheticFiles(), ...await syntheticFiles()], loadSchema)
+  await openSlot(a, loadSchema)
+  rename(0, 'Gerald')
+  unreadable(b.slotFile)
+  Object.defineProperty(c.slotFile, 'arrayBuffer', { value: async () => new ArrayBuffer(3) })
+  for (const changed of [b, c]) {
+    const e = await openSlot(changed, loadSchema).catch(e => e)
+    expect([e instanceof SaveFormatError, e.message.includes(changed.slotFile.name)]).toEqual([true, true])
+    expect([session.entry === a, session.changes.length]).toEqual([true, 1])
+  }
+  const said = failure(new DOMException('x', 'NotReadableError'), b.slotFile.name)
+  expect([said.includes(b.slotFile.name), said.includes('x')]).toEqual([true, false])
+})
+
+test('choosing the same folder again keeps edits whatever the dates', async () => {
+  const picked = await syntheticFiles()
+  const first = await listSlots(dated(picked, 1000), loadSchema), second = await listSlots(dated(picked, 2000), loadSchema)
+  adopt(first)
+  await openSlot(first[0], loadSchema)
+  rename(0, 'Gerald')
+  expect(adopt(second)).toEqual([])
+  expect([pendingFor(second[0]), session.entry === second[0]]).toEqual([1, true])
+  await openSlot(second[0], loadSchema)
+  expect(session.changes.length).toBe(1)
+})
+
+test('restoring kept edits whose file changed warns but restores', async () => {
+  const [a, b] = await twoSlots()
+  await openSlot(a, loadSchema)
+  rename(0, 'Gerald')
+  await openSlot(b, loadSchema)
+  unreadable(a.slotFile)
+  await openSlot(a, loadSchema)
+  expect(session.changes.length).toBe(1)
+  expect(session.error).toContain(a.slotFile.name)
+})
+
+test('a slot whose file changed under pending edits keeps the opened copy until dropped', async () => {
+  const picked = await syntheticFiles()
+  const [was] = await listSlots(picked, loadSchema)
+  adopt([was])
+  await openSlot(was, loadSchema)
+  rename(0, 'Gerald')
+  const newer = await saveSave({ ...session.slot!, data: { kind: 'msgpack', root: session.root! } })
+  const [now] = await listSlots([new File([newer as Uint8Array<ArrayBuffer>], picked[0].name), picked[1]], loadSchema)
+  const pairs = adopt([now])
+  expect(pairs.map(p => [p.was === was, p.now === now])).toEqual([[true, true]])
+  expect([session.slots[0] === was, pendingFor(was)]).toEqual([true, 1])
+  discard(was, now)
+  expect([session.slot, pendingFor(was), session.slots[0] === now]).toEqual([null, 0, true])
+})
+
+test('reopening the open slot keeps newer edits than an older stash', async () => {
+  const [a, b] = await twoSlots()
+  await openSlot(a, loadSchema)
+  rename(0, 'Gerald')
+  await openSlot(b, loadSchema)
+  await openSlot(a, loadSchema)
+  rename(1, 'Again')
+  await openSlot(a, loadSchema)
+  expect(session.changes.length).toBe(2)
+})
+
 describe.skipIf(!hasSaves)('real saves', () => {
   test('a real folder: .mp wins over .json for the same slot, and slot 10 is listed', async () => {
     const dir = new URL('./saves/', import.meta.url)
@@ -44,5 +114,15 @@ describe.skipIf(!hasSaves)('real saves', () => {
     const slots = await listSlots(files, loadSchema)
     expect(slots.map(s => [s.slot, s.slotFile.name, s.cultName])).toEqual([
       [0, 'slot_0.mp', expect.any(String)], [1, 'slot_1.json', expect.any(String)], [10, 'slot_10.mp', expect.any(String)]])
+  })
+  test('the same folder listed again with new dates finds the edits made on the first listing', async () => {
+    const dir = new URL('./saves/', import.meta.url)
+    const listing = (lastModified: number) =>
+      listSlots(readdirSync(dir).map(n => new File([readFileSync(new URL(n, dir))], n, { lastModified })), loadSchema)
+    const [first, second] = [await listing(1000), await listing(2000)]
+    expect(second.map(keyOf)).toEqual(first.map(keyOf))
+    await openSlot(first[0], loadSchema)
+    rename(0, 'Test')
+    expect(pendingFor(second[0])).toBe(1)
   })
 })

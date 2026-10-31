@@ -51,3 +51,9 @@ export async function syntheticSaves(version?: string): Promise<{ name: string; 
     { name: 'meta_0.mp', bytes: await aesWrap({ key: KEY, iv: IV }, wrapBlockArray(encodeMp(meta))) },
   ]
 }
+
+let fresh = 100
+/** The synthetic save as picked files under slot n, by default one no earlier test in this file used: the editor keeps
+ * edits and backups per file name and contents, so a shared name would carry one test's state into the next. */
+export const syntheticFiles = async (n = fresh++) =>
+  (await syntheticSaves()).map(f => new File([f.bytes as Uint8Array<ArrayBuffer>], f.name.replace('_0', `_${n}`)))

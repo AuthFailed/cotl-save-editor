@@ -148,6 +148,13 @@ const zhCN: Dict = {
   'about.title': "关于",
   'about.licenses': "第三方许可",
   'about.gameNotice': "这些许可不涵盖游戏美术和数据。",
+  'open.changed': "选择文件夹后，{file} 在磁盘上被改动，或已无法读取。请重新选择文件夹。",
+  'file.failed': "无法读取或写入 {file}。你的更改仍在；请重新选择文件夹，如果反复出现请报告。",
+  'export.changed': "打开后，{file} 在磁盘上被改动：游戏、云同步或你放回的文件写入了它。现在导出会替换那个更新的文件。",
+  'export.anyway': "仍然导出",
+  'export.reopen': "重新选择文件夹",
+  'open.changedKept': { other: "打开后，{file} 在磁盘上被改动。它的 {n} 处未导出的更改保留在你打开的副本上。" },
+  'open.useNew': "使用新文件",
 }
 
 export default zhCN

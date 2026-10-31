@@ -176,6 +176,13 @@ const en = {
   'about.title': "About",
   'about.licenses': "Third-party licences",
   'about.gameNotice': "Game art and data are not covered by these licences.",
+  'open.changed': "{file} changed on disk after you chose the folder, or can't be read any more. Choose the folder again.",
+  'file.failed': "{file} couldn't be read or written. Your changes are still here; choose the folder again, or report it if it keeps happening.",
+  'export.changed': "{file} changed on disk after you opened it: the game, cloud sync or a file you put back wrote it. Exporting now would replace that newer file.",
+  'export.anyway': "Export anyway",
+  'export.reopen': "Choose the folder again",
+  'open.changedKept': { one: "{file} changed on disk since you opened it. Its {n} unexported change is kept, on the copy you opened.", other: "{file} changed on disk since you opened it. Its {n} unexported changes are kept, on the copy you opened." } as Plural,
+  'open.useNew': "Use the new file",
 }
 
 export default en

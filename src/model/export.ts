@@ -1,11 +1,12 @@
 // Writing the edited slot back: same format and name, checked by reading it again before anything is downloaded.
 import { SaveFormatError } from '../codec/errors'
-import { openSave, saveSave, type Opened } from '../codec/formats'
+import { openSave, sameBytes, saveSave, type Opened } from '../codec/formats'
 import { encodeMp } from '../codec/msgpack'
 import { fromTree } from './json'
-import { session } from './session.svelte'
+import { keyOf, session } from './session.svelte'
 
-const backedUp = new WeakSet<File>()
+// By contents, not File: choosing the folder again gives new Files for the same bytes.
+const backedUp = new Set<string>()
 
 export async function exportSlot(): Promise<{ files: { name: string; bytes: Uint8Array }[] }> {
   const { slot, root, schema, entry } = session
@@ -18,16 +19,16 @@ export async function exportSlot(): Promise<{ files: { name: string; bytes: Uint
 
   // Spec, Safety 4: the file we built must read back as exactly what was edited.
   const back = await openSave(slot.name, bytes)
-  const sameBytes = (a: Uint8Array, b: Uint8Array) => a.length === b.length && a.every((x, i) => x === b[i])
   const same = data.kind === 'msgpack'
     ? back.data.kind === 'msgpack' && sameBytes(encodeMp(back.data.root), encodeMp(data.root))
     : back.data.kind === 'json' && JSON.stringify(back.data.root) === JSON.stringify(data.root)
   if (!same) throw new SaveFormatError("The edited save didn't read back the same, so nothing was downloaded. Please report this.")
 
   const files = [{ name: slot.name, bytes }]
-  if (!backedUp.has(entry.slotFile)) {
-    files.push({ name: `${slot.name}.backup`, bytes: new Uint8Array(await entry.slotFile.arrayBuffer()) })
-    backedUp.add(entry.slotFile)
+  // The backup is what was opened and edited, not whatever is on disk now.
+  if (!backedUp.has(keyOf(entry))) {
+    files.push({ name: `${slot.name}.backup`, bytes: entry.bytes })
+    backedUp.add(keyOf(entry))
   }
   // What was exported is the new starting point: the change list is spent.
   Object.assign(session, { slot: edited, original: root, changes: [], undone: [], error: null })

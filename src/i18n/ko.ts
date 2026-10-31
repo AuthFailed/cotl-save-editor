@@ -148,6 +148,13 @@ const ko: Dict = {
   'about.title': "정보",
   'about.licenses': "서드 파티 라이선스",
   'about.gameNotice': "게임 아트와 데이터에는 이 라이선스가 적용되지 않습니다.",
+  'open.changed': "폴더를 선택한 뒤 {file} 파일이 디스크에서 바뀌었거나 더 이상 읽을 수 없습니다. 폴더를 다시 선택하세요.",
+  'file.failed': "{file} 파일을 읽거나 쓸 수 없습니다. 변경 사항은 그대로 있습니다. 폴더를 다시 선택하거나, 계속 발생하면 알려 주세요.",
+  'export.changed': "연 뒤에 {file} 파일이 디스크에서 바뀌었습니다. 게임, 클라우드 동기화 또는 다시 넣은 파일이 기록했습니다. 지금 내보내면 그 최신 파일을 덮어씁니다.",
+  'export.anyway': "그래도 내보내기",
+  'export.reopen': "폴더 다시 선택",
+  'open.changedKept': { other: "연 뒤에 {file} 파일이 디스크에서 바뀌었습니다. 내보내지 않은 변경 {n}개는 처음 연 사본에 그대로 남아 있습니다." },
+  'open.useNew': "새 파일 사용",
 }
 
 export default ko

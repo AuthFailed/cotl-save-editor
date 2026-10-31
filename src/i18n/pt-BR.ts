@@ -148,6 +148,13 @@ const ptBR: Dict = {
   'about.title': "Sobre",
   'about.licenses': "Licenças de terceiros",
   'about.gameNotice': "Estas licenças não abrangem a arte e os dados do jogo.",
+  'open.changed': "{file} mudou no disco depois que você escolheu a pasta, ou não pode mais ser lido. Escolha a pasta de novo.",
+  'file.failed': "Não foi possível ler nem gravar {file}. Suas alterações continuam aqui; escolha a pasta de novo ou informe o problema se continuar acontecendo.",
+  'export.changed': "{file} mudou no disco depois que você o abriu: o jogo, a sincronização na nuvem ou um arquivo que você colocou de volta gravou nele. Exportar agora substituiria esse arquivo mais recente.",
+  'export.anyway': "Exportar mesmo assim",
+  'export.reopen': "Escolher a pasta de novo",
+  'open.changedKept': { one: "{file} mudou no disco desde que você o abriu. Sua {n} alteração não exportada foi mantida, na cópia que você abriu.", other: "{file} mudou no disco desde que você o abriu. Suas {n} alterações não exportadas foram mantidas, na cópia que você abriu." },
+  'open.useNew': "Usar o arquivo novo",
 }
 
 export default ptBR

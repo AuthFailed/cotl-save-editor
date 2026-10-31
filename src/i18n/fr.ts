@@ -148,6 +148,13 @@ const fr: Dict = {
   'about.title': "À propos",
   'about.licenses': "Licences tierces",
   'about.gameNotice': "Ces licences ne couvrent pas les illustrations et les données du jeu.",
+  'open.changed': "{file} a changé sur le disque après le choix du dossier, ou ne peut plus être lu. Choisissez à nouveau le dossier.",
+  'file.failed': "Impossible de lire ou d’écrire {file}. Vos modifications sont toujours là ; choisissez à nouveau le dossier, ou signalez-le si cela se reproduit.",
+  'export.changed': "{file} a changé sur le disque après son ouverture : le jeu, la synchronisation cloud ou un fichier que vous avez remis en place l’a écrit. Exporter maintenant remplacerait ce fichier plus récent.",
+  'export.anyway': "Exporter quand même",
+  'export.reopen': "Choisir à nouveau le dossier",
+  'open.changedKept': { one: "{file} a changé sur le disque depuis son ouverture. Sa {n} modification non exportée est conservée, sur la copie ouverte.", other: "{file} a changé sur le disque depuis son ouverture. Ses {n} modifications non exportées sont conservées, sur la copie ouverte." },
+  'open.useNew': "Utiliser le nouveau fichier",
 }
 
 export default fr

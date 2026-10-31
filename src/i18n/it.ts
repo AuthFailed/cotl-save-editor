@@ -148,6 +148,13 @@ const it: Dict = {
   'about.title': "Informazioni",
   'about.licenses': "Licenze di terze parti",
   'about.gameNotice': "Queste licenze non coprono la grafica e i dati del gioco.",
+  'open.changed': "{file} è cambiato sul disco dopo che hai scelto la cartella, oppure non si può più leggere. Scegli di nuovo la cartella.",
+  'file.failed': "Impossibile leggere o scrivere {file}. Le tue modifiche sono ancora qui; scegli di nuovo la cartella, o segnalalo se continua a succedere.",
+  'export.changed': "{file} è cambiato sul disco dopo che l’hai aperto: l’ha scritto il gioco, la sincronizzazione cloud o un file che hai rimesso al suo posto. Esportare ora sostituirebbe quel file più recente.",
+  'export.anyway': "Esporta comunque",
+  'export.reopen': "Scegli di nuovo la cartella",
+  'open.changedKept': { one: "{file} è cambiato sul disco da quando l’hai aperto. La sua {n} modifica non esportata resta, sulla copia che hai aperto.", other: "{file} è cambiato sul disco da quando l’hai aperto. Le sue {n} modifiche non esportate restano, sulla copia che hai aperto." },
+  'open.useNew': "Usa il nuovo file",
 }
 
 export default it

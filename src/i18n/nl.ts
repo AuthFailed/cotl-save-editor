@@ -148,6 +148,13 @@ const nl: Dict = {
   'about.title': "Over dit project",
   'about.licenses': "Licenties van derden",
   'about.gameNotice': "Deze licenties gelden niet voor de afbeeldingen en gegevens van het spel.",
+  'open.changed': "{file} is op schijf gewijzigd nadat je de map koos, of kan niet meer worden gelezen. Kies de map opnieuw.",
+  'file.failed': "{file} kon niet worden gelezen of geschreven. Je wijzigingen zijn er nog; kies de map opnieuw, of meld het als het blijft gebeuren.",
+  'export.changed': "{file} is op schijf gewijzigd nadat je het opende: door het spel, cloudsynchronisatie of een bestand dat je hebt teruggezet. Nu exporteren zou dat nieuwere bestand vervangen.",
+  'export.anyway': "Toch exporteren",
+  'export.reopen': "Map opnieuw kiezen",
+  'open.changedKept': { one: "{file} is op schijf gewijzigd sinds je het opende. De {n} niet-geëxporteerde wijziging blijft bewaard, op de kopie die je opende.", other: "{file} is op schijf gewijzigd sinds je het opende. De {n} niet-geëxporteerde wijzigingen blijven bewaard, op de kopie die je opende." },
+  'open.useNew': "Nieuw bestand gebruiken",
 }
 
 export default nl

@@ -148,6 +148,13 @@ const de: Dict = {
   'about.title': "Über dieses Projekt",
   'about.licenses': "Lizenzen Dritter",
   'about.gameNotice': "Spielgrafiken und Spieldaten fallen nicht unter diese Lizenzen.",
+  'open.changed': "{file} wurde auf der Festplatte geändert, nachdem du den Ordner gewählt hast, oder lässt sich nicht mehr lesen. Wähle den Ordner erneut.",
+  'file.failed': "{file} konnte nicht gelesen oder geschrieben werden. Deine Änderungen sind noch da; wähle den Ordner erneut oder melde es, wenn es wieder passiert.",
+  'export.changed': "{file} wurde auf der Festplatte geändert, nachdem du es geöffnet hast: vom Spiel, von der Cloud-Synchronisierung oder durch eine Datei, die du zurückgelegt hast. Ein Export jetzt würde diese neuere Datei ersetzen.",
+  'export.anyway': "Trotzdem exportieren",
+  'export.reopen': "Ordner erneut wählen",
+  'open.changedKept': { one: "{file} wurde auf der Festplatte geändert, seit du es geöffnet hast. Seine {n} nicht exportierte Änderung bleibt erhalten, auf der geöffneten Kopie.", other: "{file} wurde auf der Festplatte geändert, seit du es geöffnet hast. Seine {n} nicht exportierten Änderungen bleiben erhalten, auf der geöffneten Kopie." },
+  'open.useNew': "Neue Datei verwenden",
 }
 
 export default de

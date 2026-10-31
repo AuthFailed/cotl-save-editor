@@ -148,6 +148,13 @@ const tr: Dict = {
   'about.title': "Hakkında",
   'about.licenses': "Üçüncü taraf lisansları",
   'about.gameNotice': "Bu lisanslar oyun görsellerini ve verilerini kapsamaz.",
+  'open.changed': "{file}, klasörü seçtikten sonra diskte değişti ya da artık okunamıyor. Klasörü yeniden seç.",
+  'file.failed': "{file} okunamadı veya yazılamadı. Değişikliklerin hâlâ burada; klasörü yeniden seç ya da tekrar olursa bildir.",
+  'export.changed': "{file}, açtıktan sonra diskte değişti: oyun, bulut eşitleme ya da geri koyduğun bir dosya onu yazdı. Şimdi dışa aktarmak bu daha yeni dosyanın yerine geçer.",
+  'export.anyway': "Yine de dışa aktar",
+  'export.reopen': "Klasörü yeniden seç",
+  'open.changedKept': { one: "{file}, açtığından beri diskte değişti. Dışa aktarılmamış {n} değişikliği, açtığın kopyada korunuyor.", other: "{file}, açtığından beri diskte değişti. Dışa aktarılmamış {n} değişikliği, açtığın kopyada korunuyor." },
+  'open.useNew': "Yeni dosyayı kullan",
 }
 
 export default tr
