@@ -14,8 +14,7 @@
   want('skins')
   wantVariants()
   want('traits', true)
-  const f = $derived(session.root && session.schema && selection.follower
-    ? followers(session.schema, session.root).find(x => x.dead === selection.follower!.dead && x.index === selection.follower!.index) : undefined)
+  const f = $derived(session.root && session.schema ? followers(session.schema, session.root).find(x => x.id === selection.follower) : undefined)
   const skins = $derived(new Set(cat.maps.skins?.keys() ?? []))
   const form = $derived(f ? skinId(f.skin, skins, cat.variants) : null)
   let picking = $state<'form' | 'trait' | null>(null)
@@ -33,12 +32,8 @@
   function remove() {
     if (!confirm(t('insp.removeConfirm', { name: f!.name }))) return
     push(() => edits.removeFollower(session.schema!, session.root!, who()))
-    selection.follower = null
   }
-  function revive() {
-    const living = followers(session.schema!, session.root!).filter(x => !x.dead).length
-    if (push(() => edits.revive(session.schema!, session.root!, f!.index))) selection.follower = { index: living, dead: false }
-  }
+  const revive = () => push(() => edits.revive(session.schema!, session.root!, f!.index))
 </script>
 
 {#if f}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte'
   import { Search } from '@lucide/svelte'
   import { cat, entry, nameOf, want, wantVariants } from '../data/catalogs.svelte'
   import Thumb from './Thumb.svelte'
@@ -18,20 +19,20 @@
   let filter = $state<'All' | Status>('All')
   let query = $state('')
   $effect(() => { query = route.q ?? '' })
-  let checked = $state<string[]>([])
-  const key = (f: FollowerView) => `${f.dead}:${f.index}`
   const count = (s: 'All' | Status) => (s === 'All' ? all.length : all.filter(f => f.status === s).length)
   const shown = $derived(all.filter(f => (filter === 'All' || f.status === filter) &&
     `${f.name} ${f.skin} ${f.traits.map(t => nameOf('traits', t)).join(' ')}`.toLowerCase().includes(query.trim().toLowerCase())))
   const skins = $derived(new Set(cat.maps.skins?.keys() ?? []))
   const portrait = (f: FollowerView) => { const id = skinId(f.skin, skins, cat.variants); return id ? entry('skins', id)?.thumb ?? null : null }
-  const isSelected = (f: FollowerView) => selection.follower?.index === f.index && selection.follower?.dead === f.dead
-  const picked = $derived(all.filter(f => checked.includes(key(f))))
+  const isSelected = (f: FollowerView) => selection.follower === f.id
+  const picked = $derived(all.filter(f => selection.ticked.includes(f.id)))
+  // Ticks last while the page is open, as they did when the page held them.
+  onDestroy(() => (selection.ticked = []))
 
   function bulk(values: Record<string, number>, label: string) {
     for (const f of picked) push(() => edits.setFollowerFields(session.schema!, session.root!, f, values, label))
   }
-  const toggle = (f: FollowerView, on: boolean) => (checked = on ? [...checked, key(f)] : checked.filter(k => k !== key(f)))
+  const toggle = (f: FollowerView, on: boolean) => (selection.ticked = on ? [...selection.ticked, f.id] : selection.ticked.filter(id => id !== f.id))
 </script>
 
 <section>
@@ -50,7 +51,7 @@
       <span>{t('fol.selected', { n: picked.length })}</span>
       <button class="btn" disabled={session.readOnly} onclick={() => bulk({ _satiation: 100, _starvation: 0, _rest: 100, _illness: 0, _exhaustion: 0 }, t('ch.needsMaxed'))}>{t('fol.maxNeeds')}</button>
       <button class="btn" disabled={session.readOnly} onclick={() => bulk({ Adoration: 100 }, t('ch.loyaltyMaxed'))}>{t('fol.maxLoyalty')}</button>
-      <button class="btn ghost" onclick={() => (checked = [])}>{t('common.clear')}</button>
+      <button class="btn ghost" onclick={() => (selection.ticked = [])}>{t('common.clear')}</button>
     </div>
   {/if}
 
@@ -60,15 +61,15 @@
         <tr><th class="check"><span class="sr-only">{t('fol.colSelect')}</span></th><th>{t('fol.colFollower')}</th><th>{t('fol.colStatus')}</th><th>{t('fol.colLevel')}</th><th>{t('fol.colLoyalty')}</th><th>{t('fol.colHunger')}</th><th>{t('fol.colTraits')}</th></tr>
       </thead>
       <tbody>
-        {#each shown as f (key(f))}
+        {#each shown as f (`${f.dead}:${f.index}`)}
           {@const src = portrait(f)}
           <tr class:selected={isSelected(f)}>
-            <td class="check"><input type="checkbox" aria-label={t('fol.select', { name: f.name })} checked={checked.includes(key(f))} onchange={e => toggle(f, e.currentTarget.checked)} /></td>
+            <td class="check"><input type="checkbox" aria-label={t('fol.select', { name: f.name })} checked={selection.ticked.includes(f.id)} onchange={e => toggle(f, e.currentTarget.checked)} /></td>
             <td>
               <span class="who">
                 <Thumb {src} kind="skins" size={40} dim={f.dead} />
                 <span class="names">
-                  <button class="name" onclick={() => (selection.follower = { index: f.index, dead: f.dead })}>{f.name}</button>
+                  <button class="name" onclick={() => (selection.follower = f.id)}>{f.name}</button>
                   <span class="sub">{nameOf('skins', skinId(f.skin, skins, cat.variants) ?? f.skin)} · {t('fol.days', { n: f.age })}</span>
                 </span>
               </span>

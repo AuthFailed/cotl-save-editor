@@ -1,7 +1,8 @@
 <script lang="ts">
+  import { untrack } from 'svelte'
   import { saveSchemaFor } from './data/api'
   import { cat, initLanguage } from './data/catalogs.svelte'
-  import { changedOnDisk, failure, redo, session, undo, unexported, type SchemaFor, type SlotEntry } from './model/session.svelte'
+  import { changedOnDisk, failure, keyOf, redo, session, undo, unexported, type SchemaFor, type SlotEntry } from './model/session.svelte'
   import Collection from './ui/Collection.svelte'
   import CommandPalette from './ui/CommandPalette.svelte'
   import Raw from './ui/Raw.svelte'
@@ -22,7 +23,7 @@
   import Overview from './ui/Overview.svelte'
   import Shell from './ui/Shell.svelte'
   import { go, route } from './ui/route.svelte'
-  import { selection } from './ui/selection.svelte'
+  import { clear, prune, selection } from './ui/selection.svelte'
   import { RTL, t } from './i18n/i18n.svelte'
   import { compare } from './schema/schema'
 
@@ -70,11 +71,16 @@
   // The page's language and direction follow the picker (screen readers, fonts, Arabic right to left).
   $effect(() => { document.documentElement.lang = cat.lang; document.documentElement.dir = RTL.has(cat.lang) ? 'rtl' : 'ltr' })
   $effect(() => { document.title = pending ? `• ${t('slot.pending', { n: pending })} · ${title}` : title })
+  // By slot key, not entry: the same slot comes back as a new entry when its folder is chosen again.
+  const slotKey = $derived(session.entry ? keyOf(session.entry) : null)
+  // Before rendering, so no frame shows another slot's ticks or a follower who is gone.
+  $effect.pre(() => { void slotKey; untrack(clear) })
+  $effect.pre(() => { const { schema, root } = session; if (schema && root) untrack(() => prune(schema, root)) })
   // A page that needs a save sends you to Open when none is.
   $effect(() => { if (!session.slot && route.page !== 'open') go('open') })
 </script>
 
-<Shell opened={!!session.slot} inspector={route.page === 'followers' && selection.follower ? follower : undefined}>
+<Shell opened={!!session.slot} inspector={route.page === 'followers' && selection.follower != null ? follower : undefined}>
   {#snippet status()}
     {#if session.slot}
       <span class="sep" aria-hidden="true">/</span>

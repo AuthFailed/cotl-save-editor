@@ -50,7 +50,7 @@
       const form = skinId(f.skin, skins, cat.variants)
       return { group: t('cmd.followers'), label: f.name, sub: [form ? nameOf('skins', form) : f.skin, f.dead ? t('status.Dead') : ''].filter(Boolean).join(' · '),
         thumb: form ? lists.skins?.find(e => e.id === form)?.thumb : null, kind: 'skins',
-        run: () => { go('followers'); selection.follower = { index: f.index, dead: f.dead } } }
+        run: () => { go('followers'); selection.follower = f.id } }
     }), 8)
 
     const have = new Map(inventory(s, r).map(i => [i.id, i.quantity]))
