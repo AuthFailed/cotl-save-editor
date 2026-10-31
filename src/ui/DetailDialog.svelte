@@ -30,8 +30,8 @@
     if (!unlock || !e) return
     const sid = saveIdOf(unlock, e), name = info!.name
     push(() => owned
-      ? edits.lock(session.schema!, session.root!, unlock.field, unlock.enumName, sid, t('ch.locked', { name }))
-      : edits.unlock(session.schema!, session.root!, unlock.field, unlock.enumName, [sid], t('ch.unlocked', { name })))
+      ? edits.lock(session.schema!, session.root!, unlock.field, sid, t('ch.locked', { name }))
+      : edits.unlock(session.schema!, session.root!, unlock.field, [sid], t('ch.unlocked', { name })))
   }
   function quantity(v: number) {
     push(() => item ? edits.setQuantity(session.schema!, session.root!, item.index, v, nameOf('items', open.id))

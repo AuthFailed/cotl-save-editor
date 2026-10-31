@@ -6,7 +6,7 @@
   import { edits } from '../model/edits'
   import { push, session } from '../model/session.svelte'
   import { saveIdOf, unlockTab } from '../model/unlocks'
-  import { unlocked } from '../model/views'
+  import { listKind, unlocked } from '../model/views'
   import { detail } from './detail.svelte'
   import { groupName } from './groups'
   import { route } from './route.svelte'
@@ -24,7 +24,8 @@
   let query = $state('')
   $effect(() => { query = route.q ?? '' })
   let show = $state<'all' | 'owned' | 'locked'>('all')
-  const values = $derived(session.schema && u.enumName ? new Set(Object.values(session.schema.enums[u.enumName] ?? {})) : null)
+  const kind = $derived(session.schema && listKind(session.schema, u.field))
+  const values = $derived(session.schema && kind && typeof kind === 'object' ? new Set(Object.values(session.schema.enums[kind.enum] ?? {})) : null)
   const items = $derived((list ?? []).filter(e => (u.include?.(e) ?? true) && (!values || values.has(saveIdOf(u, e)))))
   const have = $derived(session.root && session.schema ? unlocked(session.schema, session.root, u.field) : new Set<string>())
   const name = (e: Full) => plain(e.namePlain[cat.lang] ?? e.namePlain.en ?? e.id)
@@ -43,10 +44,10 @@
   function toggle(e: Full) {
     const id = saveIdOf(u, e)
     push(() => have.has(id)
-      ? edits.lock(session.schema!, session.root!, u.field, u.enumName, id, t('ch.locked', { name: name(e) }))
-      : edits.unlock(session.schema!, session.root!, u.field, u.enumName, [id], t('ch.unlocked', { name: name(e) })))
+      ? edits.lock(session.schema!, session.root!, u.field, id, t('ch.locked', { name: name(e) }))
+      : edits.unlock(session.schema!, session.root!, u.field, [id], t('ch.unlocked', { name: name(e) })))
   }
-  const unlockAll = () => push(() => edits.unlock(session.schema!, session.root!, u.field, u.enumName, locked.map(e => saveIdOf(u, e)),
+  const unlockAll = () => push(() => edits.unlock(session.schema!, session.root!, u.field, locked.map(e => saveIdOf(u, e)),
     t('ch.unlockedMany', { n: locked.length, field: label })))
 </script>
 

@@ -5,7 +5,7 @@
   import { t, type Key } from '../i18n/i18n.svelte'
   import { session } from '../model/session.svelte'
   import { UNLOCKS, saveIdOf } from '../model/unlocks'
-  import { followers, inventory, skinId, unlocked } from '../model/views'
+  import { followers, inventory, listKind, skinId, unlocked } from '../model/views'
   import { nameAt } from '../schema/schema'
   import { detail } from './detail.svelte'
   import { go, type Page } from './route.svelte'
@@ -62,7 +62,8 @@
 
     for (const u of UNLOCKS) {
       const owned = unlocked(s, r, u.field)
-      const values = u.enumName ? new Set(Object.values(s.enums[u.enumName] ?? {})) : null
+      const kind = listKind(s, u.field)
+      const values = kind && typeof kind === 'object' ? new Set(Object.values(s.enums[kind.enum] ?? {})) : null
       add((lists[u.kind] ?? []).filter(e => (u.include?.(e) ?? true) && (!values || values.has(saveIdOf(u, e))) && match(nameIn(e), e.id)).map(e => ({
         group: tab(u.tab), label: nameIn(e), sub: owned.has(saveIdOf(u, e)) ? t('common.owned') : t('common.locked'), thumb: e.thumb, kind: u.kind,
         run: () => { go(u.page, u.tab, nameIn(e)); detail.open = { kind: u.kind, id: e.id } },
