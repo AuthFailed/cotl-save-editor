@@ -77,3 +77,10 @@ test('root fields and follower traits', () => {
   expect(followers(schema, run(next, edits.removeTrait(schema, next, 0, 'AnimalLover'))).at(0)!.traits).toEqual([])
   expect(edits.addTrait(schema, next, 0, 'AnimalLover').ops).toEqual([])
 })
+
+test('setPath edits any scalar by path, and refuses a wrong type', () => {
+  const next = run(root, edits.setPath(schema, root, ['Followers', '1', 'XPLevel'], 12))
+  expect(followers(schema, next)[1].level).toBe(12)
+  expect(edits.setPath(schema, root, ['CultName'], 'X').label).toBe('CultName Test Cult → X')
+  expect(() => run(root, edits.setPath(schema, root, ['CultFaith'], 'abc'))).toThrow(/CultFaith/)
+})

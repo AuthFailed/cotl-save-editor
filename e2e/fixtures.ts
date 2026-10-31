@@ -17,5 +17,6 @@ export async function openSynthetic(page: Page, to = 'overview') {
   await page.goto('/')
   await page.getByLabel('Choose your saves folder').setInputFiles(await savesFolder())
   await page.getByRole('listitem').filter({ hasText: 'Test Cult' }).getByRole('button', { name: 'Open' }).click()
+  await page.getByRole('heading', { name: 'Overview' }).waitFor()
   if (to !== 'overview') await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: new RegExp(to, 'i') }).click()
 }

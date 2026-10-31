@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  let { tabs, panel }: { tabs: string[]; panel: Snippet<[string]> } = $props()
+  let { tabs, panel, initial }: { tabs: string[]; panel: Snippet<[string]>; initial?: string | null } = $props()
   const id = $props.id()
   // svelte-ignore state_referenced_locally
-  let current = $state(tabs[0]) // the first tab, once
+  let current = $state(initial && tabs.includes(initial) ? initial : tabs[0]) // set once; tabs switch it after
   function key(e: KeyboardEvent, i: number) {
     const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
     if (!d) return

@@ -36,6 +36,12 @@ export const edits = {
     return { label: `${f.name} · ${label}`, ops: Object.entries(values).map(([k, value]): Op => ({ kind: 'set', path: [...base, k], value, guard })) }
   },
 
+  /** Any scalar by path (Raw data). */
+  setPath(schema: SaveSchema, root: MpNode, path: string[], value: unknown): Change {
+    const old = toPlain(get(schema, root, schema.roots.slot, path)?.node ?? { t: 'nil' })
+    return { label: `${path.join('.')} ${old ?? '—'} → ${value}`, ops: [{ kind: 'set', path, value }] }
+  },
+
   setRoot(schema: SaveSchema, root: MpNode, fieldName: string, value: unknown, what: string): Change {
     const old = toPlain(get(schema, root, schema.roots.slot, [fieldName])?.node ?? { t: 'nil' })
     return { label: `${what} ${old ?? '—'} → ${value}`, ops: [{ kind: 'set', path: [fieldName], value }] }
