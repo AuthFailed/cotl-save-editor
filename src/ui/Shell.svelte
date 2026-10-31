@@ -57,8 +57,6 @@
 </div>
 
 <style>
-  footer { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 12px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
-  footer a { color: inherit; }
   .app { min-height: 100vh; display: flex; flex-direction: column; }
   header { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 60px;
     padding: 8px 20px; border-bottom: 1px solid var(--border); background: var(--bg); }
@@ -77,6 +75,8 @@
   main { flex: 1; min-width: 0; padding: 20px 24px; }
   aside { flex: 0 0 340px; max-width: 360px; border-left: 1px solid var(--border); background: var(--surface-1); padding: 20px;
     position: sticky; top: var(--header-h); align-self: flex-start; max-height: calc(100vh - var(--header-h)); overflow-y: auto; }
+  footer { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 12px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+  footer a { color: inherit; }
   @media (max-width: 767px) {
     header { padding: 8px 12px; }
     .menu { display: inline-flex; }
@@ -86,5 +86,6 @@
     main { padding: 16px; }
     aside { position: fixed; inset: auto 0 0 0; max-width: none; max-height: 75vh; border-left: 0; border-top: 1px solid var(--border);
       border-radius: var(--radius-12) var(--radius-12) 0 0; z-index: 20; top: auto; }
+    footer { padding-inline: 16px; }
   }
 </style>

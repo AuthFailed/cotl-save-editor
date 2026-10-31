@@ -4,7 +4,7 @@ import { field, get, type SaveSchema } from '../schema/schema'
 import { nodeLike } from './build'
 import { t } from '../i18n/i18n.svelte'
 import type { Change, Op } from './ops'
-import { enumValue, followers, inventory, listKind, listLength, unlocked } from './views'
+import { enumOf, enumValue, followers, inventory, listKind, listLength, unlocked } from './views'
 
 type Who = number | { index: number; dead?: boolean }
 const ref = (who: Who) => (typeof who === 'number' ? { index: who, dead: false } : { dead: false, ...who })
@@ -116,7 +116,7 @@ export const edits = {
     const have = unlocked(schema, root, fieldName)
     const missing = [...new Set(ids)].filter(id => !have.has(id))
     const kind = listKind(schema, fieldName)
-    const enumName = kind && typeof kind === 'object' ? kind.enum : null
+    const enumName = enumOf(schema, fieldName)
     const listType = field(schema, schema.roots.slot, fieldName)!.type
     const elem = typeof listType === 'object' && 'list' in listType ? listType.list : 'int32'
     const sample = get(schema, root, schema.roots.slot, [fieldName, '0'])?.node

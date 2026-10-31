@@ -4,7 +4,7 @@ import { csp, policy } from '../scripts/csp'
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8')
 
-test('the production policy is the first meta after charset and denies uploads', () => {
+test('the production policy is the first meta after charset and restricts page resource origins', () => {
   const plugin = csp()
   expect(plugin.apply).toBe('build')
   const transform = plugin.transformIndexHtml as (html: string) => string

@@ -1,5 +1,6 @@
 name: Save opens read-only or will not write back
 description: Report a save the editor cannot safely export.
+labels: ["type:bug"]
 body:
   - type: markdown
     attributes:
@@ -18,7 +19,7 @@ body:
     id: format
     attributes:
       label: Save format
-      description: pc-mp, pc-json, plain-json, apple-zb, switch-mp, or unknown.
+      description: PC 1.5+ [pc-mp], PC before 1.5 [pc-json], JSON [plain-json], Apple [apple-zb], Switch [switch-mp], or unknown.
     validations:
       required: true
   - type: input

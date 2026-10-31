@@ -6,7 +6,7 @@
   import { edits } from '../model/edits'
   import { push, session } from '../model/session.svelte'
   import { saveIdOf, unlockTab } from '../model/unlocks'
-  import { listKind, unlocked } from '../model/views'
+  import { enumOf, unlocked } from '../model/views'
   import { detail } from './detail.svelte'
   import { groupName } from './groups'
   import { route } from './route.svelte'
@@ -24,8 +24,8 @@
   let query = $state('')
   $effect(() => { query = route.q ?? '' })
   let show = $state<'all' | 'owned' | 'locked'>('all')
-  const kind = $derived(session.schema && listKind(session.schema, u.field))
-  const values = $derived(session.schema && kind && typeof kind === 'object' ? new Set(Object.values(session.schema.enums[kind.enum] ?? {})) : null)
+  const enumName = $derived(session.schema && enumOf(session.schema, u.field))
+  const values = $derived(session.schema && enumName ? new Set(Object.values(session.schema.enums[enumName] ?? {})) : null)
   const items = $derived((list ?? []).filter(e => (u.include?.(e) ?? true) && (!values || values.has(saveIdOf(u, e)))))
   const have = $derived(session.root && session.schema ? unlocked(session.schema, session.root, u.field) : new Set<string>())
   const name = (e: Full) => plain(e.namePlain[cat.lang] ?? e.namePlain.en ?? e.id)

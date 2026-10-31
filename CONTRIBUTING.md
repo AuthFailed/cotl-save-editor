@@ -20,22 +20,29 @@ Run every check before submitting a change:
 npm test
 npm run typecheck
 npm run check
-npm run build
-E2E_PORT=5279 npx playwright test
+npm run e2e
 ```
 
 `npm test` runs the codec and model tests with Vitest. `npm run typecheck` runs TypeScript; `npm run check` checks Svelte components too.
-The build generates the production site, service worker and third-party licence notices, rejecting missing or disallowed licences.
-Playwright tests that production build on port 5279. Build again after source changes: Playwright reuses an existing `dist/`.
-Without `dist/`, local Playwright runs build first. CI builds once before Playwright and retains traces and an HTML report on failure.
-`npm run preview` serves the build for manual inspection. `npm run e2e` is a shortcut for Playwright; set `E2E_PORT=5279` when using it.
+`npm run e2e` runs Playwright against the production site on port 5179 by default.
+Local runs build before starting the preview server; an already running server on the selected port is reused.
+If port 5179 is busy, use the optional override `E2E_PORT=5279 npm run e2e`.
+CI builds once in its own step before Playwright and retains traces and an HTML report on failure.
+For manual inspection, `npm run build` generates the production site, service worker and third-party licence notices,
+rejecting missing or disallowed licences; `npm run preview` serves it.
 
 ## Saves and privacy
 
 Tests use synthetic saves built from the published schema. Optional real-save tests skip when their fixtures are absent; that is expected on a clean checkout.
-Keep real saves only in the ignored `tests/saves/` directory. Never commit them, paste their contents into issues or PRs, or include their names in screenshots, test expectations or documentation.
+The optional fixture files are `slot_0.mp`, `meta_0.mp`, `slot_10.mp`, `meta_10.mp`, `slot_0.json`, `slot_1.json` and `meta_0.json`.
+Keep them only in `tests/saves/`, which is git-ignored. These are personal saves and must never be committed.
+Never paste their contents into issues or PRs, or include their names in screenshots, test expectations or documentation.
 Use synthetic data for regression tests. If a bug needs a real save, ask the maintainer for a private sharing method and wait for instructions.
 If the editor offers a scrubbed-copy export, inspect it before sharing. An ordinary export is not a scrubbed copy.
+
+The production page's meta CSP restricts page resource origins. It does not apply to the service worker or Workbox;
+those need a response CSP header ([#222](https://github.com/AuthFailed/cotl-save-editor/issues/222)).
+Request-audit tests check the open, edit and export flow for uploads.
 
 ## Translations
 

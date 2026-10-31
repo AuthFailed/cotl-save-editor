@@ -1,6 +1,8 @@
 import { expect, test, type Request } from '@playwright/test'
 import { openSynthetic } from './fixtures'
 
+test.describe.configure({ retries: 0 })
+
 function audit(requests: Request[], origin: string, secrets: string[]) {
   return requests.flatMap(r => {
     const url = new URL(r.url())

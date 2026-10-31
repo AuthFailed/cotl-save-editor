@@ -61,8 +61,11 @@ export function notices(): Plugin {
         for (const file of maps) {
           const js = resolve(out, file.slice(0, -4))
           if (!existsSync(js)) throw new Error(`Missing bundle for ${file}`)
-          writeFileSync(js, readFileSync(js, 'utf8').replace(/\n?\/\/# sourceMappingURL=.*$/m, ''))
+          writeFileSync(js, readFileSync(js, 'utf8').replace(/\n?\/\/# sourceMappingURL=.*$/gm, ''))
           unlinkSync(resolve(out, file))
+        }
+        for (const file of readdirSync(out, { recursive: true, encoding: 'utf8' })) if (file.endsWith('.js')) {
+          if (readFileSync(resolve(out, file), 'utf8').includes('sourceMappingURL')) throw new Error(`${file}: unexpected sourceMappingURL`)
         }
       },
     },

@@ -20,6 +20,7 @@ export default defineConfig({
       },
       workbox: {
         sourcemap: true,
+        navigateFallbackDenylist: [/^\/third-party-licenses\.txt$/],
         globPatterns: ['**/*.{js,css,html,svg,woff2,json}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // game data and pictures: shown from cache at once, refreshed in the background

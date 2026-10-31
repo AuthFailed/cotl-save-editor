@@ -2,6 +2,9 @@
 
 Edit *Cult of the Lamb* saves in your browser at **[save.cotl.info](https://save.cotl.info)**. Nothing is uploaded:
 the save is read, edited and written back on your own machine, and the editor works offline once opened.
+The production page's meta CSP restricts page resource origins. It does not apply to the service worker or Workbox;
+those need a response CSP header ([#222](https://github.com/AuthFailed/cotl-save-editor/issues/222)).
+Request-audit tests check the open, edit and export flow for uploads.
 
 - **Followers**: name, form (with every portrait), level, age, loyalty, needs, traits; revive, clone, remove, and bulk
   "max needs".
@@ -26,14 +29,15 @@ the save is read, edited and written back on your own machine, and the editor wo
 Use Node 24 (`.nvmrc`). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, all checks, translations and save-data privacy rules.
 
 ```bash
-npm ci
+npm ci             # install locked dependencies
 npm run dev        # http://localhost:5173
-npm test
-npm run typecheck
-npm run check
-npm run build
-E2E_PORT=5279 npx playwright test
+npm test           # codec and model tests
+npm run typecheck  # TypeScript
+npm run check      # Svelte components
+npm run e2e        # production build and browser tests
 ```
+
+Browser tests use port 5179 by default. If it is busy, use an optional override: `E2E_PORT=5279 npm run e2e`.
 
 Optional tests against real saves skip on a clean checkout. Everything else uses synthetic saves built from the published schema.
 Pushes to `main` deploy to GitHub Pages.

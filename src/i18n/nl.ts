@@ -145,7 +145,7 @@ const nl: Dict = {
   'cmd.fields': "Velden van de save",
   'cmd.followersWith': "Volgelingen met {name}",
   'cmd.hint': "↑↓ verplaatsen · Enter openen · Esc sluiten",
-  'about.title': "Over",
+  'about.title': "Over dit project",
   'about.licenses': "Licenties van derden",
   'about.gameNotice': "Deze licenties gelden niet voor de afbeeldingen en gegevens van het spel.",
 }

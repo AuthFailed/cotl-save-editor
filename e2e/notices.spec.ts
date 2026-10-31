@@ -20,7 +20,12 @@ test('the built site serves complete library and font notices', async ({ request
 
 test('the About footer links to the notices and explains their scope', async ({ page }) => {
   await page.goto('/')
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true)
   const footer = page.getByRole('contentinfo', { name: 'About' })
   await expect(footer.getByRole('link', { name: 'Third-party licences' })).toHaveAttribute('href', '/third-party-licenses.txt')
   await expect(footer).toContainText('Game art and data are not covered by these licences.')
+  const popup = page.waitForEvent('popup')
+  await footer.getByRole('link', { name: 'Third-party licences' }).click()
+  await expect((await popup).locator('body')).toContainText('License: OFL-1.1')
 })
