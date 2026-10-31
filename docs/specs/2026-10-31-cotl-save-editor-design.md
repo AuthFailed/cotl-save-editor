@@ -1,152 +1,201 @@
 # Cult of the Lamb save editor: design
 
-A public, browser-only save editor for *Cult of the Lamb* that is easy to use, shows every value with its
-in-game name and picture, and never puts a save at risk. Game data comes from
-[cotl-api](https://github.com/AuthFailed/cotl-api) (`https://api.cotl.info/v1/`).
+A public, browser-only save editor for *Cult of the Lamb*. It pairs the save's fields with in-game names
+and pictures, keeps edits in a reviewable history, and checks the result before downloading it.
+Game data comes from [cotl-api](https://github.com/AuthFailed/cotl-api) (`https://api.cotl.info/v1/`).
+This document describes the shipped editor. The implementation plans in `docs/history/` are historical.
 
-## Why another editor
+## Why this design
 
-| Editor | Strength | Gap |
-|---|---|---|
-| Matteo-Fattorini/cotl-save-editor | Only correct 1.5+ codec (AES + LZ4 + MessagePack), byte-exact round trip, re-check before download | Raw JSON tree of unnamed arrays: `[0][417] = 7` |
-| Gu-BRA/CultOfTheLamb-SaveEditor | Friendliest feature set: followers, clothing, tarot, doctrines, Apple Arcade | Catalog frozen at game 1.4.12 |
-| xhayper/cotl-save-editor | Polished Nuxt app | Untouched since 2023, pre-1.5 only |
-| CheatMenu (BepInEx) | Edits in game | Needs a mod install |
+Players should be able to open their saves folder, find a follower or item by its name and picture,
+change it, review the change and load the exported save in the game. They should not need to understand
+the unnamed arrays in a 1.5+ save.
 
-This editor combines the first one's safety with the second one's features, and adds what none has: field
-names for 1.5+ saves and a catalog that follows each game update automatically, both from cotl-api.
-
-## Users and success
-
-Any player on any platform, mostly non-technical. Success: a player drops their saves folder in, finds a
-follower or item by its in-game name and picture, changes it, reviews the change and loads the exported save
-in the game, without reading a guide.
+The codec preserves the save's representation. A versioned schema gives the arrays names and types.
+Typed views and edits serve the everyday screens; Raw data exposes the same tree for less common fields.
+Both routes share the same change history and export checks.
 
 ## Formats
 
-All detection is by content, not file name.
+The codec detects the format from the contents. The Open screen first selects files named `slot_N` and
+`meta_N`, with `.mp`, `.json`, `MP` or no suffix, and pairs them by slot number. It lists readable slots,
+sorted by number. MessagePack files take precedence over older JSON files for the same slot.
+`persistence.json` and `settings.json` are ignored.
 
-| Format | Layout | Tested against |
+| Format | Layout | Status |
 |---|---|---|
-| PC/Steam 1.5+ (`slot_N.mp`, `meta_N.mp`) | `0x45`, 16-byte key, 16-byte IV, AES-128-CBC/PKCS#7 around a MessagePack-CSharp `LZ4BlockArray`: an array whose first element is ext 98 holding one MessagePack integer per block (its uncompressed length), then one `bin` per raw LZ4 block; the concatenated blocks are the MessagePack save. A payload whose array doesn't start with ext 98 is plain MessagePack | real saves (`slot_0.mp`, `slot_10.mp`, `meta_0.mp`, `meta_10.mp`, game 1.5.26.1058) |
-| PC/Steam pre-1.5 (`slot_N.json`, `meta_N.json`) | same AES wrapper, or plain, around JSON with field names | real saves (`slot_0.json`, `slot_1.json`) |
-| macOS App Store / Apple Arcade, iOS (`slot_N`, `meta_N`) | ASCII `ZB`, then a gzip stream (RFC 1952) of UTF-8 JSON, optional BOM; as PrivateiFox/cotl-save-converter (MIT) reads it | no sample: marked **beta** |
-| Switch (`slot_NMP`, `meta_NMP`) | ASCII `MP`, then the same `LZ4BlockArray` as PC 1.5+, no AES; as Sanchos-dev/cotl-save-sync describes it (no license: reimplemented from the description, no code copied) | no sample: marked **beta** |
+| PC/Steam 1.5+ (`slot_N.mp`, `meta_N.mp`) | `0x45`, 16-byte key, 16-byte IV, then AES-128-CBC with PKCS#7 padding around MessagePack, usually an `LZ4BlockArray` | Supported |
+| PC/Steam pre-1.5 (`slot_N.json`, `meta_N.json`) | The same AES wrapper around UTF-8 JSON, or plain JSON | Supported |
+| macOS App Store / Apple Arcade, iOS (`slot_N`, `meta_N`) | ASCII `ZB`, then gzip-compressed UTF-8 JSON; a leading JSON BOM is accepted | Beta |
+| Switch (`slot_NMP`, `meta_NMP`) | ASCII `MP`, then MessagePack, usually an `LZ4BlockArray`, without AES | Beta |
 
-`persistence.json` and `settings.json` are recognised and listed but not edited in v1.
+An `LZ4BlockArray` is a MessagePack array starting with extension 98, which holds the uncompressed block
+lengths as MessagePack integers. The remaining entries are binary LZ4 blocks. Their decoded contents
+form the inner MessagePack save. A payload without this header is read as plain MessagePack.
 
-**Convert**: Switch ↔ PC 1.5+, and Apple `ZB` ↔ PC JSON (same JSON, other wrapper). JSON is not converted
-to MessagePack: the 1.5+ game loads a `slot_N.json` itself when no `.mp` exists. Switch ↔ PC 1.5+ also
-adjusts what the platforms disagree on: the Switch save array has one element fewer (1,395 vs 1,396 in
-1.5.2x: PC appends an empty array, Switch drops it), and PC needs `TwitchSettings` set where Switch has null
-(PC value `[null, true, 20, true, true, true]`); fields are found by name through the schema, not by index.
+Apple and Switch remain beta because the codec has not been checked against real saves of those formats.
+The editor labels them on Open, shows a banner and asks for confirmation before export.
+
+Export keeps the loaded format and filename. Platform conversion routines exist in `src/codec/convert.ts`,
+but the editor has no Convert screen or export-format picker. They support the PC/Switch MessagePack
+pair and JSON wrapper changes, not JSON-to-MessagePack conversion.
 
 ## Architecture
 
+```text
+src/codec/       format detection, AES, LZ4, MessagePack and JSON; no DOM dependency
+src/schema/      schema types, version selection and named field lookup
+src/data/        API requests, catalogues, pictures and detail text
+src/model/       session, typed views, edits, history, JSON mapping and export
+src/i18n/        UI strings and language selection
+src/ui/          Svelte screens, navigation, pickers and inspectors
+src/App.svelte   connects the session, screens, banners, shortcuts and downloads
 ```
-cotl-save-editor/
-  src/codec/        pure TS, no DOM: detect, aes, lz4, msgpack, json, zb; encode(decode(x)) == x
-  src/schema/       loads save-schema.json, names a decoded tree, finds fields by name
-  src/data/         api.cotl.info client: slim per-language lists, entities, icons
-  src/model/        typed views over the tree (followers, inventory, unlocks) and the change list
-  src/ui/           Svelte 5 screens and components
-  tests/            vitest (codec, schema, model) + playwright (end to end)
-  tests/saves/      real saves, git-ignored
-```
 
-- Vite + Svelte 5 + TypeScript, static build on GitHub Pages at `authfailed.github.io/cotl-save-editor`
-  (custom domain possible later). A service worker caches the app and API responses so it works offline.
-- No server, no analytics, no upload. AES uses WebCrypto; LZ4 and MessagePack are our own small modules
-  (as Matteo's are), so the codec has no runtime dependencies.
-- The MessagePack decoder keeps each value's wire type (`int8`…`int64`, `float32/64`, `bin`/`str` widths,
-  ext types). The encoder writes an unchanged value with the same type, and an edited one with the narrowest
-  type the original field allowed, so untouched data stays byte-identical.
-- `src/codec` is published as an npm package (`cotl-save`) once stable, for bots and other tools.
+Vite, Svelte 5 and TypeScript build a static site on GitHub Pages at
+[save.cotl.info](https://save.cotl.info/). There is no application server, analytics or save upload.
+The codec has no runtime package dependencies: it uses WebCrypto for AES, the browser's compression
+streams for Apple JSON, and local LZ4 and MessagePack implementations.
 
-### Save schema (cotl-api change)
+A save passes through these layers:
 
-1.5+ saves are MessagePack-CSharp `[MessagePackObject]` classes serialised as arrays: no field names on disk.
-Game 1.5.26 has 1,393 keyed fields on `DataManager` and keyed fields on 137 types overall.
+1. Open collects files, identifies slots and reads metadata for the slot list.
+2. The session decodes the selected slot and its optional meta file, chooses a schema and prepares the tree.
+3. Screens read typed views of the current tree. Each edit creates a labelled change containing operations.
+4. Replaying the history against the starting tree produces the edited tree for every screen.
+5. Export rebuilds the slot in its original format and reads it back before offering downloads.
 
-- `CotlDataDump` gets a `SaveSchema` job (phase 1): starting at `DataManager`, it walks every type with
-  `[MessagePackObject]` by reflection and records, per type, each `[Key(n)]` field or property: key, name,
-  CLR type (element type for lists and arrays, key and value types for dictionaries, enum names and values
-  for enums).
-- `pack.py` publishes it as `v1/save-schema.json` (shape below) and a copy per game version at
-  `v1/save-schema/{gameVersion}.json`, with a JSON Schema and an entry in `index.json`, following the
-  existing pattern (fixture dump, tests, `check.sh`).
+The session keeps a slot's tree, schema and history while another slot is open. Switching slots restores
+that state, including pending edits and undo history. It does not ask to discard changes. Saves and edit
+histories stay in memory; they do not survive a page reload. Only language and theme preferences are stored
+in local storage.
+
+### Save schema
+
+MessagePack-CSharp saves serialise objects as arrays. The schema maps array keys to field names, declared
+types and enum values. Screens resolve fields by name through `src/schema/`; they do not hard-code array
+positions. The schema includes separate roots for slot and meta data:
 
 ```json
-{ "gameVersion": "1.5.26.1058", "root": "DataManager",
-  "types": { "DataManager": { "fields": [ { "key": 0, "name": "AllowSaving", "type": "bool" } ] },
-             "FollowerInfo": { "fields": [ { "key": 3, "name": "Name", "type": "string" } ] } },
+{ "gameVersion": "1.5.26.1058", "roots": { "slot": "DataManager", "meta": "MetaData" },
+  "types": { "DataManager": { "fields": [ { "key": 0, "name": "AllowSaving", "type": "bool" } ] } },
   "enums": { "InventoryItem.ITEM_TYPE": { "0": "NONE", "1": "LOG" } } }
 ```
 
-- The editor reads the game version from the slot's `meta_N.mp`, loads the matching schema, and otherwise
-  falls back to the newest older one with a visible warning. Fields the schema doesn't name show as
-  `#key` in Raw data and stay editable.
+The matching meta file supplies the game version. Without it, the editor uses the newest available schema
+and shows that the match is not exact. With a known version, selection prefers an exact match, then the
+newest older schema, then the oldest available one. The API's `index.json` lists published schema versions;
+the client loads `save-schema/{gameVersion}.json` when needed. A bundled schema keeps field lookup available
+when the API is unreachable. A fallback or unknown version is shown in a banner.
 
-### Game data
+An inexact schema match is separate from a codec safety failure: the former shows a warning, while the
+latter makes the slot read-only. In MessagePack saves, fields the schema does not name appear as `#key` in Raw data; they and paths beneath them are read-only and stay in the tree for export. In JSON saves, properties the schema does not describe are hidden from Raw data and copied unchanged on export.
 
-`{lang}/{kind}.json` slim lists for search and pickers, `{kind}/{id}.json` on demand for details,
-`icons/{kind}/64/{id}.png` for thumbnails, `icons/skins/{id}.png` for portraits. Game-data language follows
-the browser and can be switched to any language the game ships. The UI text is English in v1.
+JSON saves are mapped by field name into the same tree used by the screens. The mapping accounts for
+property names such as `Name` where MessagePack uses `_name`. Export maps the tree back to JSON and
+preserves original properties that the schema does not describe. This keeps format handling out of the
+individual screens.
+
+### Game data and language
+
+Slim `{lang}/{kind}.json` catalogues provide names and thumbnails. Full `{kind}.json` lists provide
+multilingual descriptions, grouping data and entity details; detail dialogs find an entry in that list.
+Picture paths come from the API, with full follower portraits under `icons/skins/{id}.png`. Skin variants
+are mapped to catalogue forms so a save's variant name can still find its picture.
+
+The UI and game-data picker share 15 languages: Arabic, German, English, Spanish, French, Canadian French,
+Italian, Japanese, Korean, Dutch, Brazilian Portuguese, Russian, Turkish, Simplified Chinese and Traditional
+Chinese. The initial choice follows a saved preference, then the browser's languages, then English.
+Arabic switches the page to right-to-left layout. Game text falls back to English or an ID when unavailable.
+
+API requests are cached in memory. A service worker precaches the app, including its fonts, and caches API
+responses and pictures as they are requested, refreshing them in the background. Offline use depends on
+what was cached during an online visit. Without a cached catalogue, existing follower and inventory values
+can still be shown as IDs with picture placeholders. Unlock grids need their catalogue to list entries;
+failed catalogue requests show a notice. The bundled schema remains available.
+
+The production page's meta CSP restricts page resource origins. It does not cover the service worker or
+Workbox; a response CSP header is tracked in [#222](https://github.com/AuthFailed/cotl-save-editor/issues/222).
+The report link for a read-only save includes its format and a validated version number, not save contents.
 
 ## Screens
 
-Layout B from the design canvas: top bar, left section nav, main area, right inspector.
+The desktop layout has a top bar, left section navigation, main area and a right follower inspector.
+Hash navigation selects screens and tabs; search results can also pass a filter to the destination.
 
-- **Top bar**: file name, game version, day, difficulty; ⌘K search across followers, items, unlocks and
-  raw fields; change count (opens Review); Export.
-- **Open**: drop zone for the whole `saves` folder or single files; per-platform save paths with a copy
-  button; detected slots listed with cult name, day, play time and format. Opening a single `slot_N`
-  without its `meta_N` works; the game version then comes from the save if present, else the newest schema.
-- **Overview**: cult name, lamb name, day, difficulty, gold, devotion, faith, follower count.
-- **Followers**: table (portrait, name, form, status, level, loyalty, hunger, traits) with status filters,
-  sort and multi-select; inspector with name, form picker (every follower form with its portrait), colour
-  and outfit, level, age, needs, traits (add from the trait list with icon and description, remove).
-  Actions: revive, clone, remove, and bulk "max needs" / "max loyalty".
-- **Inventory**: searchable grid of items with icon, name and quantity stepper; add any item; filter by the
-  API's item category.
-- **Cult**: doctrines (by sermon, with the choice made), rituals, structure unlocks, crown abilities.
-- **Collection**: tarot, relics, weapons, curses, fleeces, outfits, follower forms: owned/locked grids
-  with icon and description, "unlock all" per group.
-- **Raw data**: the whole save as a named tree, searchable by field name or value, editable with type-checked
-  inputs. Edits here join the same change list.
-- Phone width: nav becomes a top menu, tables scroll horizontally, the inspector becomes a bottom sheet.
+- **Top bar**: slot switcher with pending-change counts, a schema-version tag when metadata is loaded,
+  language and theme choices, search, change count and Export. The change count opens Review.
+- **Open**: drop a folder or files, choose a folder, or choose individual files. Copyable save paths cover
+  Windows, macOS Steam, macOS App Store / Apple Arcade, and Linux / Steam Deck. Slot cards show cult name,
+  filename, format and pending changes; day and play time come from metadata when present. A slot opens
+  without its meta file, with the schema fallback described above.
+- **Overview**: cult name, day, play time, living and dead follower counts, gold, faith, and game and schema
+  versions. Cult name, gold and faith are editable; the other cards are summaries.
+- **Followers**: portraits, names and forms, age, status, level, loyalty, satiation and traits. Search matches follower names, the save's form (skin) identifiers and trait names in the current language. Each follower gets one status, by priority dead, ill, hungry, elderly, faithful; the status filters select followers by that status. Multi-select
+  applies max needs or max loyalty. The inspector edits name, form, level, age, life expectancy, loyalty,
+  satiation, rest, illness, exhaustion and traits. Traits have pictures, descriptions and detail dialogs.
+  Revive, clone and remove actions join the same history as field edits. Remove asks for confirmation.
+- **Inventory**: owned or all schema-supported items, with search, categories derived from API data, sorting
+  by name or quantity, icons and quantity controls. The add picker lists supported items not already held.
+- **Cult**: doctrines grouped by sermon category, rituals, buildable structures and crown abilities. These
+  are unlock grids, rather than a separate doctrine-choice workflow.
+- **Collection**: tarot, relics, weapons, curses, fleeces, outfits and follower forms. The same grid handles
+  owned/locked filters, search, individual toggles and Unlock all. A shared mapping connects catalogue IDs
+  to the save's unlock fields; enum-backed grids only offer entries the selected schema recognises.
+- **Details**: item, trait and unlock dialogs show available descriptions, pictures, costs, lore and other
+  facts from the API. Items offer quantity controls; unlockable entries offer an owned/locked toggle.
+- **Raw data**: the schema-named tree with a filter for top-level field names, not values. Expanded branches
+  render their children. Known scalar fields have type-checked inputs and enum choices; unnamed paths
+  stay read-only. Raw edits join the same history as all other edits.
+- **Search**: ⌘K / Ctrl+K opens a keyboard-navigable palette for screens, followers, items, unlocks, traits
+  and top-level raw field names. Results open the relevant screen, inspector or detail dialog.
+- **Review**: a modal side drawer lists labelled changes with individual Undo buttons, Undo all and Export.
 
-Visual system from variant B: neutral dark ground `#0D0E10`, surfaces `#121316`/`#17181B`, borders
-`#23252A`, text `#ECECEE`/`#A1A3AB`, one accent `#FF5A4E`; Geist and Geist Mono; status colours that also
-differ in lightness; a light theme from the same tokens. Visible focus, 44 px targets on touch, text at
-4.5:1, `prefers-reduced-motion` respected, keyboard reachable throughout.
+At phone width the navigation becomes a menu, wide tables scroll horizontally and the follower inspector
+becomes a bottom sheet. Native `<dialog>` supplies modal focus handling for Review, search, pickers and details.
+See the README's [browser support](../../README.md#browser-support) for feature requirements and file-picking limits.
+
+The dark theme uses neutral backgrounds (`#0D0E10`, `#121316`, `#17181B`), quiet borders, light text and a coral accent (`#FF5A4E`); the light theme sets the same tokens to light values with a darker accent (`#D93A2F`)., with a system preference option. Status chips carry text labels and owned/locked states carry icons, so colour is never the only signal. Focus rings,
+labelled controls, larger touch buttons and reduced-motion styles support keyboard and touch use.
 
 ## Safety
 
-1. **Open**: decode, then re-encode the untouched tree. The check is at the innermost layer the format
-   serialises exactly: the MessagePack bytes for `.mp`/Switch (our LZ4 and gzip output may differ from the
-   game's and is still valid), the decoded JSON value for JSON formats. If it fails, the slot opens read-only
-   with an explanation and a "report this" link.
-2. **Edit**: every edit is a change `{path, label, before, after}`. Inputs keep the field's type (an integer
-   field refuses `7.5`) and known ranges (needs and loyalty 0–100, quantities ≥ 0). ⌘Z / ⇧⌘Z undo and redo.
-3. **Review**: lists the changes by their readable labels, each one revertible.
-4. **Export**: encode, decode the result, and compare it with the edited tree; download only if they match.
-   The file keeps its original name. The first export of a slot in a session also downloads the untouched
-   original as `<name>.backup`.
-5. Beta formats say so in the Open list and on Export.
+1. **Open**: the MessagePack decoder keeps each node's wire type, including integer widths, float widths,
+   string and binary headers, and extension types. Re-encoding the decoded tree must reproduce the inner
+   MessagePack bytes. Compression and outer wrappers need not be byte-identical. JSON parsing flags unsafe
+   large integer values that would lose precision. A failed preservation check opens the slot read-only
+   with an explanation and a report link. These checks do not prove that a save will load in the game.
+2. **Edit**: a change is `{label, ops}`. Operations set values or change lists, using schema-resolved paths.
+   The operation layer checks types and declared integer ranges; focused controls also apply limits such
+   as needs and loyalty 0–100 and non-negative quantities. Edits replace tree branches rather than mutate
+   the starting tree. Guards on targeted operations check that their intended follower or item is still
+   there when replayed. Follower actions belong in this layer, so screens do not manage save bookkeeping.
+3. **Undo and Review**: ⌘Z / Ctrl+Z and ⇧⌘Z / Ctrl+Shift+Z undo and redo changes outside text inputs.
+   Review can remove a single change by replaying the rest. If later operations cannot replay without it,
+   removal is refused with an explanation. Each change matches one edit: a field edit, a follower action or Unlock all. Multi-select bulk actions add one change per selected follower.
+4. **Export**: rebuild the edited slot, decode the result and compare the inner MessagePack bytes or JSON
+   value with the intended data. Only a match reaches the download step. The slot keeps its name and format;
+   metadata is read for context and is not exported. The first export also offers the untouched original
+   as `<name>.backup`. Export makes the edited tree the new starting point and clears undo and redo history.
+   The browser handles the downloads; the player replaces the save in the game folder.
 
-## Testing
+## Validation
 
-- **Codec** (vitest): byte-exact round trip of every real save in `tests/saves/` (skipped when the folder is
-  empty, as on CI); a committed synthetic save built by our encoder; AES against WebCrypto test vectors;
-  LZ4 and MessagePack edge cases (each int width, empty blocks, ext types, 64-bit integers).
-- **Schema**: names on the real 1.5.26 save resolve (e.g. key 0 is `AllowSaving`), unknown keys survive.
-- **Model**: follower, inventory and unlock edits change exactly the intended paths.
-- **End to end** (playwright): open the synthetic save, rename a follower, add an item, export, re-open,
-  see both changes.
-- **cotl-api**: the `SaveSchema` job's output goes through `pack.py` with a fixture, as the other kinds do.
+Vitest covers the codec, schema and edit layer. Playwright exercises the production build with Chromium,
+including opening, editing, reviewing and exporting synthetic saves. CI checks the Svelte components,
+runs the tests, builds the site and runs the browser checks before deploying `main` to GitHub Pages.
+[CONTRIBUTING.md](../../CONTRIBUTING.md) lists the commands and save-data privacy rules. Documentation and
+screenshots use synthetic data only.
 
-## Not in v1
+## Not yet built
 
-Editing a running game; cloud saves; writing directly to a console; editing `persistence.json` and
-`settings.json`; translated UI text.
+- A published `cotl-save` npm package for the codec: [#230](https://github.com/AuthFailed/cotl-save-editor/issues/230).
+- Day and difficulty in the top bar: [#242](https://github.com/AuthFailed/cotl-save-editor/issues/242).
+- Listing persistence and settings files, read-only: [#93](https://github.com/AuthFailed/cotl-save-editor/issues/93).
+- The Lamb, devotion and difficulty on Overview: [#72](https://github.com/AuthFailed/cotl-save-editor/issues/72), [#73](https://github.com/AuthFailed/cotl-save-editor/issues/73).
+- Follower outfits and colours: [#76](https://github.com/AuthFailed/cotl-save-editor/issues/76), [#80](https://github.com/AuthFailed/cotl-save-editor/issues/80).
+- Sortable follower columns: [#133](https://github.com/AuthFailed/cotl-save-editor/issues/133).
+- Converting between platforms from the editor, driven by the schema: [#190](https://github.com/AuthFailed/cotl-save-editor/issues/190).
+
+Editing a running game, cloud-save access, writing directly to a console, and editing `persistence.json`
+or `settings.json` are outside the current editor's scope.
