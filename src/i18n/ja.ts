@@ -42,8 +42,7 @@ const ja: Dict = {
   'insp.title': '詳細', 'insp.id': 'ID {id}', 'insp.changeForm': '姿を変える', 'insp.name': '名前',
   'insp.level': 'レベル', 'insp.age': '年齢（日）', 'insp.life': '寿命', 'insp.loyalty': '忠誠', 'insp.hunger': '満腹',
   'insp.rest': '休息', 'insp.illness': '病気', 'insp.exhaustion': '疲労', 'insp.traits': '特性', 'insp.noTraits': '特性なし。',
-  'insp.removeTrait': '{name} を外す', 'insp.addTrait': '特性を追加', 'insp.revive': '蘇らせる', 'insp.clone': '複製', 'insp.remove': '外す',
-  'insp.removeConfirm': '{name} を教団から外しますか？書き出すまでは元に戻せます。',
+  'insp.removeTrait': '{name} を外す', 'insp.addTrait': '特性を追加', 'insp.revive': '蘇らせる', 'insp.clone': '複製',
   'insp.chooseForm': '姿を選ぶ', 'insp.searchForms': '姿を検索', 'insp.addTraitTitle': '特性を追加', 'insp.searchTraits': '特性を検索',
   'num.decrease': '{label} を減らす', 'num.increase': '{label} を増やす', 'num.number': '数値を入力してください',
   'num.whole': '整数を入力してください', 'num.between': '{min}～{max}',
@@ -179,6 +178,16 @@ const ja: Dict = {
   'death.DiedFromTwitchChat': "Twitch チャットに殺された",
   'death.LeavingCult': "教団を去った",
   'death.unknown': "死亡、原因不明",
+  'insp.kill': "殺す",
+  'insp.cause': "死因",
+  'insp.causeOther': "その他",
+  'insp.sendAway': "追放する",
+  'insp.delete': "記録を削除",
+  'insp.deleteConfirm': "{name} の記録を削除し、すべての家・仕事・信者リストから外しますか？ゲーム自体はこれを行いません。「追放する」か「殺す」なら、ゲームと同じ状態のセーブになります。書き出すまでは元に戻せます。",
+  'insp.uniqueWarn': "{name} は特別な信者です。ゲームは勧誘済みと記憶し、二度と登場させません。",
+  'ch.killed': "{name} を殺した · {cause}",
+  'ch.sentAway': "{name} は教団を去った",
+  'ch.cleared': "{list} から外した",
 }
 
 export default ja

@@ -42,8 +42,7 @@ const zhCN: Dict = {
   'insp.title': '详情', 'insp.id': 'ID {id}', 'insp.changeForm': '更换形象', 'insp.name': '名字',
   'insp.level': '等级', 'insp.age': '年龄（天）', 'insp.life': '寿命', 'insp.loyalty': '忠诚度', 'insp.hunger': '饱腹',
   'insp.rest': '休息', 'insp.illness': '疾病', 'insp.exhaustion': '疲惫', 'insp.traits': '特质', 'insp.noTraits': '没有特质。',
-  'insp.removeTrait': '移除 {name}', 'insp.addTrait': '添加特质', 'insp.revive': '复活', 'insp.clone': '克隆', 'insp.remove': '移除',
-  'insp.removeConfirm': '要将 {name} 移出教团吗？导出前都可以撤销。',
+  'insp.removeTrait': '移除 {name}', 'insp.addTrait': '添加特质', 'insp.revive': '复活', 'insp.clone': '克隆',
   'insp.chooseForm': '选择形象', 'insp.searchForms': '搜索形象', 'insp.addTraitTitle': '添加特质', 'insp.searchTraits': '搜索特质',
   'num.decrease': '减少 {label}', 'num.increase': '增加 {label}', 'num.number': '请输入数字',
   'num.whole': '请输入整数', 'num.between': '{min} 到 {max} 之间',
@@ -179,6 +178,16 @@ const zhCN: Dict = {
   'death.DiedFromTwitchChat': "被 Twitch 聊天杀死",
   'death.LeavingCult': "离开了教团",
   'death.unknown': "已死亡，原因不明",
+  'insp.kill': "杀死",
+  'insp.cause': "死因",
+  'insp.causeOther': "其他",
+  'insp.sendAway': "逐出",
+  'insp.delete': "删除记录",
+  'insp.deleteConfirm': "要删除 {name} 的记录，并将其从所有住所、工作和教徒列表中移除吗？游戏本身从不这样做；“逐出”或“杀死”会让存档保持游戏会有的样子。导出前都可以撤销。",
+  'insp.uniqueWarn': "{name} 是独特教徒。游戏会记得已招募过，不会再次提供。",
+  'ch.killed': "{name} 被杀 · {cause}",
+  'ch.sentAway': "{name} 离开了教团",
+  'ch.cleared': "已从 {list} 清除",
 }
 
 export default zhCN

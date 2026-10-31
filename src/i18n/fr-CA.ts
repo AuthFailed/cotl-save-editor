@@ -8,7 +8,7 @@ const frCA: Dict = {
   'open.discard': { one: 'Abandonner {n} changement non exporté?', other: 'Abandonner {n} changements non exportés?' },
   'common.nothingFor': 'Aucun résultat pour « {q} ».',
   'prefs.theme': 'Thème : {theme}',
-  'insp.removeConfirm': 'Retirer {name} du culte? Vous pourrez l’annuler jusqu’à l’exportation.',
+  'insp.deleteConfirm': 'Supprimer la fiche de {name} et le retirer de chaque maison, poste et liste d’adeptes? Le jeu ne fait jamais cela; Renvoyer ou Tuer laisse la sauvegarde telle que le jeu la laisserait. Vous pourrez l’annuler jusqu’à l’exportation.',
   'export.betaConfirm': '{file} est dans un format qui n’a encore été testé sur aucune vraie sauvegarde. Exporter quand même? Gardez la copie de secours.',
   'rev.title': 'Vérifier les changements',
   'rev.none': 'Aucun changement pour l’instant. Vos changements apparaîtront ici, chacun annulable jusqu’à l’exportation.',

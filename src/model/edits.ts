@@ -2,7 +2,7 @@
 import { setValue, toPlain, type MpNode } from '../codec/msgpack'
 import { field, get, type SaveSchema } from '../schema/schema'
 import { nodeLike } from './build'
-import { t } from '../i18n/i18n.svelte'
+import { t, type Key } from '../i18n/i18n.svelte'
 import type { Change, Op } from './ops'
 import { DEATHS, enumName, enumOf, enumValue, followers, inventory, listKind, listLength, unlocked } from './views'
 
@@ -22,15 +22,17 @@ const nodeAt = (schema: SaveSchema, root: MpNode, path: string[]) => get(schema,
 export const FULL_NEEDS = { _satiation: 100, _starvation: 0, _rest: 100, _illness: 0, _exhaustion: 0 }
 const STRUCTURES = JSON.stringify({ list: { object: 'StructuresData' } })
 
-/** Ops that take a follower ID out of every DataManager Followers_*_IDs list (but `keep`) and every structure that holds it. */
-export function unlink(schema: SaveSchema, root: MpNode, id: number, keep: string[] = []): Op[] {
-  const ops: Op[] = []
+/** Ops that take a follower ID out of every DataManager Followers_*_IDs list (but `keep`) and every structure that holds it,
+ * with the names of the lists and structure types they touch. */
+export function unlink(schema: SaveSchema, root: MpNode, id: number, keep: string[] = []): { ops: Op[]; cleared: string[] } {
+  const ops: Op[] = [], cleared = new Set<string>()
   const at = (path: string[]) => get(schema, root, schema.roots.slot, path)?.node
   const plain = (path: string[]) => { const n = at(path); return n && toPlain(n) }
   // Highest index first, so each remove leaves the earlier indices in place.
-  const drop = (path: string[], paired?: string[]) => {
+  const drop = (path: string[], name: string, paired?: string[]) => {
     const list = at(path)
     if (list?.t === 'arr') for (let i = list.v.length - 1; i >= 0; i--) if (toPlain(list.v[i]) === id) {
+      cleared.add(name)
       ops.push({ kind: 'remove', path, index: i, guard: { path: [...path, String(i)], value: id } })
       // Guarded with what is there now, so a shorter paired list refuses the change rather than misaligning the pair.
       if (paired) ops.push({ kind: 'remove', path: paired, index: i, guard: { path: [...paired, String(i)], value: plain([...paired, String(i)]) } })
@@ -39,22 +41,52 @@ export function unlink(schema: SaveSchema, root: MpNode, id: number, keep: strin
   const fields = schema.types[schema.roots.slot].fields
   for (const { name } of fields)
     if (/^Followers_\w+_IDs$/.test(name) && name !== 'Followers_RecruitedUnique_IDs' && !keep.includes(name))
-      drop([name], name === 'Followers_Demons_IDs' ? ['Followers_Demons_Types'] : undefined)
+      drop([name], name, name === 'Followers_Demons_IDs' ? ['Followers_Demons_Types'] : undefined)
   for (const { name, type } of fields) {
     const list = JSON.stringify(type) === STRUCTURES ? at([name]) : undefined
     if (list?.t === 'arr') list.v.forEach((_, si) => {
-      const base = [name, String(si)], reserved = [...base, 'ReservedFollowers']
-      if (plain([...base, 'FollowerID']) === id) ops.push({ kind: 'set', path: [...base, 'FollowerID'], value: -1, guard: { path: [...base, 'FollowerID'], value: id } })
-      drop([...base, 'MultipleFollowerIDs'])
-      drop([...base, 'FollowersClaimedSlots'])
+      const base = [name, String(si)], reserved = [...base, 'ReservedFollowers'], kind = enumName(schema, 'StructureBrain.TYPES', plain([...base, 'Type']))
+      if (plain([...base, 'FollowerID']) === id) {
+        cleared.add(kind)
+        ops.push({ kind: 'set', path: [...base, 'FollowerID'], value: -1, guard: { path: [...base, 'FollowerID'], value: id } })
+      }
+      drop([...base, 'MultipleFollowerIDs'], kind)
+      drop([...base, 'FollowersClaimedSlots'], kind)
       // Matched on values only: what the keys mean isn't known yet.
       const map = at(reserved)
-      if (map?.t === 'map') for (let i = map.v.length - 1; i >= 0; i--) if (toPlain(map.v[i][1]) === id)
+      if (map?.t === 'map') for (let i = map.v.length - 1; i >= 0; i--) if (toPlain(map.v[i][1]) === id) {
+        cleared.add(kind)
         ops.push({ kind: 'remove', path: reserved, index: i, guard: { path: [...reserved, String(toPlain(map.v[i][0]))], value: id } })
+      }
     })
   }
-  return ops
+  return { ops, cleared: [...cleared] }
 }
+
+const withCleared = (label: string, cleared: string[]) => (cleared.length ? `${label} · ${t('ch.cleared', { list: cleared.join(', ') })}` : label)
+
+/** Off to the dead as the game sends them: out of every structure and list but the elderly one, which keeps dead elders,
+ * flagged, and listed among the dead. */
+function leave(schema: SaveSchema, root: MpNode, index: number, flag: string, kill: boolean, label: (name: string) => string): Change {
+  const { f, base, guard } = followerAt(schema, root, index)
+  const node = nodeAt(schema, root, base)
+  const { ops, cleared } = unlink(schema, root, f.id, ['Followers_Elderly_IDs'])
+  const set = (name: string, value: unknown) => { if (get(schema, node, 'FollowerInfo', [name])) ops.push({ kind: 'set', path: [...base, name], value, guard }) }
+  const day = Number(toPlain(get(schema, root, schema.roots.slot, ['CurrentDayIndex'])?.node ?? { t: 'nil' }) ?? 0)
+  if (flag) set(flag, true)
+  set(kill ? 'TimeOfDeath' : 'LeftCultDay', day)
+  ops.push({ kind: 'move', path: ['Followers'], index, to: ['Followers_Dead'], guard })
+  // Appended where move puts the record, so the two lists stay in step; the game prepends, but only the pairing matters.
+  const ids = get(schema, root, schema.roots.slot, ['Followers_Dead_IDs'])
+  if (ids) {
+    const v = ids.node.t === 'arr' ? ids.node.v : []
+    ops.push({ kind: 'insert', path: ['Followers_Dead_IDs'], index: v.filter(x => toPlain(x) !== f.id).length, node: nodeLike(v[0], f.id, 'int32') })
+  }
+  return { label: withCleared(label(f.name), cleared), ops }
+}
+
+/** Death causes a kill offers: those the game sets with no other bookkeeping, and '' for none (as most real dead have). */
+export const CAUSES = ['', 'DiedOfOldAge', 'DiedOfIllness', 'DiedOfStarvation', 'DiedOfInjury']
 
 export const edits = {
   rename(schema: SaveSchema, root: MpNode, who: Who, name: string): Change {
@@ -127,7 +159,7 @@ export const edits = {
     const stays = !young && f.old
     for (const d of DEATHS) set(d, false)
     // A dead follower's house no longer lists them, so the old home would clash with whoever has the bed now.
-    for (const [k, v] of Object.entries({ TimeOfDeath: 0, HasBeenBuried: false, HadFuneral: false, MurderedBy: 0, MurderedTerm: null, LeavingCult: false, DwellingID: 0, DwellingSlot: 0, DwellingLevel: 0 })) set(k, v)
+    for (const [k, v] of Object.entries({ TimeOfDeath: 0, HasBeenBuried: false, HadFuneral: false, MurderedBy: 0, MurderedTerm: null, LeavingCult: false, LeftCultDay: 0, DwellingID: 0, DwellingSlot: 0, DwellingLevel: 0 })) set(k, v)
     named('Location', 'FollowerLocation', 'Base')
     named('SavedFollowerTaskType', 'FollowerTaskType', stays ? 'OldAge' : 'None')
     if (['Ghost', 'Dissenter', 'Old'].includes(enumName(schema, 'FollowerOutfitType', now('Outfit')))) named('Outfit', 'FollowerOutfitType', stays ? 'Old' : 'None')
@@ -140,7 +172,7 @@ export const edits = {
       set('_HP', now('_maxHP'))
     }
     // The sets come first: move reads the element at replay, so they travel and undo with it.
-    ops.push(...unlink(schema, root, f.id, stays ? ['Followers_Elderly_IDs'] : []),
+    ops.push(...unlink(schema, root, f.id, stays ? ['Followers_Elderly_IDs'] : []).ops,
       { kind: 'move', path: ['Followers_Dead'], index: deadIndex, to: ['Followers'], guard })
     return { label: t(young ? 'ch.revivedYoung' : 'ch.revived', { name: f.name }), ops }
   },
@@ -158,10 +190,24 @@ export const edits = {
     return { label: t('ch.cloned', { name: f.name }), ops }
   },
 
+  kill: (schema: SaveSchema, root: MpNode, index: number, cause: string) => leave(schema, root, index, cause, true,
+    name => t('ch.killed', { name, cause: cause ? t(`death.${cause}` as Key) : t('insp.causeOther') })),
+
+  sendAway: (schema: SaveSchema, root: MpNode, index: number) => leave(schema, root, index, 'LeavingCult', false, name => t('ch.sentAway', { name })),
+
+  /** The record and every list and structure entry for it, which the game itself never does; relationships, parents and
+   * the recruit history stay, as the game keeps them for those who are gone. */
   removeFollower(schema: SaveSchema, root: MpNode, who: Who): Change {
     const { f, guard } = followerAt(schema, root, who)
     const { index, dead } = ref(who)
-    return { label: t('ch.removed', { name: f.name }), ops: [{ kind: 'remove', path: [list(dead)], index, guard }] }
+    const { ops, cleared } = unlink(schema, root, f.id)
+    for (const o of followers(schema, root)) {
+      const at = [list(o.dead), String(o.index)]
+      if ((o.dead !== dead || o.index !== index) && toPlain(get(schema, root, schema.roots.slot, [...at, 'SpouseFollowerID'])?.node ?? { t: 'nil' }) === f.id)
+        ops.push({ kind: 'set', path: [...at, 'SpouseFollowerID'], value: -1, guard: { path: [...at, 'ID'], value: o.id } })
+    }
+    ops.push({ kind: 'remove', path: [list(dead)], index, guard })
+    return { label: withCleared(t('ch.removed', { name: f.name }), cleared), ops }
   },
 
   setQuantity(schema: SaveSchema, root: MpNode, itemIndex: number, quantity: number, name?: string): Change {

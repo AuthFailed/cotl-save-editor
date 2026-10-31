@@ -42,8 +42,7 @@ const ko: Dict = {
   'insp.title': '세부 정보', 'insp.id': 'ID {id}', 'insp.changeForm': '모습 바꾸기', 'insp.name': '이름',
   'insp.level': '레벨', 'insp.age': '나이(일)', 'insp.life': '수명', 'insp.loyalty': '충성심', 'insp.hunger': '포만감',
   'insp.rest': '휴식', 'insp.illness': '질병', 'insp.exhaustion': '피로', 'insp.traits': '특성', 'insp.noTraits': '특성 없음.',
-  'insp.removeTrait': '{name} 제거', 'insp.addTrait': '특성 추가', 'insp.revive': '부활', 'insp.clone': '복제', 'insp.remove': '제거',
-  'insp.removeConfirm': '{name}을(를) 교단에서 제거할까요? 내보내기 전까지 되돌릴 수 있습니다.',
+  'insp.removeTrait': '{name} 제거', 'insp.addTrait': '특성 추가', 'insp.revive': '부활', 'insp.clone': '복제',
   'insp.chooseForm': '모습 선택', 'insp.searchForms': '모습 검색', 'insp.addTraitTitle': '특성 추가', 'insp.searchTraits': '특성 검색',
   'num.decrease': '{label} 줄이기', 'num.increase': '{label} 늘리기', 'num.number': '숫자를 입력하세요',
   'num.whole': '정수를 입력하세요', 'num.between': '{min}~{max}',
@@ -179,6 +178,16 @@ const ko: Dict = {
   'death.DiedFromTwitchChat': "Twitch 채팅에 의해 사망",
   'death.LeavingCult': "교단을 떠남",
   'death.unknown': "사망, 원인 불명",
+  'insp.kill': "죽이기",
+  'insp.cause': "사망 원인",
+  'insp.causeOther': "기타",
+  'insp.sendAway': "떠나보내기",
+  'insp.delete': "기록 삭제",
+  'insp.deleteConfirm': "{name}의 기록을 삭제하고 모든 집, 일자리, 추종자 목록에서 제거할까요? 게임은 이렇게 하지 않습니다. 떠나보내기나 죽이기는 게임과 같은 상태로 저장을 남깁니다. 내보내기 전까지 되돌릴 수 있습니다.",
+  'insp.uniqueWarn': "{name}은(는) 고유 추종자입니다. 게임은 영입한 사실을 기억하고 다시 제안하지 않습니다.",
+  'ch.killed': "{name} 살해됨 · {cause}",
+  'ch.sentAway': "{name}이(가) 교단을 떠남",
+  'ch.cleared': "{list}에서 제거됨",
 }
 
 export default ko

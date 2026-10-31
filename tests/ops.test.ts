@@ -186,7 +186,7 @@ describe('revive does the game\'s bookkeeping', () => {
 
 describe('unlink', () => {
   test('takes a follower out of the ID lists and every structure that holds them', () => {
-    const r = run(root, ops(...unlink(schema, root, 1)))
+    const r = run(root, ops(...unlink(schema, root, 1).ops))
     expect(P(r, 'Followers_OnMissionary_IDs')).toEqual([])
     expect(fields(r, ['BaseStructures', 0], ['FollowerID', 'MultipleFollowerIDs', 'FollowersClaimedSlots', 'ReservedFollowers']))
       .toEqual({ FollowerID: -1, MultipleFollowerIDs: [2], FollowersClaimedSlots: [2], ReservedFollowers: {} })
@@ -194,18 +194,18 @@ describe('unlink', () => {
   })
 
   test('keeps the lists it is told to, and always the recruit history', () => {
-    const kept = run(root, ops(...unlink(schema, root, 2, ['Followers_Elderly_IDs'])))
+    const kept = run(root, ops(...unlink(schema, root, 2, ['Followers_Elderly_IDs']).ops))
     expect([P(kept, 'Followers_Elderly_IDs'), P(kept, 'Followers_RecruitedUnique_IDs')]).toEqual([[2, 3], [2]])
-    const all = run(root, ops(...unlink(schema, root, 2)))
+    const all = run(root, ops(...unlink(schema, root, 2).ops))
     expect([P(all, 'Followers_Elderly_IDs'), P(all, 'Followers_RecruitedUnique_IDs')]).toEqual([[3], [2]])
   })
 
   test('removes a demon with its type, and refuses when the pair is out of step', () => {
     const ids = run(root, edits.unlock(schema, root, 'Followers_Demons_IDs', ['1']))
     const both = run(ids, edits.unlock(schema, ids, 'Followers_Demons_Types', ['5']))
-    const r = run(both, ops(...unlink(schema, both, 1)))
+    const r = run(both, ops(...unlink(schema, both, 1).ops))
     expect([P(r, 'Followers_Demons_IDs'), P(r, 'Followers_Demons_Types')]).toEqual([[], []])
-    expect(() => run(ids, ops(...unlink(schema, ids, 1)))).toThrow(OpError)
+    expect(() => run(ids, ops(...unlink(schema, ids, 1).ops))).toThrow(OpError)
   })
 
   test('a map remove drops the entry at that position, guarded by its key', () => {

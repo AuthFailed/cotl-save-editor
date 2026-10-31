@@ -42,8 +42,7 @@ const fr: Dict = {
   'insp.title': 'Détails', 'insp.id': 'ID {id}', 'insp.changeForm': 'Changer de forme', 'insp.name': 'Nom',
   'insp.level': 'Niveau', 'insp.age': 'Âge (jours)', 'insp.life': 'Espérance de vie', 'insp.loyalty': 'Loyauté', 'insp.hunger': 'Satiété',
   'insp.rest': 'Repos', 'insp.illness': 'Maladie', 'insp.exhaustion': 'Épuisement', 'insp.traits': 'Traits', 'insp.noTraits': 'Aucun trait.',
-  'insp.removeTrait': 'Retirer {name}', 'insp.addTrait': 'Ajouter un trait', 'insp.revive': 'Ressusciter', 'insp.clone': 'Cloner', 'insp.remove': 'Retirer',
-  'insp.removeConfirm': 'Retirer {name} du culte ? Vous pourrez l’annuler jusqu’à l’export.',
+  'insp.removeTrait': 'Retirer {name}', 'insp.addTrait': 'Ajouter un trait', 'insp.revive': 'Ressusciter', 'insp.clone': 'Cloner',
   'insp.chooseForm': 'Choisir une forme', 'insp.searchForms': 'Rechercher des formes', 'insp.addTraitTitle': 'Ajouter un trait', 'insp.searchTraits': 'Rechercher des traits',
   'num.decrease': 'Diminuer {label}', 'num.increase': 'Augmenter {label}', 'num.number': 'Saisissez un nombre',
   'num.whole': 'Saisissez un nombre entier', 'num.between': 'Entre {min} et {max}',
@@ -179,6 +178,16 @@ const fr: Dict = {
   'death.DiedFromTwitchChat': "Tué par le chat Twitch",
   'death.LeavingCult': "A quitté le culte",
   'death.unknown': "Mort, cause inconnue",
+  'insp.kill': "Tuer",
+  'insp.cause': "Cause du décès",
+  'insp.causeOther': "Autre",
+  'insp.sendAway': "Renvoyer",
+  'insp.delete': "Supprimer la fiche",
+  'insp.deleteConfirm': "Supprimer la fiche de {name} et le retirer de chaque maison, poste et liste d’adeptes ? Le jeu ne fait jamais cela ; Renvoyer ou Tuer laisse la sauvegarde telle que le jeu la laisserait. Vous pourrez l’annuler jusqu’à l’export.",
+  'insp.uniqueWarn': "{name} est un adepte unique. Le jeu se souvient de son recrutement et ne le proposera plus.",
+  'ch.killed': "{name} tué · {cause}",
+  'ch.sentAway': "{name} a quitté le culte",
+  'ch.cleared': "retiré de {list}",
 }
 
 export default fr

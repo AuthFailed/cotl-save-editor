@@ -42,8 +42,7 @@ const tr: Dict = {
   'insp.title': 'Ayrıntılar', 'insp.id': 'Kimlik {id}', 'insp.changeForm': 'Biçimi değiştir', 'insp.name': 'Ad',
   'insp.level': 'Seviye', 'insp.age': 'Yaş (gün)', 'insp.life': 'Yaşam süresi', 'insp.loyalty': 'Sadakat', 'insp.hunger': 'Tokluk',
   'insp.rest': 'Dinlenme', 'insp.illness': 'Hastalık', 'insp.exhaustion': 'Bitkinlik', 'insp.traits': 'Özellikler', 'insp.noTraits': 'Özellik yok.',
-  'insp.removeTrait': '{name} kaldır', 'insp.addTrait': 'Özellik ekle', 'insp.revive': 'Dirilt', 'insp.clone': 'Klonla', 'insp.remove': 'Kaldır',
-  'insp.removeConfirm': '{name} tarikattan çıkarılsın mı? Dışa aktarana kadar geri alabilirsin.',
+  'insp.removeTrait': '{name} kaldır', 'insp.addTrait': 'Özellik ekle', 'insp.revive': 'Dirilt', 'insp.clone': 'Klonla',
   'insp.chooseForm': 'Bir biçim seç', 'insp.searchForms': 'Biçim ara', 'insp.addTraitTitle': 'Özellik ekle', 'insp.searchTraits': 'Özellik ara',
   'num.decrease': '{label} azalt', 'num.increase': '{label} artır', 'num.number': 'Bir sayı gir',
   'num.whole': 'Bir tam sayı gir', 'num.between': '{min} ile {max} arasında',
@@ -179,6 +178,16 @@ const tr: Dict = {
   'death.DiedFromTwitchChat': "Twitch sohbeti tarafından öldürüldü",
   'death.LeavingCult': "Tarikattan ayrıldı",
   'death.unknown': "Ölü, nedeni bilinmiyor",
+  'insp.kill': "Öldür",
+  'insp.cause': "Ölüm nedeni",
+  'insp.causeOther': "Diğer",
+  'insp.sendAway': "Uzaklaştır",
+  'insp.delete': "Kaydı sil",
+  'insp.deleteConfirm': "{name} kaydı silinsin ve her evden, işten ve takipçi listesinden çıkarılsın mı? Oyun bunu asla yapmaz; Uzaklaştır veya Öldür, kaydı oyunun bırakacağı gibi bırakır. Dışa aktarana kadar geri alabilirsin.",
+  'insp.uniqueWarn': "{name} benzersiz bir takipçi. Oyun onu topladığını hatırlar ve bir daha sunmaz.",
+  'ch.killed': "{name} öldürüldü · {cause}",
+  'ch.sentAway': "{name} tarikattan ayrıldı",
+  'ch.cleared': "{list} listesinden çıkarıldı",
 }
 
 export default tr

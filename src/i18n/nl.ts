@@ -42,8 +42,7 @@ const nl: Dict = {
   'insp.title': 'Details', 'insp.id': 'ID {id}', 'insp.changeForm': 'Gedaante wijzigen', 'insp.name': 'Naam',
   'insp.level': 'Niveau', 'insp.age': 'Leeftijd (dagen)', 'insp.life': 'Levensverwachting', 'insp.loyalty': 'Loyaliteit', 'insp.hunger': 'Verzadiging',
   'insp.rest': 'Rust', 'insp.illness': 'Ziekte', 'insp.exhaustion': 'Uitputting', 'insp.traits': 'Eigenschappen', 'insp.noTraits': 'Geen eigenschappen.',
-  'insp.removeTrait': '{name} verwijderen', 'insp.addTrait': 'Eigenschap toevoegen', 'insp.revive': 'Tot leven wekken', 'insp.clone': 'Klonen', 'insp.remove': 'Verwijderen',
-  'insp.removeConfirm': '{name} uit de sekte verwijderen? Je kunt dit tot de export ongedaan maken.',
+  'insp.removeTrait': '{name} verwijderen', 'insp.addTrait': 'Eigenschap toevoegen', 'insp.revive': 'Tot leven wekken', 'insp.clone': 'Klonen',
   'insp.chooseForm': 'Kies een gedaante', 'insp.searchForms': 'Gedaanten zoeken', 'insp.addTraitTitle': 'Eigenschap toevoegen', 'insp.searchTraits': 'Eigenschappen zoeken',
   'num.decrease': '{label} verlagen', 'num.increase': '{label} verhogen', 'num.number': 'Vul een getal in',
   'num.whole': 'Vul een heel getal in', 'num.between': 'Tussen {min} en {max}',
@@ -179,6 +178,16 @@ const nl: Dict = {
   'death.DiedFromTwitchChat': "Gedood door de Twitch-chat",
   'death.LeavingCult': "Heeft de sekte verlaten",
   'death.unknown': "Dood, oorzaak onbekend",
+  'insp.kill': "Doden",
+  'insp.cause': "Doodsoorzaak",
+  'insp.causeOther': "Anders",
+  'insp.sendAway': "Wegsturen",
+  'insp.delete': "Gegevens verwijderen",
+  'insp.deleteConfirm': "De gegevens van {name} verwijderen en uit elk huis, elke taak en elke volgelingenlijst halen? Het spel doet dit nooit; Wegsturen of Doden laat de save zoals het spel hem zou laten. Je kunt dit tot de export ongedaan maken.",
+  'insp.uniqueWarn': "{name} is een unieke volgeling. Het spel onthoudt de werving en biedt deze volgeling niet opnieuw aan.",
+  'ch.killed': "{name} gedood · {cause}",
+  'ch.sentAway': "{name} heeft de sekte verlaten",
+  'ch.cleared': "verwijderd uit {list}",
 }
 
 export default nl

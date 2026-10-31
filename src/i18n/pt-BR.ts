@@ -42,8 +42,7 @@ const ptBR: Dict = {
   'insp.title': 'Detalhes', 'insp.id': 'ID {id}', 'insp.changeForm': 'Mudar forma', 'insp.name': 'Nome',
   'insp.level': 'Nível', 'insp.age': 'Idade (dias)', 'insp.life': 'Expectativa de vida', 'insp.loyalty': 'Lealdade', 'insp.hunger': 'Saciedade',
   'insp.rest': 'Descanso', 'insp.illness': 'Doença', 'insp.exhaustion': 'Exaustão', 'insp.traits': 'Características', 'insp.noTraits': 'Nenhuma característica.',
-  'insp.removeTrait': 'Remover {name}', 'insp.addTrait': 'Adicionar característica', 'insp.revive': 'Reviver', 'insp.clone': 'Clonar', 'insp.remove': 'Remover',
-  'insp.removeConfirm': 'Remover {name} do culto? Dá para desfazer até a exportação.',
+  'insp.removeTrait': 'Remover {name}', 'insp.addTrait': 'Adicionar característica', 'insp.revive': 'Reviver', 'insp.clone': 'Clonar',
   'insp.chooseForm': 'Escolha uma forma', 'insp.searchForms': 'Buscar formas', 'insp.addTraitTitle': 'Adicionar uma característica', 'insp.searchTraits': 'Buscar características',
   'num.decrease': 'Diminuir {label}', 'num.increase': 'Aumentar {label}', 'num.number': 'Digite um número',
   'num.whole': 'Digite um número inteiro', 'num.between': 'Entre {min} e {max}',
@@ -179,6 +178,16 @@ const ptBR: Dict = {
   'death.DiedFromTwitchChat': "Morto pelo chat da Twitch",
   'death.LeavingCult': "Deixou o culto",
   'death.unknown': "Morto, causa desconhecida",
+  'insp.kill': "Matar",
+  'insp.cause': "Causa da morte",
+  'insp.causeOther': "Outra",
+  'insp.sendAway': "Mandar embora",
+  'insp.delete': "Apagar registro",
+  'insp.deleteConfirm': "Apagar o registro de {name} e tirá-lo de toda casa, trabalho e lista de seguidores? O jogo nunca faz isso; Mandar embora ou Matar deixa o save como o jogo deixaria. Dá para desfazer até a exportação.",
+  'insp.uniqueWarn': "{name} é um seguidor único. O jogo lembra que o recrutou e não vai oferecê-lo de novo.",
+  'ch.killed': "{name} morto · {cause}",
+  'ch.sentAway': "{name} deixou o culto",
+  'ch.cleared': "removido de {list}",
 }
 
 export default ptBR

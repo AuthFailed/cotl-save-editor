@@ -44,8 +44,7 @@ const ar: Dict = {
   'insp.title': 'التفاصيل', 'insp.id': 'المعرّف {id}', 'insp.changeForm': 'تغيير الهيئة', 'insp.name': 'الاسم',
   'insp.level': 'المستوى', 'insp.age': 'العمر (أيام)', 'insp.life': 'العمر المتوقع', 'insp.loyalty': 'الولاء', 'insp.hunger': 'الشبع',
   'insp.rest': 'الراحة', 'insp.illness': 'المرض', 'insp.exhaustion': 'الإرهاق', 'insp.traits': 'السمات', 'insp.noTraits': 'لا سمات.',
-  'insp.removeTrait': 'إزالة {name}', 'insp.addTrait': 'إضافة سمة', 'insp.revive': 'إحياء', 'insp.clone': 'استنساخ', 'insp.remove': 'إزالة',
-  'insp.removeConfirm': 'إزالة {name} من الطائفة؟ يمكنك التراجع حتى التصدير.',
+  'insp.removeTrait': 'إزالة {name}', 'insp.addTrait': 'إضافة سمة', 'insp.revive': 'إحياء', 'insp.clone': 'استنساخ',
   'insp.chooseForm': 'اختر هيئة', 'insp.searchForms': 'البحث في الهيئات', 'insp.addTraitTitle': 'إضافة سمة', 'insp.searchTraits': 'البحث في السمات',
   'num.decrease': 'إنقاص {label}', 'num.increase': 'زيادة {label}', 'num.number': 'أدخل رقمًا',
   'num.whole': 'أدخل عددًا صحيحًا', 'num.between': 'بين {min} و{max}',
@@ -181,6 +180,16 @@ const ar: Dict = {
   'death.DiedFromTwitchChat': "قتلته دردشة Twitch",
   'death.LeavingCult': "غادر الطائفة",
   'death.unknown': "ميت، والسبب غير معروف",
+  'insp.kill': "قتل",
+  'insp.cause': "سبب الوفاة",
+  'insp.causeOther': "آخر",
+  'insp.sendAway': "إبعاد",
+  'insp.delete': "حذف السجل",
+  'insp.deleteConfirm': "حذف سجل {name} وإزالته من كل منزل وعمل وقائمة أتباع؟ اللعبة لا تفعل هذا أبدًا؛ الإبعاد أو القتل يُبقي الحفظ كما تتركه اللعبة. يمكنك التراجع حتى التصدير.",
+  'insp.uniqueWarn': "{name} تابع فريد. تتذكر اللعبة أنك جنّدته ولن تعرضه عليك مجددًا.",
+  'ch.killed': "قُتل {name} · {cause}",
+  'ch.sentAway': "غادر {name} الطائفة",
+  'ch.cleared': "أُزيل من {list}",
 }
 
 export default ar

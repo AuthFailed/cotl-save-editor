@@ -42,8 +42,7 @@ const de: Dict = {
   'insp.title': 'Details', 'insp.id': 'ID {id}', 'insp.changeForm': 'Gestalt ändern', 'insp.name': 'Name',
   'insp.level': 'Stufe', 'insp.age': 'Alter (Tage)', 'insp.life': 'Lebenserwartung', 'insp.loyalty': 'Loyalität', 'insp.hunger': 'Sättigung',
   'insp.rest': 'Ausgeruhtheit', 'insp.illness': 'Krankheit', 'insp.exhaustion': 'Erschöpfung', 'insp.traits': 'Eigenschaften', 'insp.noTraits': 'Keine Eigenschaften.',
-  'insp.removeTrait': '{name} entfernen', 'insp.addTrait': 'Eigenschaft hinzufügen', 'insp.revive': 'Wiederbeleben', 'insp.clone': 'Klonen', 'insp.remove': 'Entfernen',
-  'insp.removeConfirm': '{name} aus dem Kult entfernen? Das lässt sich bis zum Export rückgängig machen.',
+  'insp.removeTrait': '{name} entfernen', 'insp.addTrait': 'Eigenschaft hinzufügen', 'insp.revive': 'Wiederbeleben', 'insp.clone': 'Klonen',
   'insp.chooseForm': 'Gestalt wählen', 'insp.searchForms': 'Gestalten suchen', 'insp.addTraitTitle': 'Eigenschaft hinzufügen', 'insp.searchTraits': 'Eigenschaften suchen',
   'num.decrease': '{label} verringern', 'num.increase': '{label} erhöhen', 'num.number': 'Gib eine Zahl ein',
   'num.whole': 'Gib eine ganze Zahl ein', 'num.between': 'Zwischen {min} und {max}',
@@ -179,6 +178,16 @@ const de: Dict = {
   'death.DiedFromTwitchChat': "Vom Twitch-Chat getötet",
   'death.LeavingCult': "Hat den Kult verlassen",
   'death.unknown': "Tot, Ursache unbekannt",
+  'insp.kill': "Töten",
+  'insp.cause': "Todesursache",
+  'insp.causeOther': "Andere",
+  'insp.sendAway': "Wegschicken",
+  'insp.delete': "Eintrag löschen",
+  'insp.deleteConfirm': "Den Eintrag von {name} löschen und aus jedem Haus, jeder Arbeit und jeder Anhängerliste entfernen? Das Spiel tut das nie; Wegschicken oder Töten lässt den Spielstand so, wie das Spiel ihn hinterlassen würde. Das lässt sich bis zum Export rückgängig machen.",
+  'insp.uniqueWarn': "{name} ist ein einzigartiger Anhänger. Das Spiel merkt sich die Rekrutierung und bietet ihn nicht wieder an.",
+  'ch.killed': "{name} getötet · {cause}",
+  'ch.sentAway': "{name} hat den Kult verlassen",
+  'ch.cleared': "entfernt aus {list}",
 }
 
 export default de

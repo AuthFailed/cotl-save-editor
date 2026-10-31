@@ -4,7 +4,7 @@ import { t } from '../src/i18n/i18n.svelte'
 import { edits } from '../src/model/edits'
 import { listSlots, openSlot, push, redo, session, undo } from '../src/model/session.svelte'
 import { followers } from '../src/model/views'
-import { clear, key, prune, revived, selection, tickedOf } from '../src/ui/selection.svelte'
+import { clear, key, moved, prune, selection, tickedOf } from '../src/ui/selection.svelte'
 import { schema, syntheticFiles } from './synthetic'
 import { hasSaves } from './util'
 
@@ -53,9 +53,18 @@ test('the inspector and the tick follow a revived follower', async () => {
   await open(await syntheticFiles())
   const dead = key({ id: 3, dead: true })
   Object.assign(selection, { follower: dead, ticked: [living(1), dead] })
-  step(() => { push(() => edits.revive(schema, session.root!, 0)); revived(3) })
+  step(() => { push(() => edits.revive(schema, session.root!, 0)); moved(3, false) })
   expect(state()).toEqual({ follower: living(3), ticked: [living(1), living(3)] })
   expect(now().find(f => f.id === 3)?.dead).toBe(false)
+})
+
+test('the inspector and the tick follow a follower who is killed or sent away', async () => {
+  await open(await syntheticFiles())
+  Object.assign(selection, { follower: living(1), ticked: [living(1), living(2)] })
+  step(() => { push(() => edits.kill(schema, session.root!, 0, '')); moved(1, true) })
+  expect(state()).toEqual({ follower: key({ id: 1, dead: true }), ticked: [key({ id: 1, dead: true }), living(2)] })
+  step(() => { push(() => edits.sendAway(schema, session.root!, 0)); moved(2, true) })
+  expect(state()).toEqual({ follower: key({ id: 1, dead: true }), ticked: [key({ id: 1, dead: true }), key({ id: 2, dead: true })] })
 })
 
 test('a living and a dead record with the same ID are ticked and inspected apart', async () => {

@@ -1,16 +1,17 @@
 <script lang="ts">
   import { untrack } from 'svelte'
-  import { Copy, HeartPulse, Info, Plus, Trash2, X } from '@lucide/svelte'
+  import { Copy, DoorOpen, HeartPulse, Info, Plus, Skull, Trash2, X } from '@lucide/svelte'
   import { detail } from './detail.svelte'
   import Thumb from './Thumb.svelte'
   import { cat, entry, nameOf, want, wantVariants } from '../data/catalogs.svelte'
-  import { edits } from '../model/edits'
+  import { CAUSES, edits } from '../model/edits'
+  import type { Change } from '../model/ops'
   import { push, session } from '../model/session.svelte'
-  import { followers, skinId } from '../model/views'
+  import { followers, skinId, uniqueIds } from '../model/views'
   import NumberField from './NumberField.svelte'
   import Picker from './Picker.svelte'
   import { t, type Key } from '../i18n/i18n.svelte'
-  import { key, revived, selection } from './selection.svelte'
+  import { key, moved, selection } from './selection.svelte'
 
   want('skins')
   wantVariants()
@@ -27,6 +28,8 @@
   $effect(() => { void selection.follower; void dead; young = untrack(() => f?.death === 'DiedOfOldAge') })
   // Older game versions number the outfit, location and old-age enums differently, so a young revive leaves them alone.
   const partial = $derived(young && !session.schemaExact)
+  let cause = $state('')
+  const unique = $derived(!!f && uniqueIds(session.schema!, session.root!).has(f.id))
 
   const who = () => ({ index: f!.index, dead: f!.dead })
   const set = (name: string, v: number, what: string) => push(() => edits.setFollower(session.schema!, session.root!, who(), name, v, what))
@@ -38,12 +41,18 @@
     if (v && v !== f!.name) push(() => edits.rename(session.schema!, session.root!, who(), v))
   }
   function remove() {
-    if (!confirm(t('insp.removeConfirm', { name: f!.name }))) return
+    if (!confirm((unique ? t('insp.uniqueWarn', { name: f!.name }) + ' ' : '') + t('insp.deleteConfirm', { name: f!.name }))) return
     push(() => edits.removeFollower(session.schema!, session.root!, who()))
   }
   function revive() {
     const { id, index } = f!
-    if (push(() => edits.revive(session.schema!, session.root!, index, young, session.schemaExact))) revived(id)
+    if (push(() => edits.revive(session.schema!, session.root!, index, young, session.schemaExact))) moved(id, false)
+  }
+  // Undoable, so only a unique follower, whom the game won't offer again, asks first.
+  function leave(make: (index: number) => Change) {
+    const { id, index, name } = f!
+    if (unique && !confirm(t('insp.uniqueWarn', { name }))) return
+    if (push(() => make(index))) moved(id, true)
   }
 </script>
 
@@ -99,9 +108,17 @@
         <label class="young"><input type="checkbox" bind:checked={young} disabled={session.readOnly} aria-describedby={partial ? 'young-partial' : undefined} />{t('insp.young')}</label>
         {#if partial}<small id="young-partial" class="partial">{t('insp.youngPartial')}</small>{/if}
         <button class="btn primary" disabled={session.readOnly} onclick={revive}><HeartPulse size={16} />{t('insp.revive')}</button>
+      {:else}
+        <div class="kill">
+          <select class="input" aria-label={t('insp.cause')} bind:value={cause} disabled={session.readOnly}>
+            {#each CAUSES as c (c)}<option value={c}>{c ? t(`death.${c}` as Key) : t('insp.causeOther')}</option>{/each}
+          </select>
+          <button class="btn" disabled={session.readOnly} onclick={() => leave(i => edits.kill(session.schema!, session.root!, i, cause))}><Skull size={16} />{t('insp.kill')}</button>
+        </div>
+        <button class="btn" disabled={session.readOnly} onclick={() => leave(i => edits.sendAway(session.schema!, session.root!, i))}><DoorOpen size={16} />{t('insp.sendAway')}</button>
       {/if}
       <button class="btn" disabled={session.readOnly} onclick={() => push(() => edits.clone(session.schema!, session.root!, who()))}><Copy size={16} />{t('insp.clone')}</button>
-      <button class="btn danger" disabled={session.readOnly} onclick={remove}><Trash2 size={16} />{t('insp.remove')}</button>
+      <button class="btn danger" disabled={session.readOnly} onclick={remove}><Trash2 size={16} />{t('insp.delete')}</button>
     </div>
   </div>
 
@@ -132,7 +149,9 @@
   .none { margin: 0; color: var(--muted); font-size: 14px; }
   .add { border-style: dashed; justify-content: center; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; }
-  .actions .btn { flex: 1; justify-content: center; }
+  .actions .btn { flex: 1; justify-content: center; white-space: nowrap; }
+  .kill { flex-basis: 100%; display: flex; gap: 8px; }
+  .kill .input { flex: 1; min-width: 0; }
   .young { flex-basis: 100%; display: flex; align-items: center; gap: 8px; font-size: 14px; }
   .partial { flex-basis: 100%; margin-top: -4px; color: var(--muted); font-size: 12px; }
 </style>

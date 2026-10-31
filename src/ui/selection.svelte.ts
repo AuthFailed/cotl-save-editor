@@ -9,9 +9,9 @@ export const selection = $state<{ follower: string | null; ticked: string[] }>({
 export const clear = () => Object.assign(selection, { follower: null, ticked: [] })
 export const tickedOf = (all: FollowerView[]) => all.filter(f => selection.ticked.includes(key(f)))
 
-/** Moves a revived follower's inspector and tick to their living key. */
-export function revived(id: number) {
-  const was = key({ id, dead: true }), now = key({ id, dead: false })
+/** Moves a follower's inspector and tick to their new key once they come back (dead false) or die or leave (dead true). */
+export function moved(id: number, dead: boolean) {
+  const was = key({ id, dead: !dead }), now = key({ id, dead })
   if (selection.follower === was) selection.follower = now
   selection.ticked = selection.ticked.map(k => (k === was ? now : k))
 }

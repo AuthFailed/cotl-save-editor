@@ -42,8 +42,7 @@ const es: Dict = {
   'insp.title': 'Detalles', 'insp.id': 'ID {id}', 'insp.changeForm': 'Cambiar forma', 'insp.name': 'Nombre',
   'insp.level': 'Nivel', 'insp.age': 'Edad (días)', 'insp.life': 'Esperanza de vida', 'insp.loyalty': 'Lealtad', 'insp.hunger': 'Saciedad',
   'insp.rest': 'Descanso', 'insp.illness': 'Enfermedad', 'insp.exhaustion': 'Agotamiento', 'insp.traits': 'Rasgos', 'insp.noTraits': 'Sin rasgos.',
-  'insp.removeTrait': 'Quitar {name}', 'insp.addTrait': 'Añadir rasgo', 'insp.revive': 'Revivir', 'insp.clone': 'Clonar', 'insp.remove': 'Quitar',
-  'insp.removeConfirm': '¿Quitar a {name} del culto? Puedes deshacerlo hasta que exportes.',
+  'insp.removeTrait': 'Quitar {name}', 'insp.addTrait': 'Añadir rasgo', 'insp.revive': 'Revivir', 'insp.clone': 'Clonar',
   'insp.chooseForm': 'Elige una forma', 'insp.searchForms': 'Buscar formas', 'insp.addTraitTitle': 'Añadir un rasgo', 'insp.searchTraits': 'Buscar rasgos',
   'num.decrease': 'Reducir {label}', 'num.increase': 'Aumentar {label}', 'num.number': 'Escribe un número',
   'num.whole': 'Escribe un número entero', 'num.between': 'Entre {min} y {max}',
@@ -179,6 +178,16 @@ const es: Dict = {
   'death.DiedFromTwitchChat': "Asesinado por el chat de Twitch",
   'death.LeavingCult': "Dejó el culto",
   'death.unknown': "Muerto, causa desconocida",
+  'insp.kill': "Matar",
+  'insp.cause': "Causa de muerte",
+  'insp.causeOther': "Otra",
+  'insp.sendAway': "Despedir",
+  'insp.delete': "Borrar registro",
+  'insp.deleteConfirm': "¿Borrar el registro de {name} y quitarlo de cada casa, trabajo y lista de adeptos? El juego nunca hace esto; Despedir o Matar deja la partida como la dejaría el juego. Puedes deshacerlo hasta que exportes.",
+  'insp.uniqueWarn': "{name} es un adepto único. El juego recuerda haberlo reclutado y no volverá a ofrecerlo.",
+  'ch.killed': "{name} asesinado · {cause}",
+  'ch.sentAway': "{name} dejó el culto",
+  'ch.cleared': "quitado de {list}",
 }
 
 export default es

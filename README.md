@@ -6,8 +6,8 @@ The production page's meta CSP restricts page resource origins. It does not appl
 those need a response CSP header ([#222](https://github.com/AuthFailed/cotl-save-editor/issues/222)).
 Request-audit tests check the open, edit and export flow for uploads.
 
-- **Followers**: name, form (with every portrait), level, age, loyalty, needs, traits; revive, clone, remove, and bulk
-  "max needs".
+- **Followers**: name, form (with every portrait), level, age, loyalty, needs, traits; revive, kill, send away, clone,
+  delete record, and bulk "max needs".
 - **Inventory**: every item with its icon; set quantities or add anything.
 - **Cult and Collection**: doctrines, rituals, structures, crown abilities, tarot, relics, weapons, curses, fleeces,
   outfits and follower forms, each owned or locked, with "unlock all".

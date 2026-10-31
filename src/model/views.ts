@@ -33,6 +33,10 @@ const listAt = (schema: SaveSchema, root: MpNode, name: string): MpNode[] => {
 }
 export const listLength = (schema: SaveSchema, root: MpNode, name: string) => listAt(schema, root, name).length
 
+/** Follower IDs the game remembers recruiting as unique, so it won't offer them again. */
+export const uniqueIds = (schema: SaveSchema, root: MpNode) => new Set(['Followers_RecruitedUnique_IDs', 'UniqueFollowersRecruited', 'LeaderFollowersRecruited']
+  .flatMap(n => listAt(schema, root, n).map(x => Number(toPlain(x)))))
+
 function follower(schema: SaveSchema, node: MpNode, index: number, dead: boolean): FollowerView {
   const v = (name: string) => {
     const f = field(schema, 'FollowerInfo', name)

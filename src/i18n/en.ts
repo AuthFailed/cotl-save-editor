@@ -56,8 +56,7 @@ const en = {
   'insp.title': 'Inspector', 'insp.id': 'ID {id}', 'insp.changeForm': 'Change form', 'insp.name': 'Name',
   'insp.level': 'Level', 'insp.age': 'Age (days)', 'insp.life': 'Life expectancy', 'insp.loyalty': 'Loyalty', 'insp.hunger': 'Hunger',
   'insp.rest': 'Rest', 'insp.illness': 'Illness', 'insp.exhaustion': 'Exhaustion', 'insp.traits': 'Traits', 'insp.noTraits': 'No traits.',
-  'insp.removeTrait': 'Remove {name}', 'insp.addTrait': 'Add trait', 'insp.revive': 'Revive', 'insp.clone': 'Clone', 'insp.remove': 'Remove',
-  'insp.removeConfirm': 'Remove {name} from the cult? You can undo this until you export.',
+  'insp.removeTrait': 'Remove {name}', 'insp.addTrait': 'Add trait', 'insp.revive': 'Revive', 'insp.clone': 'Clone',
   'insp.chooseForm': 'Choose a form', 'insp.searchForms': 'Search forms', 'insp.addTraitTitle': 'Add a trait', 'insp.searchTraits': 'Search traits',
 
   // number field
@@ -207,6 +206,16 @@ const en = {
   'death.DiedFromTwitchChat': "Killed by Twitch chat",
   'death.LeavingCult': "Left the cult",
   'death.unknown': "Dead, cause unknown",
+  'insp.kill': "Kill",
+  'insp.cause': "Cause of death",
+  'insp.causeOther': "Other",
+  'insp.sendAway': "Send away",
+  'insp.delete': "Delete record",
+  'insp.deleteConfirm': "Delete {name}'s record and remove them from every house, job and follower list? The game never does this; Send away or Kill keeps the save as the game would. You can undo this until you export.",
+  'insp.uniqueWarn': "{name} is a unique follower. The game remembers recruiting them and won't offer them again.",
+  'ch.killed': "{name} killed · {cause}",
+  'ch.sentAway': "{name} left the cult",
+  'ch.cleared': "cleared from {list}",
 }
 
 export default en

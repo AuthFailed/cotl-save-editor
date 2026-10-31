@@ -42,8 +42,7 @@ const it: Dict = {
   'insp.title': 'Dettagli', 'insp.id': 'ID {id}', 'insp.changeForm': 'Cambia forma', 'insp.name': 'Nome',
   'insp.level': 'Livello', 'insp.age': 'Età (giorni)', 'insp.life': 'Aspettativa di vita', 'insp.loyalty': 'Lealtà', 'insp.hunger': 'Sazietà',
   'insp.rest': 'Riposo', 'insp.illness': 'Malattia', 'insp.exhaustion': 'Sfinimento', 'insp.traits': 'Tratti', 'insp.noTraits': 'Nessun tratto.',
-  'insp.removeTrait': 'Rimuovi {name}', 'insp.addTrait': 'Aggiungi tratto', 'insp.revive': 'Resuscita', 'insp.clone': 'Clona', 'insp.remove': 'Rimuovi',
-  'insp.removeConfirm': 'Rimuovere {name} dal culto? Puoi annullare fino all’esportazione.',
+  'insp.removeTrait': 'Rimuovi {name}', 'insp.addTrait': 'Aggiungi tratto', 'insp.revive': 'Resuscita', 'insp.clone': 'Clona',
   'insp.chooseForm': 'Scegli una forma', 'insp.searchForms': 'Cerca forme', 'insp.addTraitTitle': 'Aggiungi un tratto', 'insp.searchTraits': 'Cerca tratti',
   'num.decrease': 'Diminuisci {label}', 'num.increase': 'Aumenta {label}', 'num.number': 'Inserisci un numero',
   'num.whole': 'Inserisci un numero intero', 'num.between': 'Tra {min} e {max}',
@@ -179,6 +178,16 @@ const it: Dict = {
   'death.DiedFromTwitchChat': "Ucciso dalla chat di Twitch",
   'death.LeavingCult': "Ha lasciato il culto",
   'death.unknown': "Morto, causa sconosciuta",
+  'insp.kill': "Uccidi",
+  'insp.cause': "Causa di morte",
+  'insp.causeOther': "Altro",
+  'insp.sendAway': "Allontana",
+  'insp.delete': "Elimina scheda",
+  'insp.deleteConfirm': "Eliminare la scheda di {name} e toglierlo da ogni casa, lavoro ed elenco di seguaci? Il gioco non lo fa mai; Allontana o Uccidi lasciano il salvataggio come lo lascerebbe il gioco. Puoi annullare fino all’esportazione.",
+  'insp.uniqueWarn': "{name} è un seguace unico. Il gioco ricorda di averlo reclutato e non lo offrirà più.",
+  'ch.killed': "{name} ucciso · {cause}",
+  'ch.sentAway': "{name} ha lasciato il culto",
+  'ch.cleared': "rimosso da {list}",
 }
 
 export default it

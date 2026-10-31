@@ -42,8 +42,7 @@ const ru: Dict = {
   'insp.title': 'Свойства', 'insp.id': 'ID {id}', 'insp.changeForm': 'Сменить облик', 'insp.name': 'Имя',
   'insp.level': 'Уровень', 'insp.age': 'Возраст (дни)', 'insp.life': 'Срок жизни', 'insp.loyalty': 'Верность', 'insp.hunger': 'Сытость',
   'insp.rest': 'Бодрость', 'insp.illness': 'Болезнь', 'insp.exhaustion': 'Усталость', 'insp.traits': 'Черты', 'insp.noTraits': 'Черт нет.',
-  'insp.removeTrait': 'Убрать: {name}', 'insp.addTrait': 'Добавить черту', 'insp.revive': 'Воскресить', 'insp.clone': 'Клонировать', 'insp.remove': 'Удалить',
-  'insp.removeConfirm': 'Убрать последователя {name} из культа? Это можно отменить до экспорта.',
+  'insp.removeTrait': 'Убрать: {name}', 'insp.addTrait': 'Добавить черту', 'insp.revive': 'Воскресить', 'insp.clone': 'Клонировать',
   'insp.chooseForm': 'Выберите облик', 'insp.searchForms': 'Поиск обликов', 'insp.addTraitTitle': 'Добавить черту', 'insp.searchTraits': 'Поиск черт',
   'num.decrease': 'Уменьшить: {label}', 'num.increase': 'Увеличить: {label}', 'num.number': 'Введите число',
   'num.whole': 'Введите целое число', 'num.between': 'От {min} до {max}',
@@ -180,6 +179,16 @@ const ru: Dict = {
   'death.DiedFromTwitchChat': "Убит чатом Twitch",
   'death.LeavingCult': "Покинул культ",
   'death.unknown': "Мёртв, причина неизвестна",
+  'insp.kill': "Убить",
+  'insp.cause': "Причина смерти",
+  'insp.causeOther': "Другое",
+  'insp.sendAway': "Изгнать",
+  'insp.delete': "Удалить запись",
+  'insp.deleteConfirm': "Удалить запись последователя {name} и убрать его из всех домов, работ и списков последователей? Игра так никогда не делает; «Изгнать» или «Убить» оставят сохранение таким, каким его оставила бы игра. Это можно отменить до экспорта.",
+  'insp.uniqueWarn': "{name} — уникальный последователь. Игра помнит, что уже завербовала его, и больше его не предложит.",
+  'ch.killed': "{name} убит · {cause}",
+  'ch.sentAway': "{name} покинул культ",
+  'ch.cleared': "убран из {list}",
 }
 
 export default ru
