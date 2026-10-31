@@ -50,7 +50,7 @@
   }
 
   async function open(entry: SlotEntry) {
-    if (hasUnexported() && !confirm(`Discard ${session.ops.length} unexported change${session.ops.length === 1 ? '' : 's'}?`)) return
+    if (hasUnexported() && !confirm(`Discard ${session.changes.length} unexported change${session.changes.length === 1 ? '' : 's'}?`)) return
     await openSlot(entry, schemaFor)
     go('overview')
   }

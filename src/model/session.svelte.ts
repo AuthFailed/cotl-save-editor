@@ -2,7 +2,8 @@
 import { openSave, type Format, type Opened } from '../codec/formats'
 import type { MpNode } from '../codec/msgpack'
 import { field, gameVersionOf, type SaveSchema } from '../schema/schema'
-import type { Op } from './ops'
+import { jsonToTree } from './json'
+import { OpError, replay, revertOne, type Change } from './ops'
 
 export type SchemaFor = (version: string | null) => Promise<{ schema: SaveSchema; exact: boolean }>
 
@@ -64,8 +65,10 @@ class Session {
   schemaExact = $state.raw(true)
   original = $state.raw<MpNode | null>(null)
   root = $state.raw<MpNode | null>(null)
-  ops = $state.raw<Op[]>([])
-  undone = $state.raw<Op[]>([])
+  changes = $state.raw<Change[]>([])
+  undone = $state.raw<Change[]>([])
+  /** The last edit that couldn't be made, for the screens to show. */
+  error = $state.raw<string | null>(null)
   readOnly = $state.raw(false)
 }
 export const session = new Session()
@@ -74,8 +77,46 @@ export async function openSlot(entry: SlotEntry, schemaFor: SchemaFor): Promise<
   const slot = await read(entry.slotFile)
   const meta = entry.metaFile ? await read(entry.metaFile) : null
   const { schema, exact } = await schemaFor(meta ? gameVersionOf(meta, (await schemaFor(null)).schema) : null)
-  const root = slot.data.kind === 'msgpack' ? slot.data.root : null
-  Object.assign(session, { entry, slot, meta, schema, schemaExact: exact, original: root, root, ops: [], undone: [], readOnly: !slot.exact })
+  const root = slot.data.kind === 'msgpack' ? slot.data.root : jsonToTree(schema, slot.data.root)
+  Object.assign(session, { entry, slot, meta, schema, schemaExact: exact, original: root, root, changes: [], undone: [], error: null, readOnly: !slot.exact })
 }
 
-export const hasUnexported = () => session.ops.length > 0
+function settle(changes: Change[], undone: Change[]) {
+  session.root = replay(session.schema!, session.original!, changes)
+  session.changes = changes
+  session.undone = undone
+  session.error = null
+}
+
+/** Applies a change; a refused one (wrong type, stale target) is reported in session.error instead. */
+export function push(change: Change | (() => Change)): boolean {
+  if (session.readOnly || !session.schema || !session.root) return false
+  try {
+    const c = typeof change === 'function' ? change() : change
+    if (!c.ops.length) return false
+    settle([...session.changes, c], [])
+    return true
+  } catch (e) {
+    if (!(e instanceof OpError || e instanceof TypeError || e instanceof RangeError)) throw e
+    session.error = e.message
+    return false
+  }
+}
+export function undo() {
+  const last = session.changes.at(-1)
+  if (last) settle(session.changes.slice(0, -1), [...session.undone, last])
+}
+export function redo() {
+  const next = session.undone.at(-1)
+  if (next) settle([...session.changes, next], session.undone.slice(0, -1))
+}
+export function revert(i: number) {
+  try {
+    settle(revertOne(session.schema!, session.original!, session.changes, i), [])
+  } catch (e) {
+    if (!(e instanceof OpError)) throw e
+    session.error = e.message
+  }
+}
+
+export const hasUnexported = () => session.changes.length > 0

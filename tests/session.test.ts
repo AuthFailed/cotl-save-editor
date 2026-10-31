@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
-import { hasUnexported, listSlots, openSlot, session } from '../src/model/session.svelte'
+import { edits } from '../src/model/edits'
+import { hasUnexported, listSlots, openSlot, push, redo, revert, session, undo } from '../src/model/session.svelte'
 import { schema, syntheticSaves } from './synthetic'
 import { hasSaves } from './util'
 
@@ -17,8 +18,23 @@ test('opening a slot fills the session; an op makes it unexported', async () => 
   const [entry] = await listSlots(asFiles(await syntheticSaves()), loadSchema)
   await openSlot(entry, loadSchema)
   expect([session.slot?.name, session.meta?.name, session.readOnly, hasUnexported()]).toEqual(['slot_0.mp', 'meta_0.mp', false, false])
-  session.ops = [{ label: 'x', kind: 'set', path: ['CultName'], value: 'y' }]
+  expect(push(() => edits.rename(schema, session.root!, 0, 'Gerald'))).toBe(true)
   expect(hasUnexported()).toBe(true)
+  undo()
+  expect(hasUnexported()).toBe(false)
+  redo()
+  expect(session.changes.map(c => c.label)).toEqual(['Pip renamed to Gerald'])
+})
+
+test('a refused edit is reported, not thrown; an undo that would misapply is refused', async () => {
+  const [entry] = await listSlots(asFiles(await syntheticSaves()), loadSchema)
+  await openSlot(entry, loadSchema)
+  expect(push(() => edits.setFollower(schema, session.root!, 0, 'XPLevel', 7.5, 'Level'))).toBe(false)
+  expect(session.error).toMatch(/XPLevel/)
+  push(() => edits.revive(schema, session.root!, 0))
+  push(() => edits.rename(schema, session.root!, 2, 'Back'))
+  revert(0)
+  expect([session.changes.length, session.error]).toEqual([2, expect.stringMatching(/later change depends on it/)])
 })
 
 describe.skipIf(!hasSaves)('real saves', () => {
