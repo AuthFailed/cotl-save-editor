@@ -1,7 +1,7 @@
 :root {
   --bg: #0D0E10; --surface-1: #121316; --surface-2: #17181B; --surface-3: #1A1B1F;
   --border: #23252A; --border-strong: #3A3D44;
-  --text: #ECECEE; --muted: #A1A3AB; --faint: #7C7F88;
+  --text: #ECECEE; --muted: #A1A3AB; --faint: #8B8E97;
   --accent: #FF5A4E; --accent-text: #FF7A6E; --on-accent: #160706; --warn: #F5B84A; --warn-bg: #1F1A10; --warn-border: #3D3218;
   --danger-border: #4A2220;
   --chip-faithful-bg: #12261A; --chip-faithful: #7CDB95; --chip-hungry-bg: #2A2110; --chip-hungry: #F5C26B;

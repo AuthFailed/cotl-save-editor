@@ -8,6 +8,7 @@
   import { Download, Search } from '@lucide/svelte'
   import { exportSlot } from './model/export'
   import Banner from './ui/Banner.svelte'
+  import Prefs from './ui/Prefs.svelte'
   import Review from './ui/Review.svelte'
   import Cult from './ui/Cult.svelte'
   import FollowerInspector from './ui/FollowerInspector.svelte'
@@ -20,7 +21,7 @@
   import { selection } from './ui/selection.svelte'
 
   const schemaFor: SchemaFor = saveSchemaFor
-  initLanguage()
+  initLanguage((() => { try { return localStorage.getItem('lang') } catch { return null } })())
   const n = $derived(session.changes.length)
   let palette = $state(false)
   let rawFilter = $state('')
@@ -63,6 +64,7 @@
     {/if}
   {/snippet}
   {#snippet actions()}
+    <Prefs />
     {#if session.slot}
       <button class="btn" onclick={() => (palette = true)}><Search size={14} aria-hidden="true" />Search <kbd>⌘K</kbd></button>
       <button class="btn" onclick={() => (reviewing = true)}>{#if n}<span class="dot" aria-hidden="true"></span>{/if}{n} change{n === 1 ? '' : 's'}</button>
@@ -107,7 +109,7 @@
   .sep { color: var(--border-strong); }
   .file { font-size: 13px; color: var(--muted); }
   .tag { font-size: 12px; padding: 2px 8px; border-radius: var(--radius-6); background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); }
-  kbd { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  kbd { font-family: var(--mono); font-size: 11px; color: var(--muted); }
   .link { border: 0; background: none; padding: 0; color: inherit; text-decoration: underline; }
   .dot { width: 8px; height: 8px; border-radius: 4px; background: var(--warn); }
   .toast, .note { margin: 0 0 16px; padding: 10px 12px; border-radius: var(--radius-8); font-size: 14px; }
