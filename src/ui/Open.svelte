@@ -25,7 +25,7 @@
     error = null
     try {
       const listed = await listSlots(files, schemaFor)
-      changed = adopt(listed)
+      changed = await adopt(listed)
       slots = session.slots
       if (!listed.length) error = t('open.none')
     } finally { busy = false }
@@ -99,8 +99,8 @@
   {#if error}<p class="error" role="alert">{error}</p>{/if}
 
   {#each changed as pair (pair.was.slot)}
-    <p class="error" role="alert">{t('open.changedKept', { file: pair.was.slotFile.name, n: pendingFor(pair.was) })}
-      <button class="btn" onclick={() => useNew(pair)}>{t('open.useNew')}</button></p>
+    <p class="error" role="alert"><span id="changed-{pair.was.slot}">{t('open.changedKept', { file: pair.was.slotFile.name, n: pendingFor(pair.was) })}</span>
+      <button class="btn" aria-describedby="changed-{pair.was.slot}" onclick={() => useNew(pair)}>{t('open.useNew')}</button></p>
   {/each}
 
   {#if slots?.length}

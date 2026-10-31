@@ -61,10 +61,10 @@ test('a changed slot will not open; the open slot keeps its edits', async () => 
 test('choosing the same folder again keeps edits whatever the dates', async () => {
   const picked = await syntheticFiles()
   const first = await listSlots(dated(picked, 1000), loadSchema), second = await listSlots(dated(picked, 2000), loadSchema)
-  adopt(first)
+  await adopt(first)
   await openSlot(first[0], loadSchema)
   rename(0, 'Gerald')
-  expect(adopt(second)).toEqual([])
+  expect(await adopt(second)).toEqual([])
   expect([pendingFor(second[0]), session.entry === second[0]]).toEqual([1, true])
   await openSlot(second[0], loadSchema)
   expect(session.changes.length).toBe(1)
@@ -84,16 +84,43 @@ test('restoring kept edits whose file changed warns but restores', async () => {
 test('a slot whose file changed under pending edits keeps the opened copy until dropped', async () => {
   const picked = await syntheticFiles()
   const [was] = await listSlots(picked, loadSchema)
-  adopt([was])
+  await adopt([was])
   await openSlot(was, loadSchema)
   rename(0, 'Gerald')
   const newer = await saveSave({ ...session.slot!, data: { kind: 'msgpack', root: session.root! } })
   const [now] = await listSlots([new File([newer as Uint8Array<ArrayBuffer>], picked[0].name), picked[1]], loadSchema)
-  const pairs = adopt([now])
+  unreadable(was.slotFile)
+  const pairs = await adopt([now])
   expect(pairs.map(p => [p.was === was, p.now === now])).toEqual([[true, true]])
   expect([session.slots[0] === was, pendingFor(was)]).toEqual([true, 1])
   discard(was, now)
   expect([session.slot, pendingFor(was), session.slots[0] === now]).toEqual([null, 0, true])
+})
+
+test('another folder with other contents under the same names is listed; the edits stay kept', async () => {
+  const picked = await syntheticFiles()
+  const [a] = await listSlots(picked, loadSchema)
+  await adopt([a])
+  await openSlot(a, loadSchema)
+  rename(0, 'Gerald')
+  const other = await saveSave({ ...session.slot!, data: { kind: 'msgpack', root: session.root! } })
+  const [b] = await listSlots([new File([other as Uint8Array<ArrayBuffer>], picked[0].name), picked[1]], loadSchema)
+  expect(await adopt([b])).toEqual([])
+  expect([session.slots[0] === b, session.entry === a, pendingFor(a), pendingFor(b)]).toEqual([true, true, 1, 0])
+})
+
+test('a slot left with no changes whose file then changed will not open', async () => {
+  const [a, b] = await twoSlots()
+  await openSlot(a, loadSchema)
+  await openSlot(b, loadSchema)
+  unreadable(a.slotFile)
+  expect(await openSlot(a, loadSchema).catch(e => e)).toBeInstanceOf(SaveFormatError)
+  expect(session.entry).toBe(b)
+})
+
+test('only translated errors reach the player as they are', () => {
+  expect(failure(new SaveFormatError("Can't write json data as pc-mp."), 'slot_0.mp')).toContain('slot_0.mp')
+  expect(failure(new SaveFormatError('Said for the player', true), 'slot_0.mp')).toBe('Said for the player')
 })
 
 test('reopening the open slot keeps newer edits than an older stash', async () => {

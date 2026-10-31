@@ -116,7 +116,11 @@ export async function openSlot(entry: SlotEntry, schemaFor: SchemaFor): Promise<
   // The open slot again, maybe from a new listing: a stash of it would be older than what is open.
   if (session.entry && keyOf(session.entry) === key) { Object.assign(session, { entry, error: null }); return }
   const changed = await changedOnDisk(entry), back = kept.get(key)
-  if (changed && !back) throw new SaveFormatError(t('open.changed', { file: entry.slotFile.name }))
+  // A stash with no changes holds nothing worth keeping over the newer file.
+  if (changed && !back?.changes.length) {
+    kept.delete(key)
+    throw new SaveFormatError(t('open.changed', { file: entry.slotFile.name }), true)
+  }
   const next = back ?? await load(entry, schemaFor)
   if (session.entry && session.slot) {
     const { slot, meta, schema, schemaExact, saveVersion, original, root, changes, undone, readOnly } = session
@@ -128,15 +132,17 @@ export async function openSlot(entry: SlotEntry, schemaFor: SchemaFor): Promise<
 
 /** Takes a new listing of the folder. A slot whose file changed while it has pending edits keeps the copy that was
  * opened; each such slot is returned with its new entry, for the player to keep or drop the edits. */
-export function adopt(fresh: SlotEntry[]): { was: SlotEntry; now: SlotEntry }[] {
-  const changed: { was: SlotEntry; now: SlotEntry }[] = []
-  session.slots = fresh.map(n => {
-    if (session.entry && keyOf(session.entry) === keyOf(n)) return (session.entry = n)
+export async function adopt(fresh: SlotEntry[]): Promise<{ was: SlotEntry; now: SlotEntry }[]> {
+  const changed: { was: SlotEntry; now: SlotEntry }[] = [], slots: SlotEntry[] = []
+  for (const n of fresh) {
+    if (session.entry && keyOf(session.entry) === keyOf(n)) { slots.push(session.entry = n); continue }
     const o = session.slots.find(s => s.slot === n.slot)
-    if (!o || keyOf(o) === keyOf(n) || !pendingFor(o)) return n
+    // Another folder leaves the old file reading as it did; only a rewrite of that file is the same slot changing.
+    if (!o || keyOf(o) === keyOf(n) || !pendingFor(o) || !await changedOnDisk(o)) { slots.push(n); continue }
     changed.push({ was: o, now: n })
-    return o
-  })
+    slots.push(o)
+  }
+  session.slots = slots
   return changed
 }
 
@@ -149,7 +155,7 @@ export function discard(was: SlotEntry, now: SlotEntry) {
 }
 
 /** What to tell the player when a file couldn't be opened or exported: never the browser's own text. */
-export const failure = (e: unknown, file: string) => (e instanceof SaveFormatError ? e.message : t('file.failed', { file }))
+export const failure = (e: unknown, file: string) => (e instanceof SaveFormatError && e.translated ? e.message : t('file.failed', { file }))
 
 function settle(changes: Change[], undone: Change[]) {
   session.root = replay(session.schema!, session.original!, changes)
