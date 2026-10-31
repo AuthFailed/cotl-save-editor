@@ -19,7 +19,8 @@ test('pickSchema: exact, newest older, or the closest with exact false', () => {
 
 test('names and fields resolve', () => {
   expect(nameAt(schema, 'DataManager', 1109)).toBe('Followers')
-  expect(nameAt(schema, 'DataManager', 1396)).toBe('#1396')
+  expect(nameAt(schema, 'DataManager', 1396)).toBe('ShrineGhostJuiceInAir')
+  expect(nameAt(schema, 'DataManager', 5000)).toBe('#5000')
   expect(nameAt(schema, 'NoSuchType', 3)).toBe('#3')
   expect(field(schema, 'DataManager', 'TwitchSettings')?.key).toBe(325)
   expect(field(schema, 'DataManager', 'Nope')).toBeUndefined()
