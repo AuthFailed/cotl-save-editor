@@ -15,3 +15,5 @@ export const repeat = (s: string, times: number) => new TextEncoder().encode(s.r
 // Real saves are personal: they live in tests/saves/ (git-ignored), and tests that need them skip without them.
 export const hasSaves = existsSync(saves + 'slot_0.mp')
 export const readSave = (name: string) => new Uint8Array(readFileSync(saves + name))
+
+export const gzip = async (bytes: Uint8Array) => new Uint8Array((await import('node:zlib')).gzipSync(bytes))
