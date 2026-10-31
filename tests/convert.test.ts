@@ -27,6 +27,16 @@ test('pc slot to switch drops the last element and nulls TwitchSettings', () => 
   expect([sw.format, sw.wrap, root.length, root[325]]).toEqual(['switch-mp', null, 1395, null])
 })
 
+test('lengths are relative: a 1397-element PC slot becomes 1396 on Switch', () => {
+  const pc = { ...openedSwitchSlot(1397), format: 'pc-mp' as const, beta: false }
+  expect(rootOf(convert(pc, 'switch-mp', schema)).length).toBe(1396)
+  expect(rootOf(convert(openedSwitchSlot(1396), 'pc-mp', schema)).length).toBe(1397)
+})
+
+test('a slot too short for TwitchSettings throws instead of leaving holes', () => {
+  expect(() => convert(openedSwitchSlot(100), 'pc-mp', schema)).toThrow(SaveFormatError)
+})
+
 test('a meta file only changes wrapper', () => {
   const meta = { ...openedSwitchSlot(31), name: 'meta_0MP', file: 'meta' as const }
   expect(rootOf(convert(meta, 'pc-mp', schema)).length).toBe(31)

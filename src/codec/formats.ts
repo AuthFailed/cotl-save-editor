@@ -39,10 +39,12 @@ const looksLikeJson = (b: Uint8Array) => {
 function parseJson(bytes: Uint8Array): { root: unknown; exact: boolean } {
   let lossy = false
   try {
-    // TextDecoder drops a leading BOM. A 64-bit integer past 2^53 would come back rounded: not safe to write.
-    // (Larger magnitudes are floats, like float.MinValue as -3.40282347E+38.)
-    const root = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes), (_, v) => {
-      if (typeof v === 'number' && Number.isInteger(v) && !Number.isSafeInteger(v) && Math.abs(v) < 2 ** 64) lossy = true
+    // TextDecoder drops a leading BOM. An integer literal past 2^53 would come back rounded: not safe to write.
+    // Floats are fine (float.MinValue is written -3.40282347E+38); where the engine shows the source text it tells
+    // them apart, else anything up to 2^64 (ulong.MaxValue parses to exactly 2^64) counts as an integer.
+    const root = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes), (_, v, ctx?: { source?: string }) => {
+      if (typeof v === 'number' && Number.isInteger(v) && !Number.isSafeInteger(v) &&
+        (ctx?.source !== undefined ? /^-?\d+$/.test(ctx.source) : Math.abs(v) <= 2 ** 64)) lossy = true
       return v
     })
     return { root, exact: !lossy }

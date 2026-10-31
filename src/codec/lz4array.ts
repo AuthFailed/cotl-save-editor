@@ -18,6 +18,12 @@ export function unwrapBlockArray(payload: Uint8Array): Uint8Array | null {
   const blocks = outer.v.slice(1)
   if (blocks.length !== sizes.length || blocks.some(b => b.t !== 'bin'))
     throw new SaveFormatError(`The save lists ${sizes.length} compressed blocks but holds ${blocks.length}.`)
+  // LZ4 expands at most ~255x; a size beyond that is damage, and would otherwise try to allocate it.
+  blocks.forEach((b, i) => {
+    const n = sizes[i]
+    if (!Number.isInteger(n) || n < 0 || n > 255 * (b as Extract<MpNode, { t: 'bin' }>).v.length + 16)
+      throw new SaveFormatError(`A compressed block claims an impossible size (${n}).`)
+  })
   const parts = blocks.map((b, i) => lz4Decompress((b as Extract<MpNode, { t: 'bin' }>).v, sizes[i]))
   const body = new Uint8Array(sizes.reduce((a, b) => a + b, 0))
   let at = 0

@@ -4,7 +4,7 @@ import { SaveFormatError } from '../src/codec/errors'
 import { openSave, saveSave, type Opened } from '../src/codec/formats'
 import { wrapBlockArray } from '../src/codec/lz4array'
 import { encodeMp, toPlain, type MpNode } from '../src/codec/msgpack'
-import { gzip, hasSaves, randomBytes, readSave } from './util'
+import { fromHex, gzip, hasSaves, randomBytes, readSave } from './util'
 
 const tree: MpNode = { t: 'arr', w: 'a16', v: [{ t: 'bool', v: true }, { t: 'str', w: 'fix', v: 'Lamb' }, { t: 'int', w: 'u16', v: 5 }] }
 const rootOf = (o: Opened) => toPlain((o.data as Extract<Opened['data'], { kind: 'msgpack' }>).root) as any[]
@@ -46,6 +46,15 @@ test('plain JSON and encrypted JSON', async () => {
 
 test('a JSON integer beyond 2^53 makes the save inexact', async () => {
   expect((await openSave('slot_1.json', new TextEncoder().encode('{"id":9007199254740993}'))).exact).toBe(false)
+})
+
+test('ulong.MaxValue, which rounds to exactly 2^64, is lossy', async () => {
+  expect((await openSave('slot_1.json', new TextEncoder().encode('{"id":18446744073709551615}'))).exact).toBe(false)
+})
+
+test('a damaged block size throws SaveFormatError', async () => {
+  await expect(openSave('slot_0MP', fromHex('4d5092d462ffc4021041'))).rejects.toThrow(SaveFormatError)
+  await expect(openSave('slot_0MP', fromHex('4d5092d562cdffffc4021041'))).rejects.toThrow(SaveFormatError)
 })
 
 test('float.MinValue, as the game writes it, is not a lossy integer', async () => {
