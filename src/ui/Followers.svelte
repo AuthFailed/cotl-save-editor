@@ -8,7 +8,7 @@
   import { followers, skinId, type FollowerView, type Status } from '../model/views'
   import { t } from '../i18n/i18n.svelte'
   import StatusChip from './StatusChip.svelte'
-  import { selection } from './selection.svelte'
+  import { key, selection, tickedOf } from './selection.svelte'
   import { route } from './route.svelte'
 
   want('skins')
@@ -24,15 +24,15 @@
     `${f.name} ${f.skin} ${f.traits.map(t => nameOf('traits', t)).join(' ')}`.toLowerCase().includes(query.trim().toLowerCase())))
   const skins = $derived(new Set(cat.maps.skins?.keys() ?? []))
   const portrait = (f: FollowerView) => { const id = skinId(f.skin, skins, cat.variants); return id ? entry('skins', id)?.thumb ?? null : null }
-  const isSelected = (f: FollowerView) => selection.follower === f.id
-  const picked = $derived(all.filter(f => selection.ticked.includes(f.id)))
+  const isSelected = (f: FollowerView) => selection.follower === key(f)
+  const picked = $derived(tickedOf(all))
   // Ticks last while the page is open, as they did when the page held them.
   onDestroy(() => (selection.ticked = []))
 
   function bulk(values: Record<string, number>, label: string) {
     for (const f of picked) push(() => edits.setFollowerFields(session.schema!, session.root!, f, values, label))
   }
-  const toggle = (f: FollowerView, on: boolean) => (selection.ticked = on ? [...selection.ticked, f.id] : selection.ticked.filter(id => id !== f.id))
+  const toggle = (f: FollowerView, on: boolean) => (selection.ticked = on ? [...selection.ticked, key(f)] : selection.ticked.filter(k => k !== key(f)))
 </script>
 
 <section>
@@ -64,12 +64,12 @@
         {#each shown as f (`${f.dead}:${f.index}`)}
           {@const src = portrait(f)}
           <tr class:selected={isSelected(f)}>
-            <td class="check"><input type="checkbox" aria-label={t('fol.select', { name: f.name })} checked={selection.ticked.includes(f.id)} onchange={e => toggle(f, e.currentTarget.checked)} /></td>
+            <td class="check"><input type="checkbox" aria-label={t('fol.select', { name: f.name })} checked={selection.ticked.includes(key(f))} onchange={e => toggle(f, e.currentTarget.checked)} /></td>
             <td>
               <span class="who">
                 <Thumb {src} kind="skins" size={40} dim={f.dead} />
                 <span class="names">
-                  <button class="name" onclick={() => (selection.follower = f.id)}>{f.name}</button>
+                  <button class="name" onclick={() => (selection.follower = key(f))}>{f.name}</button>
                   <span class="sub">{nameOf('skins', skinId(f.skin, skins, cat.variants) ?? f.skin)} · {t('fol.days', { n: f.age })}</span>
                 </span>
               </span>

@@ -9,12 +9,12 @@
   import NumberField from './NumberField.svelte'
   import Picker from './Picker.svelte'
   import { t } from '../i18n/i18n.svelte'
-  import { selection } from './selection.svelte'
+  import { key, revived, selection } from './selection.svelte'
 
   want('skins')
   wantVariants()
   want('traits', true)
-  const f = $derived(session.root && session.schema ? followers(session.schema, session.root).find(x => x.id === selection.follower) : undefined)
+  const f = $derived(session.root && session.schema ? followers(session.schema, session.root).find(x => key(x) === selection.follower) : undefined)
   const skins = $derived(new Set(cat.maps.skins?.keys() ?? []))
   const form = $derived(f ? skinId(f.skin, skins, cat.variants) : null)
   let picking = $state<'form' | 'trait' | null>(null)
@@ -33,7 +33,10 @@
     if (!confirm(t('insp.removeConfirm', { name: f!.name }))) return
     push(() => edits.removeFollower(session.schema!, session.root!, who()))
   }
-  const revive = () => push(() => edits.revive(session.schema!, session.root!, f!.index))
+  function revive() {
+    const { id, index } = f!
+    if (push(() => edits.revive(session.schema!, session.root!, index))) revived(id)
+  }
 </script>
 
 {#if f}
