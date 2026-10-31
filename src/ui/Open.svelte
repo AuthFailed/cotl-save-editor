@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Check, Copy, FolderOpen, Upload } from '@lucide/svelte'
-  import { listSlots, openSlot, pendingFor, session, type SchemaFor, type SlotEntry } from '../model/session.svelte'
+  import { adopt, discard, failure, listSlots, openSlot, pendingFor, session, type SchemaFor, type SlotEntry } from '../model/session.svelte'
   import { t, type Key } from '../i18n/i18n.svelte'
   import { go } from './route.svelte'
 
@@ -18,14 +18,16 @@
   let dragging = $state(false)
   let copied = $state<string | null>(null)
   let error = $state<string | null>(null)
+  let changed = $state<{ was: SlotEntry; now: SlotEntry }[]>([])
 
   async function take(files: File[]) {
     busy = true
     error = null
     try {
-      slots = await listSlots(files, schemaFor)
-      session.slots = slots
-      if (!slots.length) error = t('open.none')
+      const listed = await listSlots(files, schemaFor)
+      changed = await adopt(listed)
+      slots = session.slots
+      if (!listed.length) error = t('open.none')
     } finally { busy = false }
   }
 
@@ -49,8 +51,19 @@
   }
 
   async function open(entry: SlotEntry) {
-    await openSlot(entry, schemaFor)
-    go('overview')
+    try {
+      await openSlot(entry, schemaFor)
+      go('overview')
+    } catch (e) {
+      error = failure(e, entry.slotFile.name)
+    }
+  }
+
+  function useNew(pair: { was: SlotEntry; now: SlotEntry }) {
+    if (!confirm(t('open.discard', { n: pendingFor(pair.was) }))) return
+    discard(pair.was, pair.now)
+    slots = session.slots
+    changed = changed.filter(c => c !== pair)
   }
 
   async function copy(path: string) {
@@ -84,6 +97,11 @@
   </div>
 
   {#if error}<p class="error" role="alert">{error}</p>{/if}
+
+  {#each changed as pair (pair.was.slot)}
+    <p class="error" role="alert"><span id="changed-{pair.was.slot}">{t('open.changedKept', { file: pair.was.slotFile.name, n: pendingFor(pair.was) })}</span>
+      <button class="btn" aria-describedby="changed-{pair.was.slot}" onclick={() => useNew(pair)}>{t('open.useNew')}</button></p>
+  {/each}
 
   {#if slots?.length}
     <h2>{t('open.slots')}</h2>

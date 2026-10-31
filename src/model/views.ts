@@ -7,7 +7,15 @@ export type Need = 'satiation' | 'starvation' | 'rest' | 'illness' | 'exhaustion
 export interface FollowerView {
   index: number; dead: boolean; id: number; name: string; skin: string; level: number; age: number; lifeExpectancy: number
   loyalty: number; traits: string[]; needs: Record<Need, number>; status: Status
+  /** OldAge, which the game also keeps on the dead. */
+  old: boolean
+  /** For the dead: the first death flag set, else LeavingCult when set, else null (cause unknown). */
+  death: string | null
 }
+
+/** FollowerInfo's death flags, in the order a cause is shown. */
+export const DEATHS = ['DiedOfOldAge', 'DiedOfIllness', 'DiedOfStarvation', 'DiedOfInjury', 'FrozeToDeath', 'BurntToDeath', 'DiedFromOverheating',
+  'DiedFromLightning', 'DiedFromMurder', 'DiedFromDeadlyDish', 'DiedFromRot', 'DiedInPrison', 'DiedFromMissionary', 'DiedFromTwitchChat']
 
 export const enumName = (schema: SaveSchema, name: string, value: unknown) => schema.enums[name]?.[String(value)] ?? String(value)
 export function enumValue(schema: SaveSchema, name: string, id: string): number | undefined {
@@ -25,6 +33,10 @@ const listAt = (schema: SaveSchema, root: MpNode, name: string): MpNode[] => {
 }
 export const listLength = (schema: SaveSchema, root: MpNode, name: string) => listAt(schema, root, name).length
 
+/** Follower IDs the game remembers recruiting as unique, so it won't offer them again. */
+export const uniqueIds = (schema: SaveSchema, root: MpNode) => new Set(['Followers_RecruitedUnique_IDs', 'UniqueFollowersRecruited', 'LeaderFollowersRecruited']
+  .flatMap(n => listAt(schema, root, n).map(x => Number(toPlain(x)))))
+
 function follower(schema: SaveSchema, node: MpNode, index: number, dead: boolean): FollowerView {
   const v = (name: string) => {
     const f = field(schema, 'FollowerInfo', name)
@@ -40,6 +52,7 @@ function follower(schema: SaveSchema, node: MpNode, index: number, dead: boolean
     index, dead, id: num('ID'), name: String(v('_name') ?? ''), skin: String(v('SkinName') ?? ''), level: num('XPLevel'),
     age: num('Age'), lifeExpectancy: num('LifeExpectancy'), loyalty: num('Adoration'),
     traits: ((v('Traits') as unknown[] | null) ?? []).map(t => enumName(schema, traitEnum, t)), needs, status,
+    old: v('OldAge') === true, death: dead ? DEATHS.find(d => v(d) === true) ?? (v('LeavingCult') === true ? 'LeavingCult' : null) : null,
   }
 }
 
@@ -76,12 +89,11 @@ export function unlocked(schema: SaveSchema, root: MpNode, fieldName: string): S
 
 export const value = (schema: SaveSchema, root: MpNode, name: string) => plain(schema, root, [name])
 
-/** A follower's SkinName as an API skin id: exact, else without its variant number (Unicorn2 → Unicorn). */
+/** A follower's SkinName as an API skin id: through the published variants when loaded, else a guess (Unicorn2 → Unicorn). */
 // The API names a form after its first Spine skin, with anything but letters, digits, _ and - turned into _ (Fennec_Fox);
-// a save names the variant it uses (Fennec Fox3).
+// a save names the variant it uses (Fennec Fox3). Without variants (offline, an old cache) the guess keeps portraits showing.
 export function skinId(name: string, api: Set<string>, variants?: Map<string, string>): string | null {
-  const exact = variants?.get(name)
-  if (exact && api.has(exact)) return exact
+  if (variants?.size) { const id = variants.get(name); return id && api.has(id) ? id : null }
   const clean = name.replace(/[^A-Za-z0-9_-]/g, '_')
   for (const id of [name, name.replace(/\d+$/, ''), clean, clean.replace(/\d+$/, '')]) if (api.has(id)) return id
   return null

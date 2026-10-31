@@ -1,7 +1,8 @@
 <script lang="ts">
+  import { untrack } from 'svelte'
   import { saveSchemaFor } from './data/api'
   import { cat, initLanguage } from './data/catalogs.svelte'
-  import { redo, session, undo, type SchemaFor } from './model/session.svelte'
+  import { changedOnDisk, failure, keyOf, redo, session, undo, unexported, type SchemaFor, type SlotEntry } from './model/session.svelte'
   import Collection from './ui/Collection.svelte'
   import CommandPalette from './ui/CommandPalette.svelte'
   import Raw from './ui/Raw.svelte'
@@ -22,17 +23,23 @@
   import Overview from './ui/Overview.svelte'
   import Shell from './ui/Shell.svelte'
   import { go, route } from './ui/route.svelte'
-  import { selection } from './ui/selection.svelte'
+  import { clear, prune, selection } from './ui/selection.svelte'
   import { RTL, t } from './i18n/i18n.svelte'
+  import { compare } from './schema/schema'
 
   const schemaFor: SchemaFor = saveSchemaFor
   initLanguage((() => { try { return localStorage.getItem('lang') } catch { return null } })())
   const n = $derived(session.changes.length)
+  // Kept edits of another folder's slots still ask before leaving, but the tab counts only what the switcher shows.
+  const pending = $derived(unexported(true))
+  const title = document.title
   let palette = $state(false)
   const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
   let rawFilter = $state('')
   let reviewing = $state(false)
   let exported = $state<string[] | null>(null)
+  // The slot whose file changed on disk after it was opened, until the player exports anyway or chooses the folder again.
+  let stale = $state.raw<SlotEntry | null>(null)
   function keys(e: KeyboardEvent) {
     const mod = e.metaKey || e.ctrlKey
     if (mod && e.key.toLowerCase() === 'k' && session.slot) { e.preventDefault(); palette = true }
@@ -41,8 +48,12 @@
     if (mod && e.key.toLowerCase() === 'z' && session.slot && !typing) { e.preventDefault(); if (e.shiftKey) redo(); else undo() }
   }
 
-  async function exportNow() {
-    if (session.slot?.beta && !confirm(t('export.betaConfirm', { file: session.slot.name }))) return
+  async function exportNow(anyway = false) {
+    if (!anyway) {
+      if (session.slot?.beta && !confirm(t('export.betaConfirm', { file: session.slot.name }))) return
+      if (await changedOnDisk(session.entry!)) { stale = session.entry; return }
+    }
+    stale = null
     try {
       const { files } = await exportSlot()
       for (const f of files) {
@@ -54,16 +65,22 @@
       }
       exported = files.map(f => f.name)
     } catch (e) {
-      session.error = e instanceof Error ? e.message : String(e)
+      session.error = failure(e, session.slot?.name ?? '')
     }
   }
   // The page's language and direction follow the picker (screen readers, fonts, Arabic right to left).
   $effect(() => { document.documentElement.lang = cat.lang; document.documentElement.dir = RTL.has(cat.lang) ? 'rtl' : 'ltr' })
+  $effect(() => { document.title = pending ? `• ${t('slot.pending', { n: pending })} · ${title}` : title })
+  // By slot key, not entry: the same slot comes back as a new entry when its folder is chosen again.
+  const slotKey = $derived(session.entry ? keyOf(session.entry) : null)
+  // Before rendering, so no frame shows another slot's ticks or a follower who is gone.
+  $effect.pre(() => { void slotKey; untrack(clear) })
+  $effect.pre(() => { const { schema, root } = session; if (schema && root) untrack(() => prune(schema, root)) })
   // A page that needs a save sends you to Open when none is.
   $effect(() => { if (!session.slot && route.page !== 'open') go('open') })
 </script>
 
-<Shell opened={!!session.slot} inspector={route.page === 'followers' && selection.follower ? follower : undefined}>
+<Shell opened={!!session.slot} inspector={route.page === 'followers' && selection.follower != null ? follower : undefined}>
   {#snippet status()}
     {#if session.slot}
       <span class="sep" aria-hidden="true">/</span>
@@ -78,19 +95,28 @@
         <Search size={16} aria-hidden="true" /><span class="hint">{t('top.searchHint')}</span><kbd>{mac ? '⌘K' : 'Ctrl K'}</kbd>
       </button>
       <button class="btn" onclick={() => (reviewing = true)}>{#if n}<span class="dot" aria-hidden="true"></span>{/if}{t('top.changes', { n })}</button>
-      <button class="btn primary" disabled={!n || session.readOnly} onclick={exportNow}><Download size={16} aria-hidden="true" />{t('top.export')}</button>
+      <button class="btn primary" disabled={!n || session.readOnly} onclick={() => exportNow()}><Download size={16} aria-hidden="true" />{t('top.export')}</button>
     {/if}
   {/snippet}
   {#if session.error}<p class="toast" role="alert">{session.error}</p>{/if}
   {#if session.slot && route.page !== 'open'}
     {#if session.readOnly}
-      <Banner>{t('banner.readOnly')}
+      <Banner>{session.misfit
+        ? t('banner.misfit', { schema: session.schema?.gameVersion ?? '', fields: session.misfit.slice(0, 3).join(', ') })
+        : t('banner.readOnly')}
         <a href={readOnlyReport(session.slot.format, session.saveVersion)} target="_blank" rel="noreferrer">{t('banner.report')}</a> {t('banner.reportTail')}</Banner>
     {/if}
     {#if !session.schemaExact}
-      <Banner>{t('banner.schema', { schema: session.schema?.gameVersion ?? '', save: session.saveVersion ?? t('banner.unknownVersion') })}</Banner>
+      <Banner>{session.saveVersion && session.schema && compare(session.saveVersion, session.schema.gameVersion) < 0
+        ? t('banner.schemaOlder', { schema: session.schema.gameVersion, save: session.saveVersion })
+        : t('banner.schema', { schema: session.schema?.gameVersion ?? '', save: session.saveVersion ?? t('banner.unknownVersion') })}</Banner>
     {/if}
     {#if session.slot.beta}<Banner>{t('banner.beta')}</Banner>{/if}
+    {#if stale === session.entry}
+      <Banner>{t('export.changed', { file: session.slot.name })}
+        <button class="link" onclick={() => exportNow(true)}>{t('export.anyway')}</button>
+        <button class="link" onclick={() => { stale = null; go('open') }}>{t('export.reopen')}</button></Banner>
+    {/if}
     {#if exported}
       <Banner tone="info">{t('banner.exported', { files: exported.join(t('banner.and')), file: exported[0] })}
         <button class="link" onclick={() => (exported = null)}>{t('banner.dismiss')}</button></Banner>
@@ -108,7 +134,7 @@
   {/if}
 </Shell>
 
-<svelte:window onkeydown={keys} />
+<svelte:window onkeydown={keys} onbeforeunload={e => { if (unexported()) e.preventDefault() }} />
 {#if detail.open}<DetailDialog />{/if}
 {#if reviewing}<Review onClose={() => (reviewing = false)} onExport={exportNow} />{/if}
 {#if palette}<CommandPalette onClose={() => (palette = false)} onRaw={f => { rawFilter = f; go('raw') }} />{/if}

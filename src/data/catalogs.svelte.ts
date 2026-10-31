@@ -8,6 +8,8 @@ class Catalogs {
   maps = $state.raw<Partial<Record<Kind, Map<string, Entry>>>>({})
   /** A save's form name (a Spine skin) → its API skin id, from the API's variants. */
   variants = $state.raw(new Map<string, string>())
+  /** An API skin id → the skin names a save may hold for it, for forms that publish them. */
+  forms = $state.raw(new Map<string, string[]>())
 }
 export const cat = new Catalogs()
 const asked = new Set<string>()
@@ -28,7 +30,10 @@ export function wantVariants() {
   if (variantsAsked) return
   variantsAsked = true
   entities('skins').then(l => {
-    cat.variants = new Map((l ?? []).flatMap(e => ((e.variants as string[] | undefined) ?? []).map(v => [v, e.id] as [string, string])))
+    if (!l) { variantsAsked = false; cat.offline = true; return }
+    const forms = l.map(e => [e.id, (e.variants as string[] | undefined) ?? []] as [string, string[]]).filter(([, v]) => v.length)
+    cat.forms = new Map(forms)
+    cat.variants = new Map(forms.flatMap(([id, vs]) => vs.map(v => [v, id] as [string, string])))
   })
 }
 

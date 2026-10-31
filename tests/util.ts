@@ -17,3 +17,7 @@ export const hasSaves = existsSync(saves + 'slot_0.mp')
 export const readSave = (name: string) => new Uint8Array(readFileSync(saves + name))
 
 export const gzip = async (bytes: Uint8Array) => new Uint8Array((await import('node:zlib')).gzipSync(bytes))
+
+/** What Chromium does once a picked file is rewritten on disk, or only touched. */
+export const unreadable = (f: File) =>
+  Object.defineProperty(f, 'arrayBuffer', { value: () => Promise.reject(new DOMException('', 'NotReadableError')) })

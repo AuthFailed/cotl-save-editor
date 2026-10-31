@@ -1,15 +1,20 @@
 <script lang="ts">
   import { ChevronDown, FolderOpen } from '@lucide/svelte'
   import { t } from '../i18n/i18n.svelte'
-  import { openSlot, pendingFor, session, type SchemaFor, type SlotEntry } from '../model/session.svelte'
+  import { failure, keyOf, openSlot, pendingFor, session, type SchemaFor, type SlotEntry } from '../model/session.svelte'
   import { go } from './route.svelte'
 
   let { schemaFor }: { schemaFor: SchemaFor } = $props()
   let open = $state(false)
-  const current = (s: SlotEntry) => s.slotFile === session.entry?.slotFile
+  const current = (s: SlotEntry) => !!session.entry && keyOf(s) === keyOf(session.entry)
   async function pick(s: SlotEntry) {
     open = false
-    if (!current(s)) await openSlot(s, schemaFor)
+    if (current(s)) return
+    try {
+      await openSlot(s, schemaFor)
+    } catch (e) {
+      session.error = failure(e, s.slotFile.name) // the open slot stays as it was
+    }
   }
 </script>
 

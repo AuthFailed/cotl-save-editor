@@ -4,12 +4,12 @@
   import { cat, nameOf, want, wantVariants } from '../data/catalogs.svelte'
   import { t, type Key } from '../i18n/i18n.svelte'
   import { session } from '../model/session.svelte'
-  import { UNLOCKS, saveIdOf } from '../model/unlocks'
+  import { UNLOCKS, heldOf, saveIdOf } from '../model/unlocks'
   import { enumOf, followers, inventory, skinId, unlocked } from '../model/views'
   import { nameAt } from '../schema/schema'
   import { detail } from './detail.svelte'
   import { go, type Page } from './route.svelte'
-  import { selection } from './selection.svelte'
+  import { key as followerKey, selection } from './selection.svelte'
   import Thumb from './Thumb.svelte'
 
   let { onClose, onRaw }: { onClose: () => void; onRaw: (field: string) => void } = $props()
@@ -50,7 +50,7 @@
       const form = skinId(f.skin, skins, cat.variants)
       return { group: t('cmd.followers'), label: f.name, sub: [form ? nameOf('skins', form) : f.skin, f.dead ? t('status.Dead') : ''].filter(Boolean).join(' · '),
         thumb: form ? lists.skins?.find(e => e.id === form)?.thumb : null, kind: 'skins',
-        run: () => { go('followers'); selection.follower = { index: f.index, dead: f.dead } } }
+        run: () => { go('followers'); selection.follower = followerKey(f) } }
     }), 8)
 
     const have = new Map(inventory(s, r).map(i => [i.id, i.quantity]))
@@ -65,7 +65,7 @@
       const enumName = enumOf(s, u.field)
       const values = enumName ? new Set(Object.values(s.enums[enumName] ?? {})) : null
       add((lists[u.kind] ?? []).filter(e => (u.include?.(e) ?? true) && (!values || values.has(saveIdOf(u, e))) && match(nameIn(e), e.id)).map(e => ({
-        group: tab(u.tab), label: nameIn(e), sub: owned.has(saveIdOf(u, e)) ? t('common.owned') : t('common.locked'), thumb: e.thumb, kind: u.kind,
+        group: tab(u.tab), label: nameIn(e), sub: heldOf(u, e, owned) !== undefined ? t('common.owned') : t('common.locked'), thumb: e.thumb, kind: u.kind,
         run: () => { go(u.page, u.tab, nameIn(e)); detail.open = { kind: u.kind, id: e.id } },
       })), 4)
     }

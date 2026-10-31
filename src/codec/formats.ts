@@ -29,7 +29,7 @@ const prefixed = (head: number[], body: Uint8Array) => {
   out.set(body, head.length)
   return out
 }
-const sameBytes = (a: Uint8Array, b: Uint8Array) => a.length === b.length && a.every((x, i) => x === b[i])
+export const sameBytes = (a: Uint8Array, b: Uint8Array) => a.length === b.length && a.every((x, i) => x === b[i])
 
 const looksLikeJson = (b: Uint8Array) => {
   const at = startsWith(b, [0xef, 0xbb, 0xbf]) ? 3 : 0

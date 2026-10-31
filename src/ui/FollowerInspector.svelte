@@ -1,43 +1,58 @@
 <script lang="ts">
-  import { Copy, HeartPulse, Info, Plus, Trash2, X } from '@lucide/svelte'
+  import { untrack } from 'svelte'
+  import { Copy, DoorOpen, HeartPulse, Info, Plus, Skull, Trash2, X } from '@lucide/svelte'
   import { detail } from './detail.svelte'
   import Thumb from './Thumb.svelte'
   import { cat, entry, nameOf, want, wantVariants } from '../data/catalogs.svelte'
-  import { edits } from '../model/edits'
+  import { CAUSES, edits } from '../model/edits'
+  import type { Change } from '../model/ops'
   import { push, session } from '../model/session.svelte'
-  import { followers, skinId } from '../model/views'
+  import { followers, skinId, uniqueIds } from '../model/views'
   import NumberField from './NumberField.svelte'
   import Picker from './Picker.svelte'
-  import { t } from '../i18n/i18n.svelte'
-  import { selection } from './selection.svelte'
+  import { t, type Key } from '../i18n/i18n.svelte'
+  import { key, moved, selection } from './selection.svelte'
 
   want('skins')
   wantVariants()
   want('traits', true)
-  const f = $derived(session.root && session.schema && selection.follower
-    ? followers(session.schema, session.root).find(x => x.dead === selection.follower!.dead && x.index === selection.follower!.index) : undefined)
+  const f = $derived(session.root && session.schema ? followers(session.schema, session.root).find(x => key(x) === selection.follower) : undefined)
   const skins = $derived(new Set(cat.maps.skins?.keys() ?? []))
   const form = $derived(f ? skinId(f.skin, skins, cat.variants) : null)
   let picking = $state<'form' | 'trait' | null>(null)
   let nameText = $state('')
   $effect(() => { nameText = f?.name ?? '' })
+  // Set afresh for each follower, and when they die or come back; edits to the same follower leave the player's choice alone.
+  const dead = $derived(!!f?.dead)
+  let young = $state(false)
+  let cause = $state('')
+  $effect(() => { void selection.follower; void dead; young = untrack(() => f?.death === 'DiedOfOldAge'); cause = '' })
+  // Older game versions number the outfit, location and old-age enums differently, so a young revive leaves them alone.
+  const partial = $derived(young && !session.schemaExact)
+  const unique = $derived(!!f && uniqueIds(session.schema!, session.root!).has(f.id))
 
   const who = () => ({ index: f!.index, dead: f!.dead })
   const set = (name: string, v: number, what: string) => push(() => edits.setFollower(session.schema!, session.root!, who(), name, v, what))
   const all = (kind: 'skins' | 'traits') => [...(cat.maps[kind]?.values() ?? [])].sort((a, b) => a.name.localeCompare(b.name))
+  const forms = $derived(all('skins').filter(x => cat.forms.has(x.id)))
 
   function rename() {
     const v = nameText.trim()
     if (v && v !== f!.name) push(() => edits.rename(session.schema!, session.root!, who(), v))
   }
   function remove() {
-    if (!confirm(t('insp.removeConfirm', { name: f!.name }))) return
+    if (!confirm((unique ? t('insp.uniqueWarn', { name: f!.name }) + ' ' : '') + t(f!.dead ? 'insp.deleteDeadConfirm' : 'insp.deleteConfirm', { name: f!.name }))) return
     push(() => edits.removeFollower(session.schema!, session.root!, who()))
-    selection.follower = null
   }
   function revive() {
-    const living = followers(session.schema!, session.root!).filter(x => !x.dead).length
-    if (push(() => edits.revive(session.schema!, session.root!, f!.index))) selection.follower = { index: living, dead: false }
+    const { id, index } = f!
+    if (push(() => edits.revive(session.schema!, session.root!, index, young, session.schemaExact))) moved(id, false)
+  }
+  // Undoable, so only a unique follower, whom the game won't offer again, asks first.
+  function leave(make: (index: number) => Change, ask: Key) {
+    const { id, index, name } = f!
+    if (unique && !confirm(`${t('insp.uniqueWarn', { name })} ${t(ask, { name })}`)) return
+    if (push(() => make(index))) moved(id, true)
   }
 </script>
 
@@ -51,8 +66,8 @@
       <Thumb src={form ? `icons/skins/${form}.png` : null} kind="skins" size={96} dim={f.dead} alt="{f.name}, {form ? nameOf('skins', form) : f.skin}" />
       <div>
         <div class="title">{f.name}</div>
-        <div class="sub">{t('insp.id', { id: f.id })} · {nameOf('skins', form ?? f.skin)}{f.dead ? ` · ${t('insp.dead')}` : ''}</div>
-        <button class="btn" disabled={session.readOnly} onclick={() => (picking = 'form')}>{t('insp.changeForm')}</button>
+        <div class="sub">{t('insp.id', { id: f.id })} · {nameOf('skins', form ?? f.skin)}{f.dead ? ` · ${t(`death.${f.death ?? 'unknown'}` as Key)}` : ''}</div>
+        <button class="btn" disabled={session.readOnly || !forms.length} title={forms.length ? undefined : t('note.offline')} onclick={() => (picking = 'form')}>{t('insp.changeForm')}</button>
       </div>
     </div>
 
@@ -89,15 +104,29 @@
     </div>
 
     <div class="actions">
-      {#if f.dead}<button class="btn primary" disabled={session.readOnly} onclick={revive}><HeartPulse size={16} />{t('insp.revive')}</button>{/if}
+      {#if f.dead}
+        <label class="young"><input type="checkbox" bind:checked={young} disabled={session.readOnly} aria-describedby={partial ? 'young-partial' : undefined} />{t('insp.young')}</label>
+        {#if partial}<small id="young-partial" class="partial">{t('insp.youngPartial')}</small>{/if}
+        <button class="btn primary" disabled={session.readOnly} onclick={revive}><HeartPulse size={16} />{t('insp.revive')}</button>
+      {:else}
+        <div class="kill">
+          <label class="text">{t('insp.cause')}
+            <select class="input" bind:value={cause} disabled={session.readOnly}>
+              {#each CAUSES as c (c)}<option value={c}>{c ? t(`death.${c}` as Key) : t('insp.causeOther')}</option>{/each}
+            </select>
+          </label>
+          <button class="btn" disabled={session.readOnly} onclick={() => leave(i => edits.kill(session.schema!, session.root!, i, cause), 'insp.killAnyway')}><Skull size={16} />{t('insp.kill')}</button>
+        </div>
+        <button class="btn" disabled={session.readOnly} onclick={() => leave(i => edits.sendAway(session.schema!, session.root!, i), 'insp.sendAwayAnyway')}><DoorOpen size={16} />{t('insp.sendAway')}</button>
+      {/if}
       <button class="btn" disabled={session.readOnly} onclick={() => push(() => edits.clone(session.schema!, session.root!, who()))}><Copy size={16} />{t('insp.clone')}</button>
-      <button class="btn danger" disabled={session.readOnly} onclick={remove}><Trash2 size={16} />{t('insp.remove')}</button>
+      <button class="btn danger" disabled={session.readOnly} onclick={remove}><Trash2 size={16} />{t('insp.delete')}</button>
     </div>
   </div>
 
   {#if picking === 'form'}
-    <Picker kind="skins" title={t('insp.chooseForm')} search={t('insp.searchForms')} items={all('skins')} current={form ?? undefined} onClose={() => (picking = null)}
-      onPick={id => push(() => edits.setFollower(session.schema!, session.root!, who(), 'SkinName', id, t('what.form')))} />
+    <Picker kind="skins" title={t('insp.chooseForm')} search={t('insp.searchForms')} items={forms} current={form ?? undefined} onClose={() => (picking = null)}
+      onPick={id => push(() => edits.setForm(session.schema!, session.root!, who(), cat.forms.get(id)!, nameOf('skins', form ?? f.skin), nameOf('skins', id)))} />
   {:else if picking === 'trait'}
     <Picker tile kind="traits" title={t('insp.addTraitTitle')} search={t('insp.searchTraits')} items={all('traits').filter(x => !f.traits.includes(x.id))} onClose={() => (picking = null)}
       onPick={id => push(() => edits.addTrait(session.schema!, session.root!, who(), id, nameOf('traits', id)))} />
@@ -122,5 +151,9 @@
   .none { margin: 0; color: var(--muted); font-size: 14px; }
   .add { border-style: dashed; justify-content: center; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; }
-  .actions .btn { flex: 1; justify-content: center; }
+  .actions .btn { flex: 1; justify-content: center; white-space: nowrap; }
+  .kill { flex-basis: 100%; display: flex; gap: 8px; align-items: flex-end; }
+  .kill .text { flex: 1; min-width: 0; }
+  .young { flex-basis: 100%; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .partial { flex-basis: 100%; margin-top: -4px; color: var(--muted); font-size: 12px; }
 </style>
