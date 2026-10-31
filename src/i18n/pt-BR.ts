@@ -145,6 +145,9 @@ const ptBR: Dict = {
   'cmd.fields': "Campos do save",
   'cmd.followersWith': "Seguidores com {name}",
   'cmd.hint': "↑↓ para navegar · Enter para abrir · Esc para fechar",
+  'about.title': "Sobre",
+  'about.licenses': "Licenças de terceiros",
+  'about.gameNotice': "Estas licenças não abrangem a arte e os dados do jogo.",
 }
 
 export default ptBR

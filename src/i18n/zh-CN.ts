@@ -145,6 +145,9 @@ const zhCN: Dict = {
   'cmd.fields': "存档字段",
   'cmd.followersWith': "拥有 {name} 的教徒",
   'cmd.hint': "↑↓ 选择 · Enter 打开 · Esc 关闭",
+  'about.title': "关于",
+  'about.licenses': "第三方许可",
+  'about.gameNotice': "这些许可不涵盖游戏美术和数据。",
 }
 
 export default zhCN

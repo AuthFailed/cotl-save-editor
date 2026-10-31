@@ -173,6 +173,9 @@ const en = {
   'cmd.fields': "Save fields",
   'cmd.followersWith': "Followers with {name}",
   'cmd.hint': "↑↓ to move · Enter to open · Esc to close",
+  'about.title': "About",
+  'about.licenses': "Third-party licences",
+  'about.gameNotice': "Game art and data are not covered by these licences.",
 }
 
 export default en

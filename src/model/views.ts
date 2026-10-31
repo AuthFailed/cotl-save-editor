@@ -64,11 +64,13 @@ export function listKind(schema: SaveSchema, fieldName: string): { enum: string 
   return typeof e === 'string' && /int/.test(e) ? 'int' : null
 }
 
+export const enumOf = (schema: SaveSchema, fieldName: string) => { const k = listKind(schema, fieldName); return k && typeof k === 'object' ? k.enum : null }
+
 export function unlocked(schema: SaveSchema, root: MpNode, fieldName: string): Set<string> {
-  const kind = listKind(schema, fieldName)
+  const name = enumOf(schema, fieldName)
   return new Set(listAt(schema, root, fieldName).map(n => {
     const v = toPlain(n)
-    return kind && typeof kind === 'object' ? enumName(schema, kind.enum, v) : String(v)
+    return name ? enumName(schema, name, v) : String(v)
   }))
 }
 

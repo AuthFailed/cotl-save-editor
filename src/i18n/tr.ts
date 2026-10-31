@@ -145,6 +145,9 @@ const tr: Dict = {
   'cmd.fields': "Kayıt alanları",
   'cmd.followersWith': "{name} özellikli takipçiler",
   'cmd.hint': "↑↓ gezin · Enter aç · Esc kapat",
+  'about.title': "Hakkında",
+  'about.licenses': "Üçüncü taraf lisansları",
+  'about.gameNotice': "Bu lisanslar oyun görsellerini ve verilerini kapsamaz.",
 }
 
 export default tr

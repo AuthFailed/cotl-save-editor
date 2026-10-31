@@ -4,7 +4,7 @@ import { field, get, type SaveSchema } from '../schema/schema'
 import { nodeLike } from './build'
 import { t } from '../i18n/i18n.svelte'
 import type { Change, Op } from './ops'
-import { enumValue, followers, inventory, listKind, listLength, unlocked } from './views'
+import { enumOf, enumValue, followers, inventory, listKind, listLength, unlocked } from './views'
 
 type Who = number | { index: number; dead?: boolean }
 const ref = (who: Who) => (typeof who === 'number' ? { index: who, dead: false } : { dead: false, ...who })
@@ -112,10 +112,11 @@ export const edits = {
     return { label: t('ch.added', { n: quantity, name: name ?? id }), ops: [{ kind: 'insert', path: ['items'], index: listLength(schema, root, 'items'), node }] }
   },
 
-  unlock(schema: SaveSchema, root: MpNode, fieldName: string, enumName: string | null, ids: string[], label?: string): Change {
+  unlock(schema: SaveSchema, root: MpNode, fieldName: string, ids: string[], label?: string): Change {
     const have = unlocked(schema, root, fieldName)
     const missing = [...new Set(ids)].filter(id => !have.has(id))
     const kind = listKind(schema, fieldName)
+    const enumName = enumOf(schema, fieldName)
     const listType = field(schema, schema.roots.slot, fieldName)!.type
     const elem = typeof listType === 'object' && 'list' in listType ? listType.list : 'int32'
     const sample = get(schema, root, schema.roots.slot, [fieldName, '0'])?.node
@@ -128,7 +129,7 @@ export const edits = {
     return { label: label ?? (missing.length === 1 ? t('ch.unlocked', { name: missing[0] }) : t('ch.unlockedMany', { n: missing.length, field: fieldName })), ops }
   },
 
-  lock(schema: SaveSchema, root: MpNode, fieldName: string, enumName: string | null, id: string, label?: string): Change {
+  lock(schema: SaveSchema, root: MpNode, fieldName: string, id: string, label?: string): Change {
     const items = [...unlocked(schema, root, fieldName)]
     const index = items.indexOf(id)
     if (index < 0) return { label: label ?? t('ch.locked', { name: id }), ops: [] }

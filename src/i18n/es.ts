@@ -145,6 +145,9 @@ const es: Dict = {
   'cmd.fields': "Campos de la partida",
   'cmd.followersWith': "Adeptos con {name}",
   'cmd.hint': "↑↓ para moverte · Intro para abrir · Esc para cerrar",
+  'about.title': "Acerca de",
+  'about.licenses': "Licencias de terceros",
+  'about.gameNotice': "Estas licencias no cubren el arte ni los datos del juego.",
 }
 
 export default es

@@ -6,6 +6,7 @@
   import CommandPalette from './ui/CommandPalette.svelte'
   import Raw from './ui/Raw.svelte'
   import { Download, Search } from '@lucide/svelte'
+  import { readOnlyReport } from './model/report'
   import { exportSlot } from './model/export'
   import Banner from './ui/Banner.svelte'
   import Prefs from './ui/Prefs.svelte'
@@ -84,7 +85,7 @@
   {#if session.slot && route.page !== 'open'}
     {#if session.readOnly}
       <Banner>{t('banner.readOnly')}
-        <a href="https://github.com/AuthFailed/cotl-save-editor/issues" target="_blank" rel="noreferrer">{t('banner.report')}</a> {t('banner.reportTail')}</Banner>
+        <a href={readOnlyReport(session.slot.format, session.saveVersion)} target="_blank" rel="noreferrer">{t('banner.report')}</a> {t('banner.reportTail')}</Banner>
     {/if}
     {#if !session.schemaExact}
       <Banner>{t('banner.schema', { schema: session.schema?.gameVersion ?? '', save: session.saveVersion ?? t('banner.unknownVersion') })}</Banner>

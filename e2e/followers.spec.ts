@@ -33,7 +33,7 @@ test('the followers table filters, selects and edits', async ({ page }) => {
 })
 
 test('revive, bulk max needs, and the discard prompt', async ({ page }) => {
-  await openSynthetic(page, 'followers')
+  const folder = await openSynthetic(page, 'followers')
   const table = page.getByRole('table')
   await table.getByRole('button', { name: 'Thistle' }).click()
   await page.getByRole('complementary', { name: 'Inspector' }).getByRole('button', { name: 'Revive' }).click()
@@ -45,7 +45,7 @@ test('revive, bulk max needs, and the discard prompt', async ({ page }) => {
   await expect(table.getByRole('row').filter({ hasText: 'Pip' })).toContainText('Faithful')
   page.once('dialog', d => { expect(d.message()).toBe('Discard 3 unexported changes?'); d.dismiss() })
   await page.getByRole('link', { name: 'Open' }).click()
-  await page.getByLabel('Choose your saves folder').setInputFiles(await (await import('./fixtures')).savesFolder())
+  await page.getByLabel('Choose your saves folder').setInputFiles(folder)
   await page.getByRole('listitem').filter({ hasText: 'Test Cult' }).getByRole('button', { name: 'Open' }).click()
   await expect(changes(page)).toHaveText('3 changes')
 })

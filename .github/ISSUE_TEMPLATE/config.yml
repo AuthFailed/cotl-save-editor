@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Read the README
+    url: https://github.com/AuthFailed/cotl-save-editor#readme
+    about: Read how to use the editor before opening a report.

@@ -145,6 +145,9 @@ const fr: Dict = {
   'cmd.fields': "Champs de la sauvegarde",
   'cmd.followersWith': "Adeptes avec {name}",
   'cmd.hint': "↑↓ pour naviguer · Entrée pour ouvrir · Échap pour fermer",
+  'about.title': "À propos",
+  'about.licenses': "Licences tierces",
+  'about.gameNotice': "Ces licences ne couvrent pas les illustrations et les données du jeu.",
 }
 
 export default fr

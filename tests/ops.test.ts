@@ -25,15 +25,15 @@ test('an integer field refuses 7.5 with the path in the message', () => {
 })
 
 test('unlocking into a nil list creates the list; unlocking twice changes nothing', () => {
-  const c = edits.unlock(schema, root, 'PlayerFoundRelics', 'RelicType', ['DamageEye_Coop'])
+  const c = edits.unlock(schema, root, 'PlayerFoundRelics', ['DamageEye_Coop'])
   const next = run(root, c)
   expect(unlocked(schema, next, 'PlayerFoundRelics')).toEqual(new Set(['DamageEye_Coop']))
-  expect(edits.unlock(schema, next, 'PlayerFoundRelics', 'RelicType', ['DamageEye_Coop']).ops).toEqual([])
-  expect(unlocked(schema, run(next, edits.lock(schema, next, 'PlayerFoundRelics', 'RelicType', 'DamageEye_Coop')), 'PlayerFoundRelics')).toEqual(new Set())
+  expect(edits.unlock(schema, next, 'PlayerFoundRelics', ['DamageEye_Coop']).ops).toEqual([])
+  expect(unlocked(schema, run(next, edits.lock(schema, next, 'PlayerFoundRelics', 'DamageEye_Coop')), 'PlayerFoundRelics')).toEqual(new Set())
 })
 
 test('unlock all is one change with one op per locked id', () => {
-  const c = edits.unlock(schema, root, 'PlayerFoundTrinkets', 'TarotCards.Card', ['Arrows', 'AttackRate'])
+  const c = edits.unlock(schema, root, 'PlayerFoundTrinkets', ['Arrows', 'AttackRate'])
   expect([c.label, c.ops.length]).toEqual(['2 unlocked in PlayerFoundTrinkets', 2])
 })
 

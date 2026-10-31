@@ -1,0 +1,59 @@
+name: Save opens read-only or will not write back
+description: Report a save the editor cannot safely export.
+labels: ["type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not upload a real save to this public issue or include cult or follower names.
+        Describe the problem first. Ask the maintainer here for a private sharing method and wait for their instructions.
+        If a scrubbed-copy export is available, inspect it before sharing; otherwise do not assume an ordinary export is scrubbed.
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: Game platform and operating system.
+    validations:
+      required: true
+  - type: input
+    id: format
+    attributes:
+      label: Save format
+      description: PC 1.5+ [pc-mp], PC before 1.5 [pc-json], JSON [plain-json], Apple [apple-zb], Switch [switch-mp], or unknown.
+    validations:
+      required: true
+  - type: input
+    id: game-version
+    attributes:
+      label: Game version
+      description: The version that wrote the save, or unknown.
+    validations:
+      required: true
+  - type: input
+    id: editor-version
+    attributes:
+      label: Editor version
+      description: Enter the version or commit if known; otherwise enter unknown and the date you used save.cotl.info.
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: Browser name and version.
+    validations:
+      required: true
+  - type: textarea
+    id: contents
+    attributes:
+      label: What does the save contain?
+      description: Relevant DLC, mods, progress, or unusual data. Use no personal names or save contents.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps and result
+      description: How did you open the save, what message appeared, and what did you expect?
+    validations:
+      required: true

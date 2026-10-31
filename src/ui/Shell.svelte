@@ -50,6 +50,10 @@
     <main>{@render children()}</main>
     {#if inspector}<aside aria-label={t('insp.title')}>{@render inspector()}</aside>{/if}
   </div>
+  <footer aria-label={t('about.title')}>
+    <a href="/third-party-licenses.txt" target="_blank" rel="noreferrer">{t('about.licenses')}</a>
+    <span>{t('about.gameNotice')}</span>
+  </footer>
 </div>
 
 <style>
@@ -71,6 +75,8 @@
   main { flex: 1; min-width: 0; padding: 20px 24px; }
   aside { flex: 0 0 340px; max-width: 360px; border-left: 1px solid var(--border); background: var(--surface-1); padding: 20px;
     position: sticky; top: var(--header-h); align-self: flex-start; max-height: calc(100vh - var(--header-h)); overflow-y: auto; }
+  footer { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 12px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+  footer a { color: inherit; }
   @media (max-width: 767px) {
     header { padding: 8px 12px; }
     .menu { display: inline-flex; }
@@ -80,5 +86,6 @@
     main { padding: 16px; }
     aside { position: fixed; inset: auto 0 0 0; max-width: none; max-height: 75vh; border-left: 0; border-top: 1px solid var(--border);
       border-radius: var(--radius-12) var(--radius-12) 0 0; z-index: 20; top: auto; }
+    footer { padding-inline: 16px; }
   }
 </style>
