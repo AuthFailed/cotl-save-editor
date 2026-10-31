@@ -1,0 +1,46 @@
+import { expect, test } from '@playwright/test'
+import { openSynthetic } from './fixtures'
+
+const changes = (page: import('@playwright/test').Page) => page.getByRole('banner').getByRole('button', { name: /change/ })
+
+test('inventory: search, set a quantity, add an item', async ({ page }) => {
+  await openSynthetic(page, 'inventory')
+  const main = page.getByRole('main')
+  await main.getByLabel('Search items').fill('log')
+  await expect(main.getByRole('listitem')).toHaveCount(1)
+  await main.getByLabel('Lumber', { exact: true }).fill('99')
+  await main.getByLabel('Lumber', { exact: true }).press('Enter')
+  await expect(changes(page)).toHaveText('1 change')
+  await main.getByLabel('Search items').fill('')
+  await main.getByRole('button', { name: 'Add item' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Add an item' })
+  await dialog.getByLabel('Search items').fill('berry')
+  await dialog.getByRole('button', { name: 'Berry', exact: true }).click()
+  await expect(main.getByRole('listitem').filter({ hasText: 'Berry' })).toBeVisible()
+  await expect(changes(page)).toHaveText('2 changes')
+})
+
+test('collection: tarot shows owned and locked in words, and unlock all is one change', async ({ page }) => {
+  await openSynthetic(page, 'collection')
+  const main = page.getByRole('main')
+  await main.getByRole('tab', { name: /Tarot/ }).click()
+  const card = main.getByRole('button', { name: /^Fervour's Host/ }).first()
+  await expect(card).toHaveAttribute('aria-pressed', 'false')
+  await expect(card).toContainText('Locked')
+  await card.click()
+  await expect(card).toHaveAttribute('aria-pressed', 'true')
+  const all = main.getByRole('button', { name: /^Unlock all/ })
+  await expect(all).toHaveText(/Unlock all \d+/)
+  await all.click()
+  await expect(changes(page)).toHaveText('2 changes')
+  await expect(main.getByRole('button', { name: /^Unlock all/ })).toBeDisabled()
+})
+
+test('cult: rituals and crown abilities come from the save enum', async ({ page }) => {
+  await openSynthetic(page, 'cult')
+  const main = page.getByRole('main')
+  await main.getByRole('tab', { name: /Rituals/ }).click()
+  await expect(main.getByText(/of 31 unlocked/)).toBeVisible()
+  await main.getByRole('tab', { name: /Crown/ }).click()
+  await expect(main.getByText(/of 5 unlocked/)).toBeVisible()
+})

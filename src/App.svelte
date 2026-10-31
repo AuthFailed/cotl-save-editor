@@ -2,8 +2,11 @@
   import { saveSchemaFor } from './data/api'
   import { cat, initLanguage } from './data/catalogs.svelte'
   import { session, type SchemaFor } from './model/session.svelte'
+  import Collection from './ui/Collection.svelte'
+  import Cult from './ui/Cult.svelte'
   import FollowerInspector from './ui/FollowerInspector.svelte'
   import Followers from './ui/Followers.svelte'
+  import Inventory from './ui/Inventory.svelte'
   import Open from './ui/Open.svelte'
   import Overview from './ui/Overview.svelte'
   import Shell from './ui/Shell.svelte'
@@ -35,7 +38,10 @@
   {#if route.page === 'open'}<Open {schemaFor} />
   {:else if session.slot}
     {#if route.page === 'overview'}<Overview />
-    {:else if route.page === 'followers'}<Followers />{/if}
+    {:else if route.page === 'followers'}<Followers />
+    {:else if route.page === 'inventory'}<Inventory />
+    {:else if route.page === 'cult'}<Cult />
+    {:else if route.page === 'collection'}<Collection />{/if}
   {/if}
 </Shell>
 
