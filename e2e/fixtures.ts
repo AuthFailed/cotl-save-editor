@@ -10,3 +10,12 @@ export async function savesFolder(): Promise<string> {
   for (const f of await syntheticSaves()) writeFileSync(join(dir, f.name), f.bytes)
   return dir
 }
+
+import type { Page } from '@playwright/test'
+/** Opens the synthetic save and lands on a page. */
+export async function openSynthetic(page: Page, to = 'overview') {
+  await page.goto('/')
+  await page.getByLabel('Choose your saves folder').setInputFiles(await savesFolder())
+  await page.getByRole('listitem').filter({ hasText: 'Test Cult' }).getByRole('button', { name: 'Open' }).click()
+  if (to !== 'overview') await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: new RegExp(to, 'i') }).click()
+}

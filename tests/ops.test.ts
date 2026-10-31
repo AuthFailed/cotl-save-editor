@@ -70,3 +70,10 @@ describe.skipIf(!hasSaves)('real saves', () => {
     expect((next as any).v.filter((_: MpNode, i: number) => i !== 1109).map(encodeMp)).toEqual((r as any).v.filter((_: MpNode, i: number) => i !== 1109).map(encodeMp))
   })
 })
+
+test('root fields and follower traits', () => {
+  const next = run(root, edits.setRoot(schema, root, 'CultName', 'New Cult', 'Cult name'), edits.addTrait(schema, root, 0, 'AnimalLover'))
+  expect([(next as any).v[410].v, followers(schema, next)[0].traits]).toEqual(['New Cult', ['AnimalLover']])
+  expect(followers(schema, run(next, edits.removeTrait(schema, next, 0, 'AnimalLover'))).at(0)!.traits).toEqual([])
+  expect(edits.addTrait(schema, next, 0, 'AnimalLover').ops).toEqual([])
+})

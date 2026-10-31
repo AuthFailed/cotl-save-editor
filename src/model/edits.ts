@@ -36,6 +36,28 @@ export const edits = {
     return { label: `${f.name} · ${label}`, ops: Object.entries(values).map(([k, value]): Op => ({ kind: 'set', path: [...base, k], value, guard })) }
   },
 
+  setRoot(schema: SaveSchema, root: MpNode, fieldName: string, value: unknown, what: string): Change {
+    const old = toPlain(get(schema, root, schema.roots.slot, [fieldName])?.node ?? { t: 'nil' })
+    return { label: `${what} ${old ?? '—'} → ${value}`, ops: [{ kind: 'set', path: [fieldName], value }] }
+  },
+
+  addTrait(schema: SaveSchema, root: MpNode, who: Who, trait: string, name?: string): Change {
+    const { f, base, guard } = followerAt(schema, root, who)
+    if (f.traits.includes(trait)) return { label: '', ops: [] }
+    const value = enumValue(schema, 'FollowerTrait.TraitType', trait)
+    if (value === undefined) throw new RangeError(`Unknown trait ${trait}`)
+    const sample = get(schema, nodeAt(schema, root, base), 'FollowerInfo', ['Traits', '0'])?.node
+    return { label: `${f.name} gains ${name ?? trait}`, ops: [{ kind: 'insert', path: [...base, 'Traits'], index: f.traits.length,
+      node: nodeLike(sample, value, { enum: 'FollowerTrait.TraitType' }), guard }] }
+  },
+
+  removeTrait(schema: SaveSchema, root: MpNode, who: Who, trait: string, name?: string): Change {
+    const { f, base, guard } = followerAt(schema, root, who)
+    const index = f.traits.indexOf(trait)
+    if (index < 0) return { label: '', ops: [] }
+    return { label: `${f.name} loses ${name ?? trait}`, ops: [{ kind: 'remove', path: [...base, 'Traits'], index, guard }] }
+  },
+
   revive(schema: SaveSchema, root: MpNode, deadIndex: number): Change {
     const { f, base, guard } = followerAt(schema, root, { index: deadIndex, dead: true })
     return { label: `${f.name} revived`, ops: [

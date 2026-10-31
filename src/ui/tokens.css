@@ -7,6 +7,7 @@
   --chip-faithful-bg: #12261A; --chip-faithful: #7CDB95; --chip-hungry-bg: #2A2110; --chip-hungry: #F5C26B;
   --chip-ill-bg: #1F1C30; --chip-ill: #B9AEF5; --chip-dead-bg: #2C1413; --chip-dead: #FF8D84;
   --chip-elderly-bg: #1F1E1C; --chip-elderly: #CFC8BE;
+  --icon-tile: #1E1F24;
   --radius-6: 6px; --radius-8: 8px; --radius-10: 10px; --radius-12: 12px;
   --font: 'Geist Variable', system-ui, sans-serif; --mono: 'Geist Mono Variable', ui-monospace, monospace;
   color-scheme: dark;
@@ -41,6 +42,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 a { color: var(--accent-text); }
 :focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+.tile { background: var(--icon-tile); border-radius: var(--radius-6); padding: 2px; }
+.num { font-variant-numeric: tabular-nums; }
 .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .btn { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: var(--radius-8);

@@ -1,0 +1,63 @@
+import { expect, test } from '@playwright/test'
+import { openSynthetic } from './fixtures'
+
+const changes = (page: import('@playwright/test').Page) => page.getByRole('banner').getByRole('button', { name: /change/ })
+
+test('overview shows the cult at a glance', async ({ page }) => {
+  await openSynthetic(page)
+  const main = page.getByRole('main')
+  await expect(main.getByLabel('Cult name', { exact: true })).toHaveValue('Test Cult')
+  await expect(main).toContainText('Day 47')
+  await expect(main.getByLabel('Gold', { exact: true })).toHaveValue('300')
+})
+
+test('the followers table filters, selects and edits', async ({ page }) => {
+  await openSynthetic(page, 'followers')
+  const table = page.getByRole('table')
+  await expect(table.getByRole('row')).toHaveCount(4)
+  await expect(table).toContainText('Hungry')
+  await page.getByRole('button', { name: /^Dead/ }).click()
+  await expect(table.getByRole('row')).toHaveCount(2)
+  await page.getByRole('button', { name: /^All/ }).click()
+  await table.getByRole('button', { name: 'Pip' }).click()
+  const inspector = page.getByRole('complementary', { name: 'Inspector' })
+  await inspector.getByLabel('Level', { exact: true }).fill('4')
+  await inspector.getByLabel('Level', { exact: true }).press('Enter')
+  await expect(changes(page)).toHaveText('1 change')
+  await inspector.getByRole('button', { name: 'Change form' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Choose a form' })
+  await dialog.getByLabel('Search forms').fill('fox')
+  await dialog.getByRole('button', { name: 'Fox', exact: true }).click()
+  await expect(inspector).toContainText('Fox')
+  await expect(changes(page)).toHaveText('2 changes')
+})
+
+test('revive, bulk max needs, and the discard prompt', async ({ page }) => {
+  await openSynthetic(page, 'followers')
+  const table = page.getByRole('table')
+  await table.getByRole('button', { name: 'Thistle' }).click()
+  await page.getByRole('complementary', { name: 'Inspector' }).getByRole('button', { name: 'Revive' }).click()
+  await expect(table.getByRole('row').filter({ hasText: 'Thistle' })).not.toContainText('Dead')
+  await table.getByRole('checkbox', { name: 'Select Pip' }).check()
+  await table.getByRole('checkbox', { name: 'Select Ash' }).check()
+  await page.getByRole('button', { name: 'Max needs' }).click()
+  await expect(changes(page)).toHaveText('3 changes')
+  await expect(table.getByRole('row').filter({ hasText: 'Pip' })).toContainText('Faithful')
+  page.once('dialog', d => { expect(d.message()).toBe('Discard 3 unexported changes?'); d.dismiss() })
+  await page.getByRole('link', { name: 'Open' }).click()
+  await page.getByLabel('Choose your saves folder').setInputFiles(await (await import('./fixtures')).savesFolder())
+  await page.getByRole('listitem').filter({ hasText: 'Test Cult' }).getByRole('button', { name: 'Open' }).click()
+  await expect(changes(page)).toHaveText('3 changes')
+})
+
+test('at phone width the inspector is a sheet with a close button', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 })
+  await openSynthetic(page)
+  await page.getByRole('button', { name: 'Menu' }).click()
+  await page.getByRole('link', { name: /followers/i }).click()
+  await page.getByRole('table').getByRole('button', { name: 'Pip' }).click()
+  const inspector = page.getByRole('complementary', { name: 'Inspector' })
+  await expect(inspector).toBeVisible()
+  await inspector.getByRole('button', { name: 'Close' }).click()
+  await expect(inspector).toBeHidden()
+})
