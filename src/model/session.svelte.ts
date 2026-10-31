@@ -195,4 +195,9 @@ export function revert(i: number) {
   }
 }
 
-export const hasUnexported = () => session.changes.length > 0
+/** Unexported changes in every slot opened this visit: the open one plus every kept one (kept never holds the open slot). */
+export function unexported() {
+  let n = session.changes.length
+  for (const s of kept.values()) n += s.changes.length
+  return n
+}

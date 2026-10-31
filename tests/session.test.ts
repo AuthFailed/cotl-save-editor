@@ -3,7 +3,8 @@ import { describe, expect, test } from 'vitest'
 import { edits } from '../src/model/edits'
 import { SaveFormatError } from '../src/codec/errors'
 import { saveSave } from '../src/codec/formats'
-import { adopt, discard, failure, hasUnexported, keyOf, listSlots, openSlot, pendingFor, push, redo, revert, session, undo } from '../src/model/session.svelte'
+import { exportSlot } from '../src/model/export'
+import { adopt, discard, failure, keyOf, listSlots, openSlot, pendingFor, push, redo, revert, session, undo, unexported } from '../src/model/session.svelte'
 import { schema, syntheticFiles, syntheticSaves } from './synthetic'
 import { hasSaves, unreadable } from './util'
 
@@ -23,11 +24,11 @@ test('opening a slot fills the session; an op makes it unexported', async () => 
   const picked = await syntheticFiles()
   const [entry] = await listSlots(picked, loadSchema)
   await openSlot(entry, loadSchema)
-  expect([session.slot?.name, session.meta?.name, session.readOnly, hasUnexported()]).toEqual([...picked.map(f => f.name), false, false])
+  expect([session.slot?.name, session.meta?.name, session.readOnly, unexported()]).toEqual([...picked.map(f => f.name), false, 0])
   expect(push(() => edits.rename(schema, session.root!, 0, 'Gerald'))).toBe(true)
-  expect(hasUnexported()).toBe(true)
+  expect(unexported()).toBe(1)
   undo()
-  expect(hasUnexported()).toBe(false)
+  expect(unexported()).toBe(0)
   redo()
   expect(session.changes.map(c => c.label)).toEqual(['Pip renamed to Gerald'])
 })
@@ -134,6 +135,29 @@ test('reopening the open slot keeps newer edits than an older stash', async () =
   expect(session.changes.length).toBe(2)
 })
 
+const cultName = (name: string) => push(() => edits.setRoot(schema, session.root!, 'CultName', name, 'Cult name'))
+
+test('unexported counts kept slots once, and export spends only the open one', async () => {
+  const [a, b] = await twoSlots()
+  const base = unexported()
+  await openSlot(a, loadSchema)
+  cultName('One')
+  expect(unexported()).toBe(base + 1)
+  await openSlot(b, loadSchema)
+  expect(unexported()).toBe(base + 1)
+  cultName('Two')
+  cultName('Three')
+  expect(unexported()).toBe(base + 3)
+  await openSlot(a, loadSchema)
+  expect(unexported()).toBe(base + 3)
+  await exportSlot()
+  expect(unexported()).toBe(base + 2)
+  await openSlot(b, loadSchema)
+  undo()
+  undo()
+  expect(unexported()).toBe(base)
+})
+
 describe.skipIf(!hasSaves)('real saves', () => {
   test('a real folder: .mp wins over .json for the same slot, and slot 10 is listed', async () => {
     const dir = new URL('./saves/', import.meta.url)
@@ -151,5 +175,16 @@ describe.skipIf(!hasSaves)('real saves', () => {
     await openSlot(first[0], loadSchema)
     rename(0, 'Test')
     expect(pendingFor(second[0])).toBe(1)
+  })
+  test('edits in two real slots both count as unexported', async () => {
+    const dir = new URL('./saves/', import.meta.url)
+    const read = (n: string) => new File([readFileSync(new URL(n, dir))], n)
+    const base = unexported()
+    for (const n of [0, 10]) {
+      const [entry] = await listSlots([read(`slot_${n}.mp`), read(`meta_${n}.mp`)], loadSchema)
+      await openSlot(entry, loadSchema)
+      cultName('X')
+    }
+    expect(unexported()).toBe(base + 2)
   })
 })

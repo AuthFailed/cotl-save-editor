@@ -1,7 +1,7 @@
 <script lang="ts">
   import { saveSchemaFor } from './data/api'
   import { cat, initLanguage } from './data/catalogs.svelte'
-  import { changedOnDisk, failure, redo, session, undo, type SchemaFor, type SlotEntry } from './model/session.svelte'
+  import { changedOnDisk, failure, redo, session, undo, unexported, type SchemaFor, type SlotEntry } from './model/session.svelte'
   import Collection from './ui/Collection.svelte'
   import CommandPalette from './ui/CommandPalette.svelte'
   import Raw from './ui/Raw.svelte'
@@ -28,6 +28,8 @@
   const schemaFor: SchemaFor = saveSchemaFor
   initLanguage((() => { try { return localStorage.getItem('lang') } catch { return null } })())
   const n = $derived(session.changes.length)
+  const pending = $derived(unexported())
+  const title = document.title
   let palette = $state(false)
   const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
   let rawFilter = $state('')
@@ -65,6 +67,7 @@
   }
   // The page's language and direction follow the picker (screen readers, fonts, Arabic right to left).
   $effect(() => { document.documentElement.lang = cat.lang; document.documentElement.dir = RTL.has(cat.lang) ? 'rtl' : 'ltr' })
+  $effect(() => { document.title = pending ? `• ${t('slot.pending', { n: pending })} · ${title}` : title })
   // A page that needs a save sends you to Open when none is.
   $effect(() => { if (!session.slot && route.page !== 'open') go('open') })
 </script>
@@ -119,7 +122,7 @@
   {/if}
 </Shell>
 
-<svelte:window onkeydown={keys} />
+<svelte:window onkeydown={keys} onbeforeunload={e => { if (unexported()) e.preventDefault() }} />
 {#if detail.open}<DetailDialog />{/if}
 {#if reviewing}<Review onClose={() => (reviewing = false)} onExport={exportNow} />{/if}
 {#if palette}<CommandPalette onClose={() => (palette = false)} onRaw={f => { rawFilter = f; go('raw') }} />{/if}
