@@ -145,10 +145,9 @@ const ko: Dict = {
   'cmd.fields': "저장 파일 필드",
   'cmd.followersWith': "{name} 특성의 추종자",
   'cmd.hint': "↑↓ 이동 · Enter 열기 · Esc 닫기",
-  "about.title": "정보",
-  "about.licenses": "서드 파티 라이선스",
-  "about.gameNotice": "게임 아트와 데이터에는 이 라이선스가 적용되지 않습니다.",
-
+  'about.title': "정보",
+  'about.licenses': "서드 파티 라이선스",
+  'about.gameNotice': "게임 아트와 데이터에는 이 라이선스가 적용되지 않습니다.",
 }
 
 export default ko

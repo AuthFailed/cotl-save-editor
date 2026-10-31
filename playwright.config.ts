@@ -1,4 +1,3 @@
-import { existsSync } from 'node:fs'
 import { defineConfig, devices } from '@playwright/test'
 
 const port = Number(process.env.E2E_PORT ?? 5179)
@@ -12,7 +11,8 @@ export default defineConfig({
   use: { baseURL: `http://localhost:${port}`, ...devices['Desktop Chrome'], trace: ci ? 'retain-on-failure' : 'off' },
   // the production build: the service worker only exists there
   webServer: {
-    command: `${ci || existsSync('dist/index.html') ? '' : 'npm run build && '}npx vite preview --port ${port} --strictPort`,
+    // CI builds once in its own step; a local run always builds, so it never tests a stale dist
+    command: `${ci ? '' : 'npm run build && '}npx vite preview --port ${port} --strictPort`,
     port,
     reuseExistingServer: !ci,
   },

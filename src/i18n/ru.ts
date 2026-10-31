@@ -146,10 +146,9 @@ const ru: Dict = {
   'cmd.fields': "Поля сохранения",
   'cmd.followersWith': "Последователи с чертой «{name}»",
   'cmd.hint': "↑↓ — выбор · Enter — открыть · Esc — закрыть",
-  "about.title": "О проекте",
-  "about.licenses": "Лицензии сторонних компонентов",
-  "about.gameNotice": "Эти лицензии не распространяются на графику и данные игры.",
-
+  'about.title': "О проекте",
+  'about.licenses': "Лицензии сторонних компонентов",
+  'about.gameNotice': "Эти лицензии не распространяются на графику и данные игры.",
 }
 
 export default ru
