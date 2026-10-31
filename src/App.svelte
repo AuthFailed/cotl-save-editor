@@ -1,13 +1,11 @@
 <script lang="ts">
-  import fallback from './model/fallback-schema.json'
+  import { saveSchemaFor } from './data/api'
   import { session, type SchemaFor } from './model/session.svelte'
-  import type { SaveSchema } from './schema/schema'
   import Open from './ui/Open.svelte'
   import Shell from './ui/Shell.svelte'
   import { route } from './ui/route.svelte'
 
-  // Until the API client (and cotl-api's published schemas) are wired in, the bundled 1.5.26 schema names every save.
-  const schemaFor: SchemaFor = async version => ({ schema: fallback as SaveSchema, exact: version === (fallback as SaveSchema).gameVersion })
+  const schemaFor: SchemaFor = saveSchemaFor
 </script>
 
 <Shell opened={!!session.slot}>
