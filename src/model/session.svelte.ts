@@ -195,9 +195,10 @@ export function revert(i: number) {
   }
 }
 
-/** Unexported changes in every slot opened this visit: the open one plus every kept one (kept never holds the open slot). */
-export function unexported() {
+/** Unexported changes in every slot opened this visit: the open one plus every kept one (kept never holds the open slot).
+ * With `listed`, only those the player can still find: the open slot and the slots of the folder chosen last. */
+export function unexported(listed = false) {
   let n = session.changes.length
-  for (const s of kept.values()) n += s.changes.length
+  for (const [k, s] of kept) if (!listed || session.slots.some(e => keyOf(e) === k)) n += s.changes.length
   return n
 }

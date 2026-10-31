@@ -28,7 +28,8 @@
   const schemaFor: SchemaFor = saveSchemaFor
   initLanguage((() => { try { return localStorage.getItem('lang') } catch { return null } })())
   const n = $derived(session.changes.length)
-  const pending = $derived(unexported())
+  // Kept edits of another folder's slots still ask before leaving, but the tab counts only what the switcher shows.
+  const pending = $derived(unexported(true))
   const title = document.title
   let palette = $state(false)
   const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)

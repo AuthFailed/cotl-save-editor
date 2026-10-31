@@ -108,6 +108,9 @@ test('another folder with other contents under the same names is listed; the edi
   const [b] = await listSlots([new File([other as Uint8Array<ArrayBuffer>], picked[0].name), picked[1]], loadSchema)
   expect(await adopt([b])).toEqual([])
   expect([session.slots[0] === b, session.entry === a, pendingFor(a), pendingFor(b)]).toEqual([true, true, 1, 0])
+  const all = unexported()
+  await openSlot(b, loadSchema)
+  expect([unexported(true), unexported()]).toEqual([0, all])
 })
 
 test('a slot left with no changes whose file then changed will not open', async () => {
