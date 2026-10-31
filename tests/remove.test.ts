@@ -87,6 +87,28 @@ describe('kill and send away move a follower to the dead the way the game does',
     expect([P(back, 'Followers_Dead_IDs'), P(back, 'Followers', 1, 'TimeOfDeath')]).toEqual([[3], 0])
   })
 
+  test('undoing an earlier change on its own keeps the dead list in step with the dead', () => {
+    const first = edits.kill(schema, root, 1, 'DiedOfOldAge')
+    const second = edits.kill(schema, run(root, first), 0, '')
+    const r = run(root, ...revertOne(schema, root, [first, second], 0))
+    const revive = edits.revive(schema, root, 0)
+    const kill = edits.kill(schema, run(root, revive), 0, '')
+    const back = run(root, ...revertOne(schema, root, [revive, kill], 0))
+    expect([deadIds(r), P(r, 'Followers_Dead_IDs'), deadIds(back), P(back, 'Followers_Dead_IDs')]).toEqual([[3, 1], [3, 1], [3, 1], [3, 1]])
+  })
+
+  test('a living follower wrongly listed as dead ends up listed once, in step', () => {
+    const stray = run(root, edits.unlock(schema, root, 'Followers_Dead_IDs', ['1']))
+    const r = run(stray, edits.kill(schema, stray, 0, ''))
+    expect([P(r, 'Followers_Dead_IDs'), deadIds(r)]).toEqual([[3, 1], [3, 1]])
+  })
+
+  test('reviving someone sent away clears the leaving', () => {
+    const away = run(root, edits.sendAway(schema, root, 0))
+    const r = run(away, edits.revive(schema, away, 1))
+    expect(fields(r, ['Followers', 1], ['ID', 'LeavingCult', 'LeftCultDay'])).toEqual({ ID: 1, LeavingCult: false, LeftCultDay: 0 })
+  })
+
   test('a JSON send away keeps the record\'s own keys and lists it as dead', () => {
     const json = { Followers: [{ ID: 1, _name: 'A', Extra: 'a' }], Followers_Dead: [], Followers_Dead_IDs: [] }
     const tree = jsonToTree(schema, json)

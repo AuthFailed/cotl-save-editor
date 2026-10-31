@@ -25,10 +25,10 @@
   // Set afresh for each follower, and when they die or come back; edits to the same follower leave the player's choice alone.
   const dead = $derived(!!f?.dead)
   let young = $state(false)
-  $effect(() => { void selection.follower; void dead; young = untrack(() => f?.death === 'DiedOfOldAge') })
+  let cause = $state('')
+  $effect(() => { void selection.follower; void dead; young = untrack(() => f?.death === 'DiedOfOldAge'); cause = '' })
   // Older game versions number the outfit, location and old-age enums differently, so a young revive leaves them alone.
   const partial = $derived(young && !session.schemaExact)
-  let cause = $state('')
   const unique = $derived(!!f && uniqueIds(session.schema!, session.root!).has(f.id))
 
   const who = () => ({ index: f!.index, dead: f!.dead })
@@ -41,7 +41,7 @@
     if (v && v !== f!.name) push(() => edits.rename(session.schema!, session.root!, who(), v))
   }
   function remove() {
-    if (!confirm((unique ? t('insp.uniqueWarn', { name: f!.name }) + ' ' : '') + t('insp.deleteConfirm', { name: f!.name }))) return
+    if (!confirm((unique ? t('insp.uniqueWarn', { name: f!.name }) + ' ' : '') + t(f!.dead ? 'insp.deleteDeadConfirm' : 'insp.deleteConfirm', { name: f!.name }))) return
     push(() => edits.removeFollower(session.schema!, session.root!, who()))
   }
   function revive() {
@@ -49,9 +49,9 @@
     if (push(() => edits.revive(session.schema!, session.root!, index, young, session.schemaExact))) moved(id, false)
   }
   // Undoable, so only a unique follower, whom the game won't offer again, asks first.
-  function leave(make: (index: number) => Change) {
+  function leave(make: (index: number) => Change, ask: Key) {
     const { id, index, name } = f!
-    if (unique && !confirm(t('insp.uniqueWarn', { name }))) return
+    if (unique && !confirm(`${t('insp.uniqueWarn', { name })} ${t(ask, { name })}`)) return
     if (push(() => make(index))) moved(id, true)
   }
 </script>
@@ -110,12 +110,14 @@
         <button class="btn primary" disabled={session.readOnly} onclick={revive}><HeartPulse size={16} />{t('insp.revive')}</button>
       {:else}
         <div class="kill">
-          <select class="input" aria-label={t('insp.cause')} bind:value={cause} disabled={session.readOnly}>
-            {#each CAUSES as c (c)}<option value={c}>{c ? t(`death.${c}` as Key) : t('insp.causeOther')}</option>{/each}
-          </select>
-          <button class="btn" disabled={session.readOnly} onclick={() => leave(i => edits.kill(session.schema!, session.root!, i, cause))}><Skull size={16} />{t('insp.kill')}</button>
+          <label class="text">{t('insp.cause')}
+            <select class="input" bind:value={cause} disabled={session.readOnly}>
+              {#each CAUSES as c (c)}<option value={c}>{c ? t(`death.${c}` as Key) : t('insp.causeOther')}</option>{/each}
+            </select>
+          </label>
+          <button class="btn" disabled={session.readOnly} onclick={() => leave(i => edits.kill(session.schema!, session.root!, i, cause), 'insp.killAnyway')}><Skull size={16} />{t('insp.kill')}</button>
         </div>
-        <button class="btn" disabled={session.readOnly} onclick={() => leave(i => edits.sendAway(session.schema!, session.root!, i))}><DoorOpen size={16} />{t('insp.sendAway')}</button>
+        <button class="btn" disabled={session.readOnly} onclick={() => leave(i => edits.sendAway(session.schema!, session.root!, i), 'insp.sendAwayAnyway')}><DoorOpen size={16} />{t('insp.sendAway')}</button>
       {/if}
       <button class="btn" disabled={session.readOnly} onclick={() => push(() => edits.clone(session.schema!, session.root!, who()))}><Copy size={16} />{t('insp.clone')}</button>
       <button class="btn danger" disabled={session.readOnly} onclick={remove}><Trash2 size={16} />{t('insp.delete')}</button>
@@ -150,8 +152,8 @@
   .add { border-style: dashed; justify-content: center; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .actions .btn { flex: 1; justify-content: center; white-space: nowrap; }
-  .kill { flex-basis: 100%; display: flex; gap: 8px; }
-  .kill .input { flex: 1; min-width: 0; }
+  .kill { flex-basis: 100%; display: flex; gap: 8px; align-items: flex-end; }
+  .kill .text { flex: 1; min-width: 0; }
   .young { flex-basis: 100%; display: flex; align-items: center; gap: 8px; font-size: 14px; }
   .partial { flex-basis: 100%; margin-top: -4px; color: var(--muted); font-size: 12px; }
 </style>

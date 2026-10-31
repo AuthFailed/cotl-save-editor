@@ -8,6 +8,7 @@ import { nodeLike } from './build'
 type Guard = { path: string[]; value: unknown }
 export type Op = { guard?: Guard | Guard[] } & (
   | { kind: 'set'; path: string[]; value: unknown }
+  // index -1 appends to the list as it is at replay, so taking out an earlier change doesn't shift it
   | { kind: 'insert'; path: string[]; index: number; node: MpNode }
   | { kind: 'remove'; path: string[]; index: number }
   // move and clone read the element when they replay, so earlier edits to it carry over (and undo with it)
@@ -73,8 +74,7 @@ export function apply(schema: SaveSchema, root: MpNode, op: Op): MpNode {
     if (!node || node.t !== 'arr') throw new OpError(`${where}.${op.index}: no such entry`)
     if (op.kind === 'move') {
       const without = apply(schema, root, { kind: 'remove', path: op.path, index: op.index })
-      const at = get(schema, without, schema.roots.slot, op.to)?.node
-      return apply(schema, without, { kind: 'insert', path: op.to, index: at?.t === 'arr' ? at.v.length : 0, node })
+      return apply(schema, without, { kind: 'insert', path: op.to, index: -1, node })
     }
     // A clone would be an unlocked copy of what doesn't fit.
     if (unfit.has(node)) throw new OpError(tr('ops.unfit', { path: `${where}.${op.index}`, version: schema.gameVersion }))
@@ -82,8 +82,7 @@ export function apply(schema: SaveSchema, root: MpNode, op: Op): MpNode {
     if (!key) throw new OpError(`${op.set.type}.${op.set.field}: not in this schema`)
     const v = node.v.slice()
     v[key.key] = nodeLike(v[key.key], op.set.value, key.type)
-    const list = get(schema, root, schema.roots.slot, op.path)!.node as Extract<MpNode, { t: 'arr' }>
-    return apply(schema, root, { kind: 'insert', path: op.path, index: list.v.length, node: { ...node, v } })
+    return apply(schema, root, { kind: 'insert', path: op.path, index: -1, node: { ...node, v } })
   }
   return update(schema, root, rootType, op.path, 0, (node, type) => {
     if (op.kind === 'set') {
@@ -96,10 +95,11 @@ export function apply(schema: SaveSchema, root: MpNode, op: Op): MpNode {
       return node.t === 'nil' ? nodeLike(undefined, op.value, type) : setValue(node, op.value, where)
     }
     if (op.kind === 'insert') {
-      if (node.t === 'nil' && op.index === 0) return { t: 'arr', w: 'fix', v: [op.node] }
-      if (node.t !== 'arr' || op.index > node.v.length) throw new OpError(`${where}: can't insert at ${op.index}`)
+      const at = op.index < 0 && node.t === 'arr' ? node.v.length : op.index
+      if (node.t === 'nil' && at <= 0) return { t: 'arr', w: 'fix', v: [op.node] }
+      if (node.t !== 'arr' || at > node.v.length) throw new OpError(`${where}: can't insert at ${op.index}`)
       const v = node.v.slice()
-      v.splice(op.index, 0, op.node)
+      v.splice(at, 0, op.node)
       return { ...node, v, w: v.length > 15 && node.w === 'fix' ? 'a16' : node.w }
     }
     if ((node.t !== 'arr' && node.t !== 'map') || op.index >= node.v.length) throw new OpError(`${where}: no entry ${op.index} to remove`)

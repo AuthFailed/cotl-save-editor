@@ -78,10 +78,7 @@ function leave(schema: SaveSchema, root: MpNode, index: number, flag: string, ki
   ops.push({ kind: 'move', path: ['Followers'], index, to: ['Followers_Dead'], guard })
   // Appended where move puts the record, so the two lists stay in step; the game prepends, but only the pairing matters.
   const ids = get(schema, root, schema.roots.slot, ['Followers_Dead_IDs'])
-  if (ids) {
-    const v = ids.node.t === 'arr' ? ids.node.v : []
-    ops.push({ kind: 'insert', path: ['Followers_Dead_IDs'], index: v.filter(x => toPlain(x) !== f.id).length, node: nodeLike(v[0], f.id, 'int32') })
-  }
+  if (ids) ops.push({ kind: 'insert', path: ['Followers_Dead_IDs'], index: -1, node: nodeLike(ids.node.t === 'arr' ? ids.node.v[0] : undefined, f.id, 'int32') })
   return { label: withCleared(label(f.name), cleared), ops }
 }
 
