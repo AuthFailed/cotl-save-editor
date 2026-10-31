@@ -71,10 +71,29 @@ class Session {
   /** The last edit that couldn't be made, for the screens to show. */
   error = $state.raw<string | null>(null)
   readOnly = $state.raw(false)
+  /** The slots of the folder that was opened, for the switcher. */
+  slots = $state.raw<SlotEntry[]>([])
 }
 export const session = new Session()
 
+// Each slot's open state, kept while another slot is open, so switching never loses edits. Keyed by name, size and
+// date so choosing the same folder again finds them too.
+type Kept = Pick<Session, 'slot' | 'meta' | 'schema' | 'schemaExact' | 'saveVersion' | 'original' | 'root' | 'changes' | 'undone' | 'readOnly'>
+const kept = new Map<string, Kept>()
+const keyOf = (f: File) => `${f.name}:${f.size}:${f.lastModified}`
+export const pendingFor = (e: SlotEntry) =>
+  session.entry && keyOf(e.slotFile) === keyOf(session.entry.slotFile) ? session.changes.length : kept.get(keyOf(e.slotFile))?.changes.length ?? 0
+
 export async function openSlot(entry: SlotEntry, schemaFor: SchemaFor): Promise<void> {
+  if (session.entry && session.slot) {
+    const { slot, meta, schema, schemaExact, saveVersion, original, root, changes, undone, readOnly } = session
+    kept.set(keyOf(session.entry.slotFile), { slot, meta, schema, schemaExact, saveVersion, original, root, changes, undone, readOnly })
+  }
+  const back = kept.get(keyOf(entry.slotFile))
+  if (back) {
+    Object.assign(session, { entry, ...back, error: null })
+    return
+  }
   const slot = await read(entry.slotFile)
   const meta = entry.metaFile ? await read(entry.metaFile) : null
   const saveVersion = meta ? gameVersionOf(meta, (await schemaFor(null)).schema) : null

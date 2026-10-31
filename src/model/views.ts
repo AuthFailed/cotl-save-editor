@@ -75,8 +75,10 @@ export function unlocked(schema: SaveSchema, root: MpNode, fieldName: string): S
 export const value = (schema: SaveSchema, root: MpNode, name: string) => plain(schema, root, [name])
 
 /** A follower's SkinName as an API skin id: exact, else without its variant number (Unicorn2 → Unicorn). */
+// The API names a form after its first Spine skin, with anything but letters, digits, _ and - turned into _ (Fennec_Fox);
+// a save names the variant it uses (Fennec Fox3).
 export function skinId(name: string, api: Set<string>): string | null {
-  if (api.has(name)) return name
-  const base = name.replace(/\d+$/, '')
-  return api.has(base) ? base : null
+  const clean = name.replace(/[^A-Za-z0-9_-]/g, '_')
+  for (const id of [name, name.replace(/\d+$/, ''), clean, clean.replace(/\d+$/, '')]) if (api.has(id)) return id
+  return null
 }

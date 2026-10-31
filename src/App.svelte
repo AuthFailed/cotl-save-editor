@@ -9,6 +9,9 @@
   import { exportSlot } from './model/export'
   import Banner from './ui/Banner.svelte'
   import Prefs from './ui/Prefs.svelte'
+  import SlotSwitcher from './ui/SlotSwitcher.svelte'
+  import DetailDialog from './ui/DetailDialog.svelte'
+  import { detail } from './ui/detail.svelte'
   import Review from './ui/Review.svelte'
   import Cult from './ui/Cult.svelte'
   import FollowerInspector from './ui/FollowerInspector.svelte'
@@ -25,6 +28,7 @@
   initLanguage((() => { try { return localStorage.getItem('lang') } catch { return null } })())
   const n = $derived(session.changes.length)
   let palette = $state(false)
+  const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
   let rawFilter = $state('')
   let reviewing = $state(false)
   let exported = $state<string[] | null>(null)
@@ -62,14 +66,16 @@
   {#snippet status()}
     {#if session.slot}
       <span class="sep" aria-hidden="true">/</span>
-      <span class="mono file">{session.slot.name}</span>
+      <SlotSwitcher {schemaFor} />
       {#if session.meta}<span class="tag">{session.schema?.gameVersion}</span>{/if}
     {/if}
   {/snippet}
   {#snippet actions()}
     <Prefs />
     {#if session.slot}
-      <button class="btn" onclick={() => (palette = true)}><Search size={14} aria-hidden="true" />{t('top.search')} <kbd>⌘K</kbd></button>
+      <button class="searchbox" aria-label={t('top.search')} onclick={() => (palette = true)}>
+        <Search size={16} aria-hidden="true" /><span class="hint">{t('top.searchHint')}</span><kbd>{mac ? '⌘K' : 'Ctrl K'}</kbd>
+      </button>
       <button class="btn" onclick={() => (reviewing = true)}>{#if n}<span class="dot" aria-hidden="true"></span>{/if}{t('top.changes', { n })}</button>
       <button class="btn primary" disabled={!n || session.readOnly} onclick={exportNow}><Download size={16} aria-hidden="true" />{t('top.export')}</button>
     {/if}
@@ -102,6 +108,7 @@
 </Shell>
 
 <svelte:window onkeydown={keys} />
+{#if detail.open}<DetailDialog />{/if}
 {#if reviewing}<Review onClose={() => (reviewing = false)} onExport={exportNow} />{/if}
 {#if palette}<CommandPalette onClose={() => (palette = false)} onRaw={f => { rawFilter = f; go('raw') }} />{/if}
 
@@ -109,9 +116,14 @@
 
 <style>
   .sep { color: var(--border-strong); }
-  .file { font-size: 13px; color: var(--muted); }
+  @media (max-width: 767px) { .tag { display: none; } }
   .tag { font-size: 12px; padding: 2px 8px; border-radius: var(--radius-6); background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); }
-  kbd { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .searchbox { display: inline-flex; align-items: center; gap: 8px; height: 36px; width: clamp(180px, 22vw, 300px); padding: 0 6px 0 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-8); background: var(--surface-1); color: var(--faint); text-align: start; transition: border-color 150ms; }
+  .searchbox:hover { border-color: var(--border-strong); }
+  .searchbox .hint { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+  kbd { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 2px 6px; border: 1px solid var(--border); border-radius: var(--radius-6); background: var(--surface-2); }
+  @media (max-width: 767px) { .searchbox { width: 44px; height: 44px; justify-content: center; padding: 0; } .searchbox .hint, .searchbox kbd { display: none; } }
   .link { border: 0; background: none; padding: 0; color: inherit; text-decoration: underline; }
   .dot { width: 8px; height: 8px; border-radius: 4px; background: var(--warn); }
   .toast, .note { margin: 0 0 16px; padding: 10px 12px; border-radius: var(--radius-8); font-size: 14px; }

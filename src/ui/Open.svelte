@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Check, Copy, FolderOpen, Upload } from '@lucide/svelte'
-  import { hasUnexported, listSlots, openSlot, session, type SchemaFor, type SlotEntry } from '../model/session.svelte'
+  import { listSlots, openSlot, pendingFor, session, type SchemaFor, type SlotEntry } from '../model/session.svelte'
   import { t, type Key } from '../i18n/i18n.svelte'
   import { go } from './route.svelte'
 
@@ -13,7 +13,7 @@
     { os: 'os.linux' as Key, path: '~/.local/share/Steam/steamapps/compatdata/1313140/pfx/drive_c/users/steamuser/AppData/LocalLow/Massive Monster/Cult Of The Lamb/saves' },
   ]
 
-  let slots = $state<SlotEntry[] | null>(null)
+  let slots = $state<SlotEntry[] | null>(session.slots.length ? session.slots : null)
   let busy = $state(false)
   let dragging = $state(false)
   let copied = $state<string | null>(null)
@@ -24,6 +24,7 @@
     error = null
     try {
       slots = await listSlots(files, schemaFor)
+      session.slots = slots
       if (!slots.length) error = t('open.none')
     } finally { busy = false }
   }
@@ -48,7 +49,6 @@
   }
 
   async function open(entry: SlotEntry) {
-    if (hasUnexported() && !confirm(t('open.discard', { n: session.changes.length }))) return
     await openSlot(entry, schemaFor)
     go('overview')
   }
@@ -96,6 +96,7 @@
             {#if s.day != null}<span>{t('open.day', { n: s.day })}</span>{/if}
             {#if s.playTime != null}<span>{hours(s.playTime)}</span>{/if}
             <span class="chip">{t(`format.${s.format}`)}</span>
+            {#if pendingFor(s)}<span class="chip pending">{t('slot.pending', { n: pendingFor(s) })}</span>{/if}
             {#if s.beta}<span class="chip beta" title={t('open.betaHint')}>{t('open.beta')}</span>{/if}
           </span>
           <button class="btn primary" onclick={() => open(s)}>{t('open.open')}</button>
@@ -103,6 +104,8 @@
       {/each}
     </ul>
   {/if}
+
+  {#if slots?.length}<p class="hint">{t('open.kept')}</p>{/if}
 
   <h2>{t('open.where')}</h2>
   <p class="hint">{t('open.hint')}</p>
@@ -139,6 +142,7 @@
   .name { font-weight: 600; min-width: 160px; }
   .meta { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; color: var(--muted); font-size: 14px; }
   .chip { font-size: 12px; padding: 2px 8px; border-radius: var(--radius-6); background: var(--surface-3); border: 1px solid var(--border); }
+  .chip.pending { color: var(--warn); border-color: var(--warn-border); background: var(--warn-bg); }
   .chip.beta { color: var(--warn); border-color: var(--warn-border); background: var(--warn-bg); }
   .paths { margin: 0; display: flex; flex-direction: column; gap: 8px; }
   .paths div { display: flex; flex-direction: column; gap: 2px; }

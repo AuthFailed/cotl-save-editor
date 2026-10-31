@@ -44,3 +44,8 @@ test('language matches the browser to a game language', () => {
 test('icon paths resolve against the API', () => {
   expect([iconUrl('icons/items/64/LOG.png'), iconUrl(null)]).toEqual([`${API}icons/items/64/LOG.png`, null])
 })
+
+test('game names lose their colour markup', async () => {
+  served[`${API}en/items.json`] = [{ id: 'BROKEN_WEAPON_DAGGER', name: '<color=#FFD201>Blunt</color> Dagger', thumb: null }]
+  expect((await catalog('items', 'en'))?.get('BROKEN_WEAPON_DAGGER')?.name).toBe('Blunt Dagger')
+})

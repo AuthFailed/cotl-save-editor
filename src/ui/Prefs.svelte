@@ -43,6 +43,7 @@
 
 <style>
   .lang select { height: 36px; padding: 0 8px; border-radius: var(--radius-8); border: 1px solid var(--border); background: var(--surface-2); max-width: 140px; }
+  @media (max-width: 767px) { .lang select { height: 44px; max-width: 96px; } }
   .theme { position: relative; }
   .menu { position: absolute; right: 0; top: 42px; z-index: 30; min-width: 140px; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-10);
     background: var(--surface-1); display: flex; flex-direction: column; box-shadow: 0 8px 24px rgb(0 0 0 / .3); }

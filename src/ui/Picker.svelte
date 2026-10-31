@@ -1,11 +1,11 @@
 <script lang="ts">
   import { X } from '@lucide/svelte'
-  import { iconUrl } from '../data/api'
+  import Thumb from './Thumb.svelte'
   import { t } from '../i18n/i18n.svelte'
 
   type Item = { id: string; name: string; thumb: string | null; description?: string }
-  let { title, search, items, current, onPick, onClose, tile = false }: {
-    tile?: boolean; title: string; search: string; items: Item[]; current?: string; onPick: (id: string) => void; onClose: () => void
+  let { title, search, items, current, onPick, onClose, tile = false, kind = '' }: {
+    tile?: boolean; kind?: string; title: string; search: string; items: Item[]; current?: string; onPick: (id: string) => void; onClose: () => void
   } = $props()
 
   const id = $props.id()
@@ -25,7 +25,7 @@
     {#each shown as item (item.id)}
       <button class:current={item.id === current} aria-label={item.name} title={item.description || item.name}
         onclick={() => { onPick(item.id); dialog.close() }}>
-        {#if item.thumb}<img class:tile src={iconUrl(item.thumb)} alt="" loading="lazy" width="48" height="48" />{/if}
+        <Thumb src={item.thumb} {kind} size={48} {tile} />
         <span class="name">{item.name}</span>
         {#if item.description}<span class="desc">{item.description}</span>{/if}
       </button>
@@ -48,7 +48,6 @@
     border: 1px solid var(--border); background: var(--surface-2); text-align: center; transition: border-color 150ms; }
   .grid button:hover { border-color: var(--border-strong); }
   .grid button.current { border-color: var(--accent); }
-  img { object-fit: contain; }
   .name { font-size: 13px; font-weight: 500; }
   .desc { font-size: 12px; color: var(--muted); line-height: 1.35; }
   .none { grid-column: 1 / -1; color: var(--muted); }

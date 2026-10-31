@@ -4,10 +4,10 @@ import { join } from 'node:path'
 import { syntheticSaves } from '../tests/synthetic'
 
 /** A folder named "saves" holding the synthetic slot 0, for setInputFiles on the folder picker. */
-export async function savesFolder(version?: string, extra: Record<string, string> = {}): Promise<string> {
+export async function savesFolder(version?: string, extra: Record<string, string> = {}, slots = [0]): Promise<string> {
   const dir = join(mkdtempSync(join(tmpdir(), 'cotl-e2e-')), 'saves')
   mkdirSync(dir)
-  for (const f of await syntheticSaves(version)) writeFileSync(join(dir, f.name), f.bytes)
+  for (const f of await syntheticSaves(version)) for (const n of slots) writeFileSync(join(dir, f.name.replace('_0', `_${n}`)), f.bytes)
   for (const [name, text] of Object.entries(extra)) writeFileSync(join(dir, name), text)
   return dir
 }

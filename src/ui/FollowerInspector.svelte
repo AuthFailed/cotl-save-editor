@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { Copy, HeartPulse, Plus, Trash2, X } from '@lucide/svelte'
-  import { iconUrl } from '../data/api'
+  import { Copy, HeartPulse, Info, Plus, Trash2, X } from '@lucide/svelte'
+  import { detail } from './detail.svelte'
+  import Thumb from './Thumb.svelte'
   import { cat, entry, nameOf, want } from '../data/catalogs.svelte'
   import { edits } from '../model/edits'
   import { push, session } from '../model/session.svelte'
@@ -46,7 +47,7 @@
       <button class="btn ghost" aria-label={t('common.close')} onclick={() => (selection.follower = null)}><X size={16} /></button>
     </div>
     <div class="hero">
-      {#if form}<img src={iconUrl(`icons/skins/${form}.png`)} alt="{f.name}, {nameOf('skins', form)}" width="96" height="96" class:dead={f.dead} />{/if}
+      <Thumb src={form ? `icons/skins/${form}.png` : null} kind="skins" size={96} dim={f.dead} alt="{f.name}, {form ? nameOf('skins', form) : f.skin}" />
       <div>
         <div class="title">{f.name}</div>
         <div class="sub">{t('insp.id', { id: f.id })} · {nameOf('skins', form ?? f.skin)}{f.dead ? ` · ${t('insp.dead')}` : ''}</div>
@@ -74,8 +75,9 @@
       {#each f.traits as tr (tr)}
         {@const e = entry('traits', tr)}
         <div class="trait">
-          {#if e?.thumb}<img class="tile" src={iconUrl(e.thumb)} alt="" width="32" height="32" />{/if}
+          <Thumb src={e?.thumb} kind="traits" size={32} tile />
           <span><b>{e?.name ?? tr}</b>{#if e?.description}<small>{e.description}</small>{/if}</span>
+          <button class="btn ghost" aria-label={t('info.details', { name: e?.name ?? tr })} onclick={() => (detail.open = { kind: 'traits', id: tr })}><Info size={14} /></button>
           <button class="btn ghost" aria-label={t('insp.removeTrait', { name: e?.name ?? tr })} disabled={session.readOnly}
             onclick={() => push(() => edits.removeTrait(session.schema!, session.root!, who(), tr, e?.name))}><X size={14} /></button>
         </div>
@@ -93,10 +95,10 @@
   </div>
 
   {#if picking === 'form'}
-    <Picker title={t('insp.chooseForm')} search={t('insp.searchForms')} items={all('skins')} current={form ?? undefined} onClose={() => (picking = null)}
+    <Picker kind="skins" title={t('insp.chooseForm')} search={t('insp.searchForms')} items={all('skins')} current={form ?? undefined} onClose={() => (picking = null)}
       onPick={id => push(() => edits.setFollower(session.schema!, session.root!, who(), 'SkinName', id, t('what.form')))} />
   {:else if picking === 'trait'}
-    <Picker tile title={t('insp.addTraitTitle')} search={t('insp.searchTraits')} items={all('traits').filter(x => !f.traits.includes(x.id))} onClose={() => (picking = null)}
+    <Picker tile kind="traits" title={t('insp.addTraitTitle')} search={t('insp.searchTraits')} items={all('traits').filter(x => !f.traits.includes(x.id))} onClose={() => (picking = null)}
       onPick={id => push(() => edits.addTrait(session.schema!, session.root!, who(), id, nameOf('traits', id)))} />
   {/if}
 {/if}
@@ -105,8 +107,7 @@
   .insp { display: flex; flex-direction: column; gap: 18px; }
   .top { display: flex; justify-content: space-between; align-items: center; }
   .hero { display: flex; gap: 14px; align-items: center; }
-  .hero img { object-fit: contain; border-radius: var(--radius-12); background: var(--surface-3); }
-  .hero img.dead { filter: grayscale(1) brightness(.6); }
+  .hero :global(img), .hero :global(.ph) { border-radius: var(--radius-12); background: var(--surface-3); }
   .hero > div { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
   .title { font-size: 20px; font-weight: 600; }
   .sub { font-size: 13px; color: var(--faint); }
@@ -117,7 +118,6 @@
   .trait { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-8); background: var(--surface-2); }
   .trait span { flex: 1; display: flex; flex-direction: column; font-size: 14px; }
   .trait small { color: var(--muted); font-size: 12px; }
-  .trait img { object-fit: contain; }
   .none { margin: 0; color: var(--muted); font-size: 14px; }
   .add { border-style: dashed; justify-content: center; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; }

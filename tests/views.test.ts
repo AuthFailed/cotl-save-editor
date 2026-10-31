@@ -32,3 +32,9 @@ describe.skipIf(!hasSaves)('real saves', () => {
     expect(followers(schema, tree).length).toBeGreaterThan(0)
   })
 })
+
+test('save form names map to API ids the way the API builds them', () => {
+  const api = new Set(['Fennec_Fox', 'Unicorn', 'Fox'])
+  expect([skinId('Fennec Fox3', api), skinId('Fennec Fox', api), skinId('Unicorn2', api), skinId('Boss Death Cat', api)])
+    .toEqual(['Fennec_Fox', 'Fennec_Fox', 'Unicorn', null])
+})

@@ -18,10 +18,12 @@
     { page: 'raw', label: 'nav.raw', icon: Braces },
   ]
   let menu = $state(false)
+  // the header wraps at phone width; the drawer and sticky inspector sit under its real height
+  let headerH = $state(60)
 </script>
 
-<div class="app">
-  <header>
+<div class="app" style:--header-h="{headerH}px">
+  <header bind:clientHeight={headerH}>
     <button class="btn ghost menu" aria-label={t('nav.menu')} aria-expanded={menu} onclick={() => (menu = !menu)}>
       {#if menu}<X size={18} />{:else}<Menu size={18} />{/if}
     </button>
@@ -68,11 +70,11 @@
   nav a[aria-disabled='true'] { color: var(--faint); }
   main { flex: 1; min-width: 0; padding: 20px 24px; }
   aside { flex: 0 0 340px; max-width: 360px; border-left: 1px solid var(--border); background: var(--surface-1); padding: 20px;
-    position: sticky; top: 60px; align-self: flex-start; max-height: calc(100vh - 60px); overflow-y: auto; }
+    position: sticky; top: var(--header-h); align-self: flex-start; max-height: calc(100vh - var(--header-h)); overflow-y: auto; }
   @media (max-width: 767px) {
     header { padding: 8px 12px; }
     .menu { display: inline-flex; }
-    nav { display: none; position: fixed; inset: 60px 0 auto 0; z-index: 9; background: var(--bg); border-bottom: 1px solid var(--border); border-right: 0; }
+    nav { display: none; position: fixed; inset: var(--header-h) 0 auto 0; z-index: 9; max-height: calc(100vh - var(--header-h)); overflow-y: auto; background: var(--bg); border-bottom: 1px solid var(--border); border-right: 0; }
     nav.open { display: flex; }
     nav a { height: 44px; }
     main { padding: 16px; }

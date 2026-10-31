@@ -18,13 +18,16 @@ function json<T>(path: string): Promise<T | null> {
   return cache.get(path) as Promise<T | null>
 }
 
-type Full = { id: string; namePlain: Record<string, string>; descriptionPlain?: Record<string, string>; thumb: string | null } & Record<string, unknown>
+/** Game text without its markup (<color=#FFD201>…</color>, <sprite …>). */
+export const plain = (s: string) => s.replace(/<[^>]*>/g, '').trim()
+
+export type Full = { id: string; namePlain: Record<string, string>; descriptionPlain?: Record<string, string>; thumb: string | null } & Record<string, unknown>
 
 /** id → name and thumbnail in one language; with text, also the description (from the full list). */
 export async function catalog(kind: Kind, lang: string, text = false): Promise<Map<string, Entry> | null> {
   if (!text) {
     const slim = await json<Entry[]>(`${lang}/${kind}.json`)
-    return slim && new Map(slim.map(e => [e.id, e]))
+    return slim && new Map(slim.map(e => [e.id, { ...e, name: plain(e.name) }]))
   }
   const full = await json<Full[]>(`${kind}.json`)
   return full && new Map(full.map(e => [e.id, {
